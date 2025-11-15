@@ -19,7 +19,7 @@ Route::middleware('auth')->group(function () {
 });
 
 Route::get('/login', function () {
-    return view('auth.custom-login');
+    return view('auth.login');
 })->name('login');
 
 Route::post('/login', [AuthenticatedSessionController::class, 'store']);
