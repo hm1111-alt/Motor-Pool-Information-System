@@ -60,6 +60,43 @@ class UserSeeder extends Seeder
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
+            // New employee users
+            [
+                'name' => 'Maria Santos',
+                'email' => 'maria.santos@example.com',
+                'contact_num' => '09123456783',
+                'password' => Hash::make('password123'),
+                'role' => 'employees',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'name' => 'Juan Dela Cruz',
+                'email' => 'juan.delacruz@example.com',
+                'contact_num' => '09123456784',
+                'password' => Hash::make('password123'),
+                'role' => 'employees',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'name' => 'Ana Reyes',
+                'email' => 'ana.reyes@example.com',
+                'contact_num' => '09123456785',
+                'password' => Hash::make('password123'),
+                'role' => 'employees',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'name' => 'Carlos Garcia',
+                'email' => 'carlos.garcia@example.com',
+                'contact_num' => '09123456786',
+                'password' => Hash::make('password123'),
+                'role' => 'employees',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
         ]);
     }
 }

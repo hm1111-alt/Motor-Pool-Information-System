@@ -29,7 +29,9 @@ class DashboardController extends Controller
         } elseif ($user->isDriver()) {
             return view('dashboards.driver');
         } elseif ($user->isEmployee()) {
-            return view('dashboards.employee');
+            // Load the employee relationship
+            $user->load('employee');
+            return view('dashboards.employee', compact('user'));
         }
 
         // Default dashboard if no role matches

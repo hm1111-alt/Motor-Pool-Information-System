@@ -54,43 +54,40 @@ class User extends Authenticatable
         ];
     }
 
-    /**
-     * Check if user has a specific role
-     */
-    public function hasRole($role)
-    {
-        return $this->role === $role;
-    }
-
-    /**
-     * Check if user is an admin
-     */
-    public function isAdmin()
-    {
-        return $this->role === self::ROLE_ADMIN || $this->role === self::ROLE_MOTORPOOL_ADMIN;
-    }
-
-    /**
-     * Check if user is a motorpool admin
-     */
+    // Role checking methods
     public function isMotorpoolAdmin()
     {
         return $this->role === self::ROLE_MOTORPOOL_ADMIN;
     }
 
-    /**
-     * Check if user is a driver
-     */
+    public function isAdmin()
+    {
+        return $this->role === self::ROLE_ADMIN;
+    }
+
     public function isDriver()
     {
         return $this->role === self::ROLE_DRIVER;
     }
 
-    /**
-     * Check if user is an employee
-     */
     public function isEmployee()
     {
         return $this->role === self::ROLE_EMPLOYEE;
+    }
+
+    public function hasRole($role)
+    {
+        return $this->role === $role;
+    }
+
+    // Relationship methods
+    public function employee()
+    {
+        return $this->hasOne(Employee::class);
+    }
+
+    public function driver()
+    {
+        return $this->hasOne(Driver::class);
     }
 }

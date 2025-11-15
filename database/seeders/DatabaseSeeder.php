@@ -16,5 +16,14 @@ class DatabaseSeeder extends Seeder
     {
         // Call UserSeeder to insert test users
         $this->call(UserSeeder::class);
+        
+        // Call EmployeeSeeder to insert employee data
+        $this->call(EmployeeSeeder::class);
+        
+        // Call DriverSeeder to insert driver data
+        $this->call(DriverSeeder::class);
+        
+        // Call VehicleSeeder to insert vehicle data
+        $this->call(VehicleSeeder::class);
     }
 }
