@@ -17,11 +17,11 @@
                                 id="searchInput"
                                 value="{{ $search ?? '' }}"
                                 placeholder="Search travel orders..." 
-                                class="w-full rounded-l-lg border-gray-300 shadow-sm focus:border-[#009639] focus:ring focus:ring-[#009639] focus:ring-opacity-50 py-3 px-4 text-base"
+                                class="w-full rounded-l-lg border-gray-300 shadow-sm focus:border-[#009639] focus:ring focus:ring-[#009639] focus:ring-opacity-50 py-3 px-4 text-base transition duration-300 h-[50px]"
                             >
                             <button 
                                 id="searchButton"
-                                class="bg-[#009639] hover:bg-[#007d31] text-white px-6 py-3 rounded-r-lg transition duration-300 flex items-center text-base font-medium"
+                                class="bg-[#009639] hover:bg-[#007d31] text-white px-6 py-3 rounded-r-lg transition duration-300 flex items-center text-base font-medium shadow-sm hover:shadow-md h-[50px]"
                             >
                                 <i class="fas fa-search mr-2"></i> Search
                             </button>

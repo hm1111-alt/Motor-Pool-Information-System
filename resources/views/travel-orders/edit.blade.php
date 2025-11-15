@@ -42,7 +42,7 @@
                                     id="date_from" 
                                     name="date_from" 
                                     class="w-full rounded-md border-gray-300 shadow-sm focus:border-[#009639] focus:ring focus:ring-[#009639] focus:ring-opacity-50"
-                                    value="{{ old('date_from', $travelOrder->date_from) }}"
+                                    value="{{ old('date_from', $travelOrder->date_from ? $travelOrder->date_from->format('Y-m-d') : '') }}"
                                     required
                                 >
                                 @error('date_from')
@@ -60,7 +60,7 @@
                                     id="date_to" 
                                     name="date_to" 
                                     class="w-full rounded-md border-gray-300 shadow-sm focus:border-[#009639] focus:ring focus:ring-[#009639] focus:ring-opacity-50"
-                                    value="{{ old('date_to', $travelOrder->date_to) }}"
+                                    value="{{ old('date_to', $travelOrder->date_to ? $travelOrder->date_to->format('Y-m-d') : '') }}"
                                     required
                                 >
                                 @error('date_to')

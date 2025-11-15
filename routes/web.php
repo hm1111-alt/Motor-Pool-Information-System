@@ -3,6 +3,7 @@
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\TravelOrderController;
+use App\Http\Controllers\CalendarController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 
@@ -26,6 +27,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/travel-orders/{travelOrder}/edit', [TravelOrderController::class, 'edit'])->name('travel-orders.edit');
     Route::put('/travel-orders/{travelOrder}', [TravelOrderController::class, 'update'])->name('travel-orders.update');
     Route::delete('/travel-orders/{travelOrder}', [TravelOrderController::class, 'destroy'])->name('travel-orders.destroy');
+    
+    // Calendar Routes
+    Route::get('/vehicle-calendar', [CalendarController::class, 'index'])->name('vehicle-calendar.index');
+    Route::get('/vehicle-calendar/events', [CalendarController::class, 'getEvents'])->name('vehicle-calendar.events');
 });
 
 Route::get('/login', function () {
