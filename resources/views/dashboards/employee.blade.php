@@ -1,7 +1,11 @@
 <x-app-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            {{ __('Employee Dashboard') }}
+            @if($user->employee)
+                Welcome, {{ $user->employee->first_name }}!
+            @else
+                Welcome, {{ $user->name }}!
+            @endif
         </h2>
     </x-slot>
 
@@ -46,7 +50,7 @@
                             </div>
                         </div>
 
-                        <!-- My Requests Card -->
+                        <!-- My Requests Card (renamed from Create Travel Orders) -->
                         <div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-[#1e6031]">
                             <div class="flex items-center">
                                 <div class="rounded-full bg-[#ffd700] p-3 mr-4">
@@ -64,10 +68,28 @@
                             </div>
                         </div>
 
-                        <!-- Vehicle Availability Card -->
+                        <!-- Create Travel Order Card -->
                         <div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-[#e0a70d]">
                             <div class="flex items-center">
                                 <div class="rounded-full bg-[#1e6031] p-3 mr-4">
+                                    <svg class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                                    </svg>
+                                </div>
+                                <div>
+                                    <h3 class="text-lg font-semibold">Create Travel Order</h3>
+                                    <p class="text-gray-600">Submit a new travel request</p>
+                                </div>
+                            </div>
+                            <div class="mt-4">
+                                <a href="{{ route('travel-orders.create') }}" class="text-[#009639] hover:text-[#1e6031] font-medium">View Details →</a>
+                            </div>
+                        </div>
+
+                        <!-- Vehicle Availability Card -->
+                        <div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-[#009639]">
+                            <div class="flex items-center">
+                                <div class="rounded-full bg-[#ffd700] p-3 mr-4">
                                     <svg class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                                     </svg>
@@ -83,24 +105,6 @@
                         </div>
 
                         <!-- Travel History Card -->
-                        <div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-[#009639]">
-                            <div class="flex items-center">
-                                <div class="rounded-full bg-[#ffd700] p-3 mr-4">
-                                    <svg class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                                    </svg>
-                                </div>
-                                <div>
-                                    <h3 class="text-lg font-semibold">Travel History</h3>
-                                    <p class="text-gray-600">View your travel records</p>
-                                </div>
-                            </div>
-                            <div class="mt-4">
-                                <a href="#" class="text-[#009639] hover:text-[#1e6031] font-medium">View Details →</a>
-                            </div>
-                        </div>
-
-                        <!-- Reports Card -->
                         <div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-[#1e6031]">
                             <div class="flex items-center">
                                 <div class="rounded-full bg-[#e0a70d] p-3 mr-4">
@@ -109,8 +113,8 @@
                                     </svg>
                                 </div>
                                 <div>
-                                    <h3 class="text-lg font-semibold">Reports</h3>
-                                    <p class="text-gray-600">View travel and usage reports</p>
+                                    <h3 class="text-lg font-semibold">Travel History</h3>
+                                    <p class="text-gray-600">View your travel records</p>
                                 </div>
                             </div>
                             <div class="mt-4">

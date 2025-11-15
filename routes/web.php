@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\TravelOrderController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 
@@ -17,6 +18,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    
+    // Travel Order Routes
+    Route::get('/travel-orders/create', [TravelOrderController::class, 'create'])->name('travel-orders.create');
+    Route::post('/travel-orders', [TravelOrderController::class, 'store'])->name('travel-orders.store');
 });
 
 Route::get('/login', function () {
