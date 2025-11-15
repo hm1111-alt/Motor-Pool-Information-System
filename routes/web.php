@@ -20,8 +20,12 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
     
     // Travel Order Routes
+    Route::get('/travel-orders', [TravelOrderController::class, 'index'])->name('travel-orders.index');
     Route::get('/travel-orders/create', [TravelOrderController::class, 'create'])->name('travel-orders.create');
     Route::post('/travel-orders', [TravelOrderController::class, 'store'])->name('travel-orders.store');
+    Route::get('/travel-orders/{travelOrder}/edit', [TravelOrderController::class, 'edit'])->name('travel-orders.edit');
+    Route::put('/travel-orders/{travelOrder}', [TravelOrderController::class, 'update'])->name('travel-orders.update');
+    Route::delete('/travel-orders/{travelOrder}', [TravelOrderController::class, 'destroy'])->name('travel-orders.destroy');
 });
 
 Route::get('/login', function () {
