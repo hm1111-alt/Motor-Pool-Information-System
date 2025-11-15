@@ -47,6 +47,9 @@ class TravelOrderController extends Controller
                           ->whereNull('vp_approved');
                     })->orWhere(function ($q) {
                         $q->where('divisionhead_approved', 1)
+                          ->whereNull('vp_approved');
+                    })->orWhere(function ($q) {
+                        $q->where('divisionhead_approved', 1)
                           ->where('vp_approved', 0);
                     });
                 });
@@ -112,8 +115,8 @@ class TravelOrderController extends Controller
         $travelOrder->status = 'Not yet Approved'; // Default status
         $travelOrder->save();
 
-        // Redirect back with a success message
-        return redirect()->route('travel-orders.create')->with('success', 'Travel order submitted successfully!');
+        // Redirect to the travel orders index page with success message in session
+        return redirect()->route('travel-orders.index', ['tab' => 'pending'])->with('success', 'Travel order created successfully!');
     }
 
     /**
@@ -158,7 +161,7 @@ class TravelOrderController extends Controller
         $travelOrder->departure_time = $validatedData['departure_time'];
         $travelOrder->save();
 
-        // Redirect back with a success message
+        // Redirect to the travel orders index page with success message in session
         return redirect()->route('travel-orders.index', ['tab' => 'pending'])->with('success', 'Travel order updated successfully!');
     }
 
@@ -176,7 +179,7 @@ class TravelOrderController extends Controller
         // Delete the travel order
         $travelOrder->delete();
 
-        // Redirect back with a success message
+        // Redirect back with a success message in session
         return redirect()->route('travel-orders.index', ['tab' => 'pending'])->with('success', 'Travel order deleted successfully!');
     }
 }

@@ -109,7 +109,7 @@
                         <!-- Submit Button -->
                         <div class="flex items-center justify-end">
                             <a href="{{ route('travel-orders.index', ['tab' => 'pending']) }}" class="mr-4 text-gray-600 hover:text-gray-900">
-                                Cancel
+                                Back
                             </a>
                             <button 
                                 type="submit" 
