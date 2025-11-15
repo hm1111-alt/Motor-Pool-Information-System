@@ -1,0 +1,71 @@
+<x-app-layout>
+    <x-slot name="header">
+        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+            {{ __('Employee Dashboard') }}
+        </h2>
+    </x-slot>
+
+    <div class="py-12">
+        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+                <div class="p-6 text-gray-900">
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <!-- Vehicle Reservations Card -->
+                        <div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-[#009639]">
+                            <div class="flex items-center">
+                                <div class="rounded-full bg-[#e0a70d] p-3 mr-4">
+                                    <svg class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                    </svg>
+                                </div>
+                                <div>
+                                    <h3 class="text-lg font-semibold">Vehicle Reservations</h3>
+                                    <p class="text-gray-600">Request and manage vehicle bookings</p>
+                                </div>
+                            </div>
+                            <div class="mt-4">
+                                <a href="#" class="text-[#009639] hover:text-[#1e6031] font-medium">View Details →</a>
+                            </div>
+                        </div>
+
+                        <!-- My Requests Card -->
+                        <div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-[#ffd700]">
+                            <div class="flex items-center">
+                                <div class="rounded-full bg-[#009639] p-3 mr-4">
+                                    <svg class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                                    </svg>
+                                </div>
+                                <div>
+                                    <h3 class="text-lg font-semibold">My Requests</h3>
+                                    <p class="text-gray-600">View status of submitted requests</p>
+                                </div>
+                            </div>
+                            <div class="mt-4">
+                                <a href="#" class="text-[#009639] hover:text-[#1e6031] font-medium">View Details →</a>
+                            </div>
+                        </div>
+
+                        <!-- Vehicle Availability Card -->
+                        <div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-[#1e6031]">
+                            <div class="flex items-center">
+                                <div class="rounded-full bg-[#ffd700] p-3 mr-4">
+                                    <svg class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                    </svg>
+                                </div>
+                                <div>
+                                    <h3 class="text-lg font-semibold">Vehicle Availability</h3>
+                                    <p class="text-gray-600">Check current vehicle availability</p>
+                                </div>
+                            </div>
+                            <div class="mt-4">
+                                <a href="#" class="text-[#009639] hover:text-[#1e6031] font-medium">View Details →</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</x-app-layout>

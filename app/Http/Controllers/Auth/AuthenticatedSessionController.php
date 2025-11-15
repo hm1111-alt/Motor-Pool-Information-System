@@ -28,6 +28,20 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
+        // Redirect based on user role
+        $user = Auth::user();
+        
+        if ($user->isMotorpoolAdmin()) {
+            return redirect()->intended(route('dashboard', absolute: false));
+        } elseif ($user->isAdmin()) {
+            return redirect()->intended(route('dashboard', absolute: false));
+        } elseif ($user->isDriver()) {
+            return redirect()->intended(route('dashboard', absolute: false));
+        } elseif ($user->isEmployee()) {
+            return redirect()->intended(route('dashboard', absolute: false));
+        }
+
+        // Default redirect
         return redirect()->intended(route('dashboard', absolute: false));
     }
 

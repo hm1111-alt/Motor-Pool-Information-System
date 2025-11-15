@@ -1,0 +1,146 @@
+/* Custom CSS for Motorpool Information System */
+/* CLSU Brand Colors: #009639 (green), #ffd700 (yellow), #1e6031 (dark green), #e0a70d (gold) */
+
+:root {
+  --clsu-green: #009639;
+  --clsu-yellow: #ffd700;
+  --clsu-dark-green: #1e6031;
+  --clsu-gold: #e0a70d;
+}
+
+/* Focus styles using CLSU colors */
+.focus\:ring-clsu-green:focus {
+  --tw-ring-color: var(--clsu-green);
+}
+
+.focus\:border-clsu-green:focus {
+  --tw-border-opacity: 1;
+  border-color: var(--clsu-green);
+}
+
+/* Background colors */
+.bg-clsu-green {
+  background-color: var(--clsu-green);
+}
+
+.bg-clsu-yellow {
+  background-color: var(--clsu-yellow);
+}
+
+.bg-clsu-dark-green {
+  background-color: var(--clsu-dark-green);
+}
+
+.bg-clsu-gold {
+  background-color: var(--clsu-gold);
+}
+
+/* Text colors */
+.text-clsu-green {
+  color: var(--clsu-green);
+}
+
+.text-clsu-yellow {
+  color: var(--clsu-yellow);
+}
+
+.text-clsu-dark-green {
+  color: var(--clsu-dark-green);
+}
+
+.text-clsu-gold {
+  color: var(--clsu-gold);
+}
+
+/* Border colors */
+.border-clsu-green {
+  border-color: var(--clsu-green);
+}
+
+.border-clsu-yellow {
+  border-color: var(--clsu-yellow);
+}
+
+.border-clsu-dark-green {
+  border-color: var(--clsu-dark-green);
+}
+
+.border-clsu-gold {
+  border-color: var(--clsu-gold);
+}
+
+/* Hover effects */
+.hover\:bg-clsu-dark-green:hover {
+  background-color: var(--clsu-dark-green);
+}
+
+.hover\:text-clsu-dark-green:hover {
+  color: var(--clsu-dark-green);
+}
+
+.hover\:border-clsu-dark-green:hover {
+  border-color: var(--clsu-dark-green);
+}
+
+.hover\:bg-clsu-gold:hover {
+  background-color: var(--clsu-gold);
+}
+
+.hover\:text-clsu-gold:hover {
+  color: var(--clsu-gold);
+}
+
+.hover\:border-clsu-gold:hover {
+  border-color: var(--clsu-gold);
+}
+
+/* Focus styles */
+.focus\:ring-clsu-dark-green:focus {
+  --tw-ring-color: var(--clsu-dark-green);
+}
+
+.focus\:ring-clsu-gold:focus {
+  --tw-ring-color: var(--clsu-gold);
+}
+
+/* Button styles */
+.btn-clsu {
+  background-color: var(--clsu-green);
+  color: white;
+  border-radius: 0.375rem;
+  padding: 0.5rem 1rem;
+  font-weight: 500;
+  transition: all 0.15s ease-in-out;
+}
+
+.btn-clsu:hover {
+  background-color: var(--clsu-dark-green);
+}
+
+.btn-clsu:focus {
+  outline: 2px solid transparent;
+  outline-offset: 2px;
+  box-shadow: 0 0 0 3px rgba(0, 150, 57, 0.25);
+}
+
+/* Form input styles */
+.form-input-clsu {
+  border: 1px solid #d1d5db;
+  border-radius: 0.375rem;
+  padding: 0.5rem 0.75rem;
+  transition: all 0.15s ease-in-out;
+}
+
+.form-input-clsu:focus {
+  border-color: var(--clsu-green);
+  box-shadow: 0 0 0 3px rgba(0, 150, 57, 0.25);
+}
+
+/* Logo animation */
+.logo-animation {
+  transition: transform 0.3s ease-in-out;
+}
+
+.logo-animation:hover {
+  transform: scale(1.05);
+}
