@@ -17,11 +17,11 @@
                                 id="searchInput"
                                 value="{{ $search ?? '' }}"
                                 placeholder="Search travel orders..." 
-                                class="w-full rounded-l-lg border-gray-300 shadow-sm focus:border-[#009639] focus:ring focus:ring-[#009639] focus:ring-opacity-50 py-3 px-4"
+                                class="w-full rounded-l-lg border-gray-300 shadow-sm focus:border-[#009639] focus:ring focus:ring-[#009639] focus:ring-opacity-50 py-3 px-4 text-base"
                             >
                             <button 
                                 id="searchButton"
-                                class="bg-[#009639] hover:bg-[#007d31] text-white px-6 py-3 rounded-r-lg transition duration-300 flex items-center"
+                                class="bg-[#009639] hover:bg-[#007d31] text-white px-6 py-3 rounded-r-lg transition duration-300 flex items-center text-base font-medium"
                             >
                                 <i class="fas fa-search mr-2"></i> Search
                             </button>
@@ -51,18 +51,32 @@
                         <table class="min-w-full divide-y divide-gray-200" id="travelOrdersTable">
                             <thead class="bg-gray-50">
                                 <tr>
-                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Reference No.</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">No.</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Employee</th>
                                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Purpose</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Destination</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date From</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date To</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Departure Time</th>
                                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date Filed</th>
                                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Remarks</th>
                                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                                 </tr>
                             </thead>
                             <tbody class="bg-white divide-y divide-gray-200">
-                                @forelse($travelOrders as $order)
-                                    <tr class="hover:bg-gray-50 travel-order-row" data-reference="{{ $order->reference_number }}" data-purpose="{{ $order->purpose }}">
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ $order->reference_number }}</td>
+                                @forelse($travelOrders as $index => $order)
+                                    <tr class="hover:bg-gray-50 travel-order-row" 
+                                        data-reference="{{ $index + 1 }}" 
+                                        data-purpose="{{ $order->purpose }}"
+                                        data-employee="{{ $order->employee->full_name ?? 'N/A' }}"
+                                        data-destination="{{ $order->destination ?? 'N/A' }}">
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ $index + 1 }}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $order->employee->full_name ?? 'N/A' }}</td>
                                         <td class="px-6 py-4 text-sm text-gray-900 max-w-xs truncate">{{ $order->purpose }}</td>
+                                        <td class="px-6 py-4 text-sm text-gray-900">{{ $order->destination ?? 'N/A' }}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $order->date_from ? $order->date_from->format('M d, Y') : 'N/A' }}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $order->date_to ? $order->date_to->format('M d, Y') : 'N/A' }}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $order->departure_time ?? 'N/A' }}</td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $order->created_at->format('M d, Y') }}</td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm 
                                             @if($activeTab == 'approved') text-green-600 
@@ -89,7 +103,7 @@
                                                 <button 
                                                     class="text-red-600 hover:text-red-900 delete-btn" 
                                                     data-id="{{ $order->id }}"
-                                                    data-reference="{{ $order->reference_number }}"
+                                                    data-reference="{{ $index + 1 }}"
                                                 >
                                                     Delete
                                                 </button>
@@ -100,7 +114,7 @@
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="5" class="px-6 py-4 text-center text-sm text-gray-500">
+                                        <td colspan="10" class="px-6 py-4 text-center text-sm text-gray-500">
                                             No travel orders found.
                                         </td>
                                     </tr>
@@ -131,8 +145,13 @@
                 tableRows.forEach(row => {
                     const reference = row.getAttribute('data-reference').toLowerCase();
                     const purpose = row.getAttribute('data-purpose').toLowerCase();
+                    const employee = row.getAttribute('data-employee').toLowerCase();
+                    const destination = row.getAttribute('data-destination').toLowerCase();
                     
-                    if (reference.includes(searchTerm) || purpose.includes(searchTerm)) {
+                    if (reference.includes(searchTerm) || 
+                        purpose.includes(searchTerm) || 
+                        employee.includes(searchTerm) || 
+                        destination.includes(searchTerm)) {
                         row.style.display = '';
                     } else {
                         row.style.display = 'none';
