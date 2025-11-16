@@ -24,7 +24,7 @@
                                 id="purpose" 
                                 name="purpose" 
                                 rows="3" 
-                                class="w-full rounded-md border-gray-300 shadow-sm focus:border-[#009639] focus:ring focus:ring-[#009639] focus:ring-opacity-50"
+                                class="w-full rounded-md border-gray-300 shadow-sm focus:border-[#1e6031] focus:ring focus:ring-[#1e6031] focus:ring-opacity-50"
                                 placeholder="Enter the purpose of your travel..."
                                 required
                             >{{ old('purpose', $travelOrder->purpose) }}</textarea>
@@ -43,7 +43,7 @@
                                     type="date" 
                                     id="date_from" 
                                     name="date_from" 
-                                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-[#009639] focus:ring focus:ring-[#009639] focus:ring-opacity-50"
+                                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-[#1e6031] focus:ring focus:ring-[#1e6031] focus:ring-opacity-50"
                                     value="{{ old('date_from', $travelOrder->date_from ? $travelOrder->date_from->format('Y-m-d') : '') }}"
                                     required
                                 >
@@ -61,7 +61,7 @@
                                     type="date" 
                                     id="date_to" 
                                     name="date_to" 
-                                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-[#009639] focus:ring focus:ring-[#009639] focus:ring-opacity-50"
+                                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-[#1e6031] focus:ring focus:ring-[#1e6031] focus:ring-opacity-50"
                                     value="{{ old('date_to', $travelOrder->date_to ? $travelOrder->date_to->format('Y-m-d') : '') }}"
                                     required
                                 >
@@ -80,7 +80,7 @@
                                 type="text" 
                                 id="destination" 
                                 name="destination" 
-                                class="w-full rounded-md border-gray-300 shadow-sm focus:border-[#009639] focus:ring focus:ring-[#009639] focus:ring-opacity-50"
+                                class="w-full rounded-md border-gray-300 shadow-sm focus:border-[#1e6031] focus:ring focus:ring-[#1e6031] focus:ring-opacity-50"
                                 placeholder="Enter your destination..."
                                 value="{{ old('destination', $travelOrder->destination) }}"
                                 required
@@ -99,7 +99,7 @@
                                 type="time" 
                                 id="departure_time" 
                                 name="departure_time" 
-                                class="w-full rounded-md border-gray-300 shadow-sm focus:border-[#009639] focus:ring focus:ring-[#009639] focus:ring-opacity-50"
+                                class="w-full rounded-md border-gray-300 shadow-sm focus:border-[#1e6031] focus:ring focus:ring-[#1e6031] focus:ring-opacity-50"
                                 value="{{ old('departure_time', $travelOrder->departure_time) }}"
                                 required
                             >
@@ -115,7 +115,7 @@
                             </a>
                             <button 
                                 type="submit" 
-                                class="bg-[#009639] hover:bg-[#1e6031] text-white font-medium py-2 px-6 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#009639] transition duration-300"
+                                class="bg-[#1e6031] hover:bg-[#1e6031] text-white font-medium py-2 px-6 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#1e6031] transition duration-300"
                             >
                                 Update Travel Order
                             </button>
@@ -135,7 +135,7 @@
                 text: '{{ session('success') }}',
                 icon: 'success',
                 confirmButtonText: 'OK',
-                confirmButtonColor: '#009639'
+                confirmButtonColor: '#1e6031'
             });
         @endif
 
@@ -151,7 +151,7 @@
                 text: errorMessages,
                 icon: 'error',
                 confirmButtonText: 'OK',
-                confirmButtonColor: '#009639'
+                confirmButtonColor: '#1e6031'
             });
         @endif
     </script>

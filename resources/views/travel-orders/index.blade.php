@@ -19,11 +19,11 @@
                                 id="searchInput"
                                 value="{{ $search ?? '' }}"
                                 placeholder="Search travel orders..." 
-                                class="flex-1 rounded-lg border-gray-300 shadow-sm focus:border-[#009639] focus:ring focus:ring-[#009639] focus:ring-opacity-50 py-2 px-4 text-base transition duration-300 min-h-[42px]"
+                                class="flex-1 rounded-lg border-gray-300 shadow-sm focus:border-[#1e6031] focus:ring focus:ring-[#1e6031] focus:ring-opacity-50 py-2 px-4 text-base transition duration-300 min-h-[42px]"
                             >
                             <button 
                                 id="searchButton"
-                                class="bg-[#009639] hover:bg-[#007d31] text-white px-4 py-2 rounded-lg transition duration-300 flex items-center text-base font-medium shadow-sm hover:shadow-md min-h-[42px] justify-center">
+                                class="bg-[#1e6031] hover:bg-[#1e6031] text-white px-4 py-2 rounded-lg transition duration-300 flex items-center text-base font-medium shadow-sm hover:shadow-md min-h-[42px] justify-center">
                                 <i class="fas fa-search mr-2"></i> Search
                             </button>
                         </div>
@@ -33,15 +33,15 @@
                     <div class="border-b border-gray-200 mb-6 overflow-x-auto">
                         <nav class="-mb-px flex space-x-6 md:space-x-8 min-w-max">
                             <a href="?tab=pending" 
-                               class="whitespace-nowrap pb-3 px-1 border-b-2 font-medium text-sm {{ $activeTab == 'pending' ? 'border-[#009639] text-[#009639]' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' }}">
+                               class="whitespace-nowrap pb-3 px-1 border-b-2 font-medium text-sm {{ $activeTab == 'pending' ? 'border-[#1e6031] text-[#1e6031]' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' }}">
                                 Pending
                             </a>
                             <a href="?tab=approved" 
-                               class="whitespace-nowrap pb-3 px-1 border-b-2 font-medium text-sm {{ $activeTab == 'approved' ? 'border-[#009639] text-[#009639]' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' }}">
+                               class="whitespace-nowrap pb-3 px-1 border-b-2 font-medium text-sm {{ $activeTab == 'approved' ? 'border-[#1e6031] text-[#1e6031]' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' }}">
                                 Approved
                             </a>
                             <a href="?tab=cancelled" 
-                               class="whitespace-nowrap pb-3 px-1 border-b-2 font-medium text-sm {{ $activeTab == 'cancelled' ? 'border-[#009639] text-[#009639]' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' }}">
+                               class="whitespace-nowrap pb-3 px-1 border-b-2 font-medium text-sm {{ $activeTab == 'cancelled' ? 'border-[#1e6031] text-[#1e6031]' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' }}">
                                 Cancelled
                             </a>
                         </nav>
@@ -99,7 +99,7 @@
                                         </td>
                                         <td class="px-4 py-3 whitespace-nowrap text-sm font-medium">
                                             @if($activeTab == 'pending')
-                                                <a href="{{ route('travel-orders.edit', $order) }}" class="text-[#009639] hover:text-[#007d31] mr-3">Edit</a>
+                                                <a href="{{ route('travel-orders.edit', $order) }}" class="text-[#1e6031] hover:text-[#1e6031] mr-3">Edit</a>
                                                 <a href="#" class="text-blue-600 hover:text-blue-900 mr-3">View</a>
                                                 <button 
                                                     class="text-red-600 hover:text-red-900 delete-btn" 
@@ -189,7 +189,7 @@
                         icon: 'warning',
                         showCancelButton: true,
                         confirmButtonColor: '#d33',
-                        cancelButtonColor: '#009639',
+                        cancelButtonColor: '#1e6031',
                         confirmButtonText: 'Yes, delete it!',
                         cancelButtonText: 'Cancel'
                     }).then((result) => {

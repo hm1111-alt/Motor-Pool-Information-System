@@ -9,19 +9,19 @@
 
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">
-        <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
+        <link href="https://fonts.bunny.net/css?family=libre-franklin:400,500,600&display=swap" rel="stylesheet" />
 
         <!-- Scripts -->
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
-    <body class="font-sans antialiased h-full">
+    <body class="font-libre-franklin antialiased h-full">
         <div class="flex min-h-screen bg-gray-50">
             <!-- Collapsible Sidebar -->
             <div x-data="{ sidebarOpen: true }" class="flex">
                 <!-- Sidebar -->
                 <div :class="sidebarOpen ? 'w-64 md:w-64' : 'w-20'" class="bg-white shadow-lg transition-all duration-300 ease-in-out flex flex-col h-screen sticky top-0 overflow-hidden">
                     <!-- Sidebar Header -->
-                    <div class="flex items-center justify-between p-4 border-b border-gray-200 bg-[#009639]">
+                    <div class="flex items-center justify-between p-4 border-b border-gray-200 bg-[#1e6031]">
                         <div :class="sidebarOpen ? 'block' : 'hidden'" class="text-xl font-semibold text-white truncate">
                             Employee Panel
                         </div>
@@ -47,7 +47,7 @@
                                         {{ auth()->user()->name }}
                                     @endif
                                 </p>
-                                <a href="{{ route('profile.edit') }}" class="text-xs text-[#009639] hover:text-[#007d31] font-medium truncate block mt-1">
+                                <a href="{{ route('profile.edit') }}" class="text-xs text-[#1e6031] hover:text-[#007d31] font-medium truncate block mt-1">
                                     Manage Profile
                                 </a>
                             </div>
@@ -57,7 +57,7 @@
                     <nav class="flex-1 px-2 py-4 overflow-y-auto">
                         <!-- My Requests -->
                         <a href="{{ route('travel-orders.index') }}" class="flex items-center px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors duration-200 mb-1">
-                            <div class="rounded-lg bg-[#009639] p-2 mr-3 flex-shrink-0">
+                            <div class="rounded-lg bg-[#1e6031] p-2 mr-3 flex-shrink-0">
                                 <svg class="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                                 </svg>
@@ -67,7 +67,7 @@
                         
                         <!-- Create Travel Order -->
                         <a href="{{ route('travel-orders.create') }}" class="flex items-center px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors duration-200 mb-1">
-                            <div class="rounded-lg bg-[#009639] p-2 mr-3 flex-shrink-0">
+                            <div class="rounded-lg bg-[#1e6031] p-2 mr-3 flex-shrink-0">
                                 <svg class="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                                 </svg>
@@ -77,7 +77,7 @@
                         
                         <!-- Vehicle Calendar -->
                         <a href="{{ route('vehicle-calendar.index') }}" class="flex items-center px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors duration-200 mb-1">
-                            <div class="rounded-lg bg-[#009639] p-2 mr-3 flex-shrink-0">
+                            <div class="rounded-lg bg-[#1e6031] p-2 mr-3 flex-shrink-0">
                                 <svg class="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                                 </svg>
@@ -87,7 +87,7 @@
                         
                         <!-- Travel History -->
                         <a href="#" class="flex items-center px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors duration-200 mb-1">
-                            <div class="rounded-lg bg-[#009639] p-2 mr-3 flex-shrink-0">
+                            <div class="rounded-lg bg-[#1e6031] p-2 mr-3 flex-shrink-0">
                                 <svg class="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                                 </svg>
@@ -100,7 +100,7 @@
                         <form method="POST" action="{{ route('logout') }}">
                             @csrf
                             <button type="submit" class="w-full flex items-center px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors duration-200">
-                                <div class="rounded-lg bg-[#009639] p-2 mr-3 flex-shrink-0">
+                                <div class="rounded-lg bg-[#1e6031] p-2 mr-3 flex-shrink-0">
                                     <svg class="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                                     </svg>

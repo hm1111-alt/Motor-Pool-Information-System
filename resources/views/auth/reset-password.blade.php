@@ -5,8 +5,8 @@
     <div class="max-w-md w-full space-y-8">
         <div>
             <!-- Motorpool Logo -->
-            <div class="mx-auto h-24 w-24 rounded-full bg-white flex items-center justify-center border-4 border-[#009639] shadow-lg">
-                <svg class="h-16 w-16 text-[#009639]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <div class="mx-auto h-24 w-24 rounded-full bg-white flex items-center justify-center border-4 border-[#1e6031] shadow-lg">
+                <svg class="h-16 w-16 text-[#1e6031]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M5 13l4 4L19 7" />
                     <circle cx="12" cy="12" r="10" stroke-width="1.5" fill="none" />
                 </svg>
@@ -39,7 +39,7 @@
                         required 
                         autofocus 
                         autocomplete="username"
-                        class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-[#009639] focus:border-[#009639] sm:text-sm"
+                        class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-[#1e6031] focus:border-[#1e6031] sm:text-sm"
                     >
                     @error('email')
                         <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
@@ -59,7 +59,7 @@
                         type="password" 
                         required 
                         autocomplete="new-password"
-                        class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-[#009639] focus:border-[#009639] sm:text-sm"
+                        class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-[#1e6031] focus:border-[#1e6031] sm:text-sm"
                     >
                     @error('password')
                         <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
@@ -79,7 +79,7 @@
                         type="password" 
                         required 
                         autocomplete="new-password"
-                        class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-[#009639] focus:border-[#009639] sm:text-sm"
+                        class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-[#1e6031] focus:border-[#1e6031] sm:text-sm"
                     >
                     @error('password_confirmation')
                         <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
@@ -90,7 +90,7 @@
             <div>
                 <button 
                     type="submit" 
-                    class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-[#009639] hover:bg-[#1e6031] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#009639]"
+                    class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-[#1e6031] hover:bg-[#1e6031] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#1e6031]"
                 >
                     Reset Password
                 </button>

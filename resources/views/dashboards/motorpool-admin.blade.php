@@ -11,7 +11,7 @@
                 <div class="p-6 text-gray-900">
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         <!-- Vehicle Management Card -->
-                        <div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-[#009639]">
+                        <div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-[#1e6031]">
                             <div class="flex items-center">
                                 <div class="rounded-full bg-[#e0a70d] p-3 mr-4">
                                     <svg class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -24,14 +24,14 @@
                                 </div>
                             </div>
                             <div class="mt-4">
-                                <a href="#" class="text-[#009639] hover:text-[#1e6031] font-medium">View Details →</a>
+                                <a href="#" class="text-[#1e6031] hover:text-[#1e6031] font-medium">View Details →</a>
                             </div>
                         </div>
 
                         <!-- Driver Management Card -->
                         <div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-[#ffd700]">
                             <div class="flex items-center">
-                                <div class="rounded-full bg-[#009639] p-3 mr-4">
+                                <div class="rounded-full bg-[#1e6031] p-3 mr-4">
                                     <svg class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                                     </svg>
@@ -42,7 +42,7 @@
                                 </div>
                             </div>
                             <div class="mt-4">
-                                <a href="#" class="text-[#009639] hover:text-[#1e6031] font-medium">View Details →</a>
+                                <a href="#" class="text-[#1e6031] hover:text-[#1e6031] font-medium">View Details →</a>
                             </div>
                         </div>
 
@@ -60,7 +60,7 @@
                                 </div>
                             </div>
                             <div class="mt-4">
-                                <a href="#" class="text-[#009639] hover:text-[#1e6031] font-medium">View Details →</a>
+                                <a href="#" class="text-[#1e6031] hover:text-[#1e6031] font-medium">View Details →</a>
                             </div>
                         </div>
 
@@ -79,12 +79,12 @@
                                 </div>
                             </div>
                             <div class="mt-4">
-                                <a href="#" class="text-[#009639] hover:text-[#1e6031] font-medium">View Details →</a>
+                                <a href="#" class="text-[#1e6031] hover:text-[#1e6031] font-medium">View Details →</a>
                             </div>
                         </div>
 
                         <!-- Reservations Card -->
-                        <div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-[#009639]">
+                        <div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-[#1e6031]">
                             <div class="flex items-center">
                                 <div class="rounded-full bg-[#ffd700] p-3 mr-4">
                                     <svg class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -97,7 +97,7 @@
                                 </div>
                             </div>
                             <div class="mt-4">
-                                <a href="#" class="text-[#009639] hover:text-[#1e6031] font-medium">View Details →</a>
+                                <a href="#" class="text-[#1e6031] hover:text-[#1e6031] font-medium">View Details →</a>
                             </div>
                         </div>
 
@@ -116,7 +116,7 @@
                                 </div>
                             </div>
                             <div class="mt-4">
-                                <a href="#" class="text-[#009639] hover:text-[#1e6031] font-medium">View Details →</a>
+                                <a href="#" class="text-[#1e6031] hover:text-[#1e6031] font-medium">View Details →</a>
                             </div>
                         </div>
                     </div>

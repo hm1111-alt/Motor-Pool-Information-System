@@ -18,7 +18,7 @@
                         <div class="flex flex-col sm:flex-row items-start sm:items-center gap-3 w-full md:w-auto">
                             <div class="flex items-center gap-2 w-full sm:w-auto">
                                 <label for="month-select" class="text-gray-700 font-medium whitespace-nowrap">Month:</label>
-                                <select id="month-select" class="border border-gray-200 rounded-md px-3 py-2 text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#009639] focus:border-transparent bg-white shadow-sm w-full">
+                                <select id="month-select" class="border border-gray-200 rounded-md px-3 py-2 text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#1e6031] focus:border-transparent bg-white shadow-sm w-full">
                                     <option value="0">January</option>
                                     <option value="1">February</option>
                                     <option value="2">March</option>
@@ -36,7 +36,7 @@
                             
                             <div class="flex items-center gap-2 w-full sm:w-auto">
                                 <label for="year-select" class="text-gray-700 font-medium whitespace-nowrap">Year:</label>
-                                <select id="year-select" class="border border-gray-200 rounded-md px-3 py-2 text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#009639] focus:border-transparent bg-white shadow-sm w-full">
+                                <select id="year-select" class="border border-gray-200 rounded-md px-3 py-2 text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#1e6031] focus:border-transparent bg-white shadow-sm w-full">
                                     <!-- Options will be populated by JavaScript -->
                                 </select>
                             </div>
@@ -66,7 +66,7 @@
                 <div id="modal-description" class="text-gray-700 text-sm md:text-base"></div>
             </div>
             <div class="mt-6 flex justify-end">
-                <button id="modal-close-btn" class="px-4 py-2 bg-[#009639] text-white rounded-md hover:bg-[#007d31] focus:outline-none focus:ring-2 focus:ring-[#009639] focus:ring-offset-2 text-sm md:text-base">Close</button>
+                <button id="modal-close-btn" class="px-4 py-2 bg-[#1e6031] text-white rounded-md hover:bg-[#1e6031] focus:outline-none focus:ring-2 focus:ring-[#1e6031] focus:ring-offset-2 text-sm md:text-base">Close</button>
             </div>
         </div>
     </div>
@@ -83,11 +83,11 @@
             --fc-button-border-color: #e5e5e5;
             --fc-button-text-color: #333;
             --fc-button-hover-bg-color: #ffffff;
-            --fc-button-hover-border-color: #009639;
+            --fc-button-hover-border-color: #1e6031;
             --fc-button-active-bg-color: #e6f4ea;
-            --fc-button-active-border-color: #009639;
-            --fc-event-bg-color: #009639;
-            --fc-event-border-color: #009639;
+            --fc-button-active-border-color: #1e6031;
+            --fc-event-bg-color: #1e6031;
+            --fc-event-border-color: #1e6031;
             --fc-today-bg-color: #f0f9f2;
         }
         

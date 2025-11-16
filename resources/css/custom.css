@@ -1,8 +1,8 @@
 /* Custom CSS for Motorpool Information System */
-/* CLSU Brand Colors: #009639 (green), #ffd700 (yellow), #1e6031 (dark green), #e0a70d (gold) */
+/* CLSU Brand Colors: #1e6031 (green), #ffd700 (yellow), #1e6031 (dark green), #e0a70d (gold) */
 
 :root {
-  --clsu-green: #009639;
+  --clsu-green: #1e6031;
   --clsu-yellow: #ffd700;
   --clsu-dark-green: #1e6031;
   --clsu-gold: #e0a70d;
@@ -120,7 +120,7 @@
 .btn-clsu:focus {
   outline: 2px solid transparent;
   outline-offset: 2px;
-  box-shadow: 0 0 0 3px rgba(0, 150, 57, 0.25);
+  box-shadow: 0 0 0 3px rgba(30, 96, 49, 0.25);
 }
 
 /* Form input styles */
@@ -133,7 +133,7 @@
 
 .form-input-clsu:focus {
   border-color: var(--clsu-green);
-  box-shadow: 0 0 0 3px rgba(0, 150, 57, 0.25);
+  box-shadow: 0 0 0 3px rgba(30, 96, 49, 0.25);
 }
 
 /* Logo animation */
