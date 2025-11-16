@@ -11,6 +11,12 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-4 md:p-6 text-gray-900">
+                    <!-- Page Title -->
+                    <div class="mb-6">
+                        <h3 class="text-2xl font-bold text-gray-800">Travel Requests</h3>
+                        <p class="text-gray-600 mt-1">Manage your travel orders and view their status</p>
+                    </div>
+                    
                     <!-- Search Bar -->
                     <div class="mb-6">
                         <div class="flex flex-col sm:flex-row gap-2">
@@ -23,8 +29,8 @@
                             >
                             <button 
                                 id="searchButton"
-                                class="bg-[#1e6031] hover:bg-[#1e6031] text-white px-4 py-2 rounded-lg transition duration-300 flex items-center text-base font-medium shadow-sm hover:shadow-md min-h-[42px] justify-center">
-                                <i class="fas fa-search mr-2"></i> Search
+                                class="bg-[#1e6031] hover:bg-[#164f2a] text-white px-4 py-2 rounded-lg transition duration-300 flex items-center text-base font-medium shadow-sm hover:shadow-md min-h-[42px] justify-center">
+                                Search
                             </button>
                         </div>
                     </div>
@@ -48,80 +54,87 @@
                     </div>
 
                     <!-- Travel Orders Table -->
-                    <div class="overflow-x-auto rounded-lg shadow">
-                        <table class="min-w-full divide-y divide-gray-200" id="travelOrdersTable">
-                            <thead class="bg-gray-50">
-                                <tr>
-                                    <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">No.</th>
-                                    <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Employee</th>
-                                    <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Purpose</th>
-                                    <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Destination</th>
-                                    <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date From</th>
-                                    <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date To</th>
-                                    <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Departure</th>
-                                    <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Filed</th>
-                                    <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Remarks</th>
-                                    <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody class="bg-white divide-y divide-gray-200">
-                                @forelse($travelOrders as $index => $order)
-                                    <tr class="hover:bg-gray-50 travel-order-row" 
-                                        data-reference="{{ $index + 1 }}" 
-                                        data-purpose="{{ $order->purpose }}"
-                                        data-employee="{{ $order->employee->full_name ?? 'N/A' }}"
-                                        data-destination="{{ $order->destination ?? 'N/A' }}">
-                                        <td class="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">{{ $index + 1 }}</td>
-                                        <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{{ $order->employee->full_name ?? 'N/A' }}</td>
-                                        <td class="px-4 py-3 text-sm text-gray-900 max-w-xs truncate">{{ $order->purpose }}</td>
-                                        <td class="px-4 py-3 text-sm text-gray-900">{{ $order->destination ?? 'N/A' }}</td>
-                                        <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{{ $order->date_from ? $order->date_from->format('M d, Y') : 'N/A' }}</td>
-                                        <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{{ $order->date_to ? $order->date_to->format('M d, Y') : 'N/A' }}</td>
-                                        <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{{ $order->departure_time ?? 'N/A' }}</td>
-                                        <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{{ $order->created_at->format('M d, Y') }}</td>
-                                        <td class="px-4 py-3 whitespace-nowrap text-sm 
-                                            @if($activeTab == 'approved') text-green-600 
-                                            @elseif($activeTab == 'cancelled') text-red-600 
-                                            @else text-yellow-600 @endif">
-                                            @if($activeTab == 'pending')
-                                                @if($order->divisionhead_approved == 1 && is_null($order->vp_approved))
-                                                    For VP approval
-                                                @elseif($order->divisionhead_approved == 1 && $order->vp_approved == 0)
-                                                    For VP approval
-                                                @else
-                                                    Not yet approved
-                                                @endif
-                                            @elseif($activeTab == 'approved')
-                                                Approved
-                                            @else
-                                                Cancelled
-                                            @endif
-                                        </td>
-                                        <td class="px-4 py-3 whitespace-nowrap text-sm font-medium">
-                                            @if($activeTab == 'pending')
-                                                <a href="{{ route('travel-orders.edit', $order) }}" class="text-[#1e6031] hover:text-[#1e6031] mr-3">Edit</a>
-                                                <a href="#" class="text-blue-600 hover:text-blue-900 mr-3">View</a>
-                                                <button 
-                                                    class="text-red-600 hover:text-red-900 delete-btn" 
-                                                    data-id="{{ $order->id }}"
-                                                    data-reference="{{ $index + 1 }}"
-                                                >
-                                                    Delete
-                                                </button>
-                                            @else
-                                                <a href="#" class="text-blue-600 hover:text-blue-900">View</a>
-                                            @endif
-                                        </td>
-                                    </tr>
-                                @empty
+                    <div class="rounded-lg shadow overflow-hidden">
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-200" id="travelOrdersTable">
+                                <thead class="bg-gray-50">
                                     <tr>
-                                        <td colspan="10" class="px-4 py-3 text-center text-sm text-gray-500">
-                                            No travel orders found.
-                                        </td>
+                                        <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">#</th>
+                                        <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Purpose</th>
+                                        <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Destination</th>
+                                        <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Dates</th>
+                                        <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                        <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                                     </tr>
-                                @endforelse
-                            </tbody>
-                        </table>
+                                </thead>
+                                <tbody class="bg-white divide-y divide-gray-200">
+                                    @forelse($travelOrders as $index => $order)
+                                        <tr class="hover:bg-gray-50 travel-order-row" 
+                                            data-reference="{{ $index + 1 }}" 
+                                            data-purpose="{{ $order->purpose }}"
+                                            data-employee="{{ $order->employee->full_name ?? 'N/A' }}"
+                                            data-destination="{{ $order->destination ?? 'N/A' }}">
+                                            <td class="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">{{ $index + 1 }}</td>
+                                            <td class="px-4 py-3 text-sm text-gray-900 max-w-xs truncate">{{ $order->purpose }}</td>
+                                            <td class="px-4 py-3 text-sm text-gray-900">{{ $order->destination ?? 'N/A' }}</td>
+                                            <td class="px-4 py-3 text-sm text-gray-900">
+                                                <div>
+                                                    {{ $order->date_from ? $order->date_from->format('M d, Y') : 'N/A' }}<br>
+                                                    <span class="text-gray-500 text-xs">to</span><br>
+                                                    {{ $order->date_to ? $order->date_to->format('M d, Y') : 'N/A' }}
+                                                </div>
+                                            </td>
+                                            <td class="px-4 py-3 whitespace-nowrap text-sm">
+                                                @if($activeTab == 'pending')
+                                                    @if($order->divisionhead_approved == 1 && is_null($order->vp_approved))
+                                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                                            For VP approval
+                                                        </span>
+                                                    @elseif($order->divisionhead_approved == 1 && $order->vp_approved == 0)
+                                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                                            For VP approval
+                                                        </span>
+                                                    @else
+                                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                                            Not yet approved
+                                                        </span>
+                                                    @endif
+                                                @elseif($activeTab == 'approved')
+                                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                                        Approved
+                                                    </span>
+                                                @else
+                                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                                        Cancelled
+                                                    </span>
+                                                @endif
+                                            </td>
+                                            <td class="px-4 py-3 whitespace-nowrap text-sm font-medium">
+                                                @if($activeTab == 'pending')
+                                                    <a href="{{ route('travel-orders.edit', $order) }}" class="text-[#1e6031] hover:text-[#164f2a] mr-3">Edit</a>
+                                                    <a href="#" class="text-blue-600 hover:text-blue-900 mr-3">View</a>
+                                                    <button 
+                                                        class="text-red-600 hover:text-red-900 delete-btn" 
+                                                        data-id="{{ $order->id }}"
+                                                        data-reference="{{ $index + 1 }}"
+                                                    >
+                                                        Delete
+                                                    </button>
+                                                @else
+                                                    <a href="#" class="text-blue-600 hover:text-blue-900">View</a>
+                                                @endif
+                                            </td>
+                                        </tr>
+                                    @empty
+                                        <tr>
+                                            <td colspan="6" class="px-4 py-3 text-center text-sm text-gray-500">
+                                                No travel orders found.
+                                            </td>
+                                        </tr>
+                                    @endforelse
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
 
                     <!-- Pagination -->
