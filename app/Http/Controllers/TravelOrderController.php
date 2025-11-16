@@ -90,33 +90,77 @@ class TravelOrderController extends Controller
     /**
      * Store a newly created travel order in storage.
      */
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request)
     {
-        // Validate the request data
-        $validatedData = $request->validate([
-            'purpose' => 'required|string|max:255',
-            'date_from' => 'required|date',
-            'date_to' => 'required|date|after_or_equal:date_from',
-            'destination' => 'required|string|max:255',
-            'departure_time' => 'required|date_format:H:i',
-        ]);
+        \Log::info('Store method called');
+        \Log::info('Request headers: ' . json_encode($request->headers->all()));
+        \Log::info('Is AJAX: ' . ($request->ajax() ? 'true' : 'false'));
+        
+        try {
+            // Validate the request data
+            $validatedData = $request->validate([
+                'purpose' => 'required|string|max:255',
+                'date_from' => 'required|date',
+                'date_to' => 'required|date|after_or_equal:date_from',
+                'destination' => 'required|string|max:255',
+                'departure_time' => 'required|date_format:H:i',
+            ]);
 
-        // Get the authenticated user
-        $user = Auth::user();
+            // Get the authenticated user
+            $user = Auth::user();
 
-        // Create the travel order
-        $travelOrder = new TravelOrder();
-        $travelOrder->employee_id = $user->employee->id ?? null;
-        $travelOrder->purpose = $validatedData['purpose'];
-        $travelOrder->date_from = $validatedData['date_from'];
-        $travelOrder->date_to = $validatedData['date_to'];
-        $travelOrder->destination = $validatedData['destination'];
-        $travelOrder->departure_time = $validatedData['departure_time'];
-        $travelOrder->status = 'Not yet Approved'; // Default status
-        $travelOrder->save();
+            // Create the travel order
+            $travelOrder = new TravelOrder();
+            $travelOrder->employee_id = $user->employee->id ?? null;
+            $travelOrder->purpose = $validatedData['purpose'];
+            $travelOrder->date_from = $validatedData['date_from'];
+            $travelOrder->date_to = $validatedData['date_to'];
+            $travelOrder->destination = $validatedData['destination'];
+            $travelOrder->departure_time = $validatedData['departure_time'];
+            $travelOrder->status = 'Not yet Approved'; // Default status
+            $travelOrder->save();
 
-        // Redirect to the travel orders index page with success message in session
-        return redirect()->route('travel-orders.index', ['tab' => 'pending'])->with('success', 'Travel order created successfully!');
+            \Log::info('Travel order created successfully');
+            \Log::info('Is AJAX: ' . ($request->ajax() ? 'true' : 'false'));
+            
+            // Check if this is an AJAX request
+            if ($request->ajax()) {
+                \Log::info('AJAX request detected');
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Travel order created successfully!',
+                    'redirect' => route('travel-orders.index', ['tab' => 'pending'])
+                ]);
+            }
+
+            // Redirect to the travel orders index page with success message in session
+            return redirect()->route('travel-orders.index', ['tab' => 'pending'])->with('success', 'Travel order created successfully!');
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            \Log::error('Validation exception: ' . $e->getMessage());
+            // Handle validation errors for AJAX requests
+            if ($request->ajax()) {
+                $errors = $e->validator->errors()->all();
+                return response()->json([
+                    'success' => false,
+                    'message' => implode('\n', $errors)
+                ], 422);
+            }
+
+            // Re-throw for non-AJAX requests
+            throw $e;
+        } catch (\Exception $e) {
+            \Log::error('General exception: ' . $e->getMessage());
+            // Check if this is an AJAX request
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'An error occurred while creating the travel order. Please try again.'
+                ], 500);
+            }
+
+            // Redirect back with error message
+            return redirect()->back()->with('error', 'An error occurred while creating the travel order. Please try again.');
+        }
     }
 
     /**
@@ -168,18 +212,46 @@ class TravelOrderController extends Controller
     /**
      * Remove the specified travel order from storage.
      */
-    public function destroy(TravelOrder $travelOrder): RedirectResponse
+    public function destroy(Request $request, TravelOrder $travelOrder)
     {
-        // Ensure the travel order belongs to the authenticated user
-        $user = Auth::user();
-        if ($travelOrder->employee_id !== $user->employee->id) {
-            abort(403);
+        try {
+            // Ensure the travel order belongs to the authenticated user
+            $user = Auth::user();
+            if ($travelOrder->employee_id !== $user->employee->id) {
+                if ($request->ajax()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Unauthorized access.'
+                    ], 403);
+                }
+                abort(403);
+            }
+
+            // Delete the travel order
+            $travelOrder->delete();
+
+            // Check if this is an AJAX request
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Travel order deleted successfully!',
+                    'redirect' => route('travel-orders.index', ['tab' => 'pending'])
+                ]);
+            }
+
+            // Redirect back with a success message in session
+            return redirect()->route('travel-orders.index', ['tab' => 'pending'])->with('success', 'Travel order deleted successfully!');
+        } catch (\Exception $e) {
+            // Check if this is an AJAX request
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'An error occurred while deleting the travel order. Please try again.'
+                ], 500);
+            }
+
+            // Redirect back with error message
+            return redirect()->back()->with('error', 'An error occurred while deleting the travel order. Please try again.');
         }
-
-        // Delete the travel order
-        $travelOrder->delete();
-
-        // Redirect back with a success message in session
-        return redirect()->route('travel-orders.index', ['tab' => 'pending'])->with('success', 'Travel order deleted successfully!');
     }
 }

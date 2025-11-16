@@ -194,25 +194,48 @@
                         cancelButtonText: 'Cancel'
                     }).then((result) => {
                         if (result.isConfirmed) {
-                            // Submit the delete form
-                            const form = document.createElement('form');
-                            form.method = 'POST';
-                            form.action = `/travel-orders/${travelOrderId}`;
-                            
-                            const csrfToken = document.createElement('input');
-                            csrfToken.type = 'hidden';
-                            csrfToken.name = '_token';
-                            csrfToken.value = '{{ csrf_token() }}';
-                            
-                            const methodField = document.createElement('input');
-                            methodField.type = 'hidden';
-                            methodField.name = '_method';
-                            methodField.value = 'DELETE';
-                            
-                            form.appendChild(csrfToken);
-                            form.appendChild(methodField);
-                            document.body.appendChild(form);
-                            form.submit();
+                            // Send AJAX request to delete the travel order
+                            fetch(`/travel-orders/${travelOrderId}`, {
+                                method: 'DELETE',
+                                headers: {
+                                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                                    'X-Requested-With': 'XMLHttpRequest',
+                                    'Content-Type': 'application/json'
+                                }
+                            })
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.success) {
+                                    Swal.fire({
+                                        title: 'Deleted!',
+                                        text: data.message,
+                                        icon: 'success',
+                                        confirmButtonText: 'OK',
+                                        confirmButtonColor: '#1e6031'
+                                    }).then(() => {
+                                        // Reload the page to reflect the changes
+                                        window.location.href = data.redirect;
+                                    });
+                                } else {
+                                    Swal.fire({
+                                        title: 'Error!',
+                                        text: data.message || 'An error occurred while deleting the travel order.',
+                                        icon: 'error',
+                                        confirmButtonText: 'OK',
+                                        confirmButtonColor: '#1e6031'
+                                    });
+                                }
+                            })
+                            .catch(error => {
+                                console.error('Error:', error);
+                                Swal.fire({
+                                    title: 'Error!',
+                                    text: 'An unexpected error occurred. Please try again.',
+                                    icon: 'error',
+                                    confirmButtonText: 'OK',
+                                    confirmButtonColor: '#1e6031'
+                                });
+                            });
                         }
                     });
                 });

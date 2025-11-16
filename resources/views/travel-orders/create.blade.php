@@ -111,6 +111,7 @@
                             <button 
                                 type="submit" 
                                 class="bg-[#1e6031] hover:bg-[#1e6031] text-white font-medium py-2 px-6 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#1e6031] transition duration-300"
+                                id="submitBtn"
                             >
                                 Submit Travel Order
                             </button>
@@ -149,5 +150,101 @@
                 confirmButtonColor: '#1e6031'
             });
         @endif
+
+        // Client-side form validation with SweetAlert
+        document.getElementById('travelOrderForm').addEventListener('submit', function(e) {
+            e.preventDefault(); // Prevent default form submission
+            
+            // Get form values
+            const purpose = document.getElementById('purpose').value.trim();
+            const dateFrom = document.getElementById('date_from').value;
+            const dateTo = document.getElementById('date_to').value;
+            const destination = document.getElementById('destination').value.trim();
+            const departureTime = document.getElementById('departure_time').value;
+            
+            // Validate required fields
+            if (!purpose || !dateFrom || !dateTo || !destination || !departureTime) {
+                Swal.fire({
+                    title: 'Error!',
+                    text: 'Please fill in all required fields.',
+                    icon: 'error',
+                    confirmButtonText: 'OK',
+                    confirmButtonColor: '#1e6031'
+                });
+                return;
+            }
+            
+            // Validate date range
+            if (new Date(dateTo) < new Date(dateFrom)) {
+                Swal.fire({
+                    title: 'Error!',
+                    text: 'End date must be after or equal to start date.',
+                    icon: 'error',
+                    confirmButtonText: 'OK',
+                    confirmButtonColor: '#1e6031'
+                });
+                return;
+            }
+            
+            // Show loading indicator
+            const submitBtn = document.getElementById('submitBtn');
+            const originalText = submitBtn.innerHTML;
+            submitBtn.innerHTML = 'Submitting...';
+            submitBtn.disabled = true;
+            
+            // Submit the form via AJAX
+            const formData = new FormData(this);
+            
+            fetch('{{ route('travel-orders.store') }}', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => {
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    Swal.fire({
+                        title: 'Success!',
+                        text: data.message,
+                        icon: 'success',
+                        confirmButtonText: 'OK',
+                        confirmButtonColor: '#1e6031'
+                    }).then(() => {
+                        window.location.href = data.redirect;
+                    });
+                } else {
+                    Swal.fire({
+                        title: 'Error!',
+                        text: data.message || 'An error occurred while submitting the travel order.',
+                        icon: 'error',
+                        confirmButtonText: 'OK',
+                        confirmButtonColor: '#1e6031'
+                    });
+                    
+                    // Reset button
+                    submitBtn.innerHTML = originalText;
+                    submitBtn.disabled = false;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                Swal.fire({
+                    title: 'Error!',
+                    text: 'An unexpected error occurred. Please try again.',
+                    icon: 'error',
+                    confirmButtonText: 'OK',
+                    confirmButtonColor: '#1e6031'
+                });
+                
+                // Reset button
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+            });
+        });
     </script>
 @endsection
