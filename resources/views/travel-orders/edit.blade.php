@@ -1,14 +1,16 @@
-<x-app-layout>
-    <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            Edit Travel Order
-        </h2>
-    </x-slot>
+@extends('layouts.employee')
 
-    <div class="py-12">
-        <div class="max-w-3xl mx-auto sm:px-6 lg:px-8">
+@section('header')
+    <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+        Edit Travel Order
+    </h2>
+@endsection
+
+@section('content')
+    <div class="py-6">
+        <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                <div class="p-6 text-gray-900">
+                <div class="p-4 md:p-6 text-gray-900">
                     <form action="{{ route('travel-orders.update', $travelOrder) }}" method="POST">
                         @csrf
                         @method('PUT')
@@ -107,13 +109,13 @@
                         </div>
 
                         <!-- Submit Button -->
-                        <div class="flex items-center justify-end">
-                            <a href="{{ route('travel-orders.index', ['tab' => 'pending']) }}" class="mr-4 text-gray-600 hover:text-gray-900">
+                        <div class="flex items-center justify-end gap-3">
+                            <a href="{{ route('travel-orders.index', ['tab' => 'pending']) }}" class="text-gray-600 hover:text-gray-900 px-4 py-2">
                                 Back
                             </a>
                             <button 
                                 type="submit" 
-                                class="bg-[#009639] hover:bg-[#1e6031] text-white font-medium py-2 px-6 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#009639]"
+                                class="bg-[#009639] hover:bg-[#1e6031] text-white font-medium py-2 px-6 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#009639] transition duration-300"
                             >
                                 Update Travel Order
                             </button>
@@ -153,4 +155,4 @@
             });
         @endif
     </script>
-</x-app-layout>
+@endsection

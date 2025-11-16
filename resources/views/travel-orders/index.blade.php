@@ -1,36 +1,37 @@
-<x-app-layout>
-    <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            My Travel Requests
-        </h2>
-    </x-slot>
+@extends('layouts.employee')
 
-    <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+@section('header')
+    <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+        My Travel Requests
+    </h2>
+@endsection
+
+@section('content')
+    <div class="py-6">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                <div class="p-6 text-gray-900">
+                <div class="p-4 md:p-6 text-gray-900">
                     <!-- Search Bar -->
                     <div class="mb-6">
-                        <div class="flex items-center">
+                        <div class="flex flex-col sm:flex-row gap-2">
                             <input 
                                 type="text" 
                                 id="searchInput"
                                 value="{{ $search ?? '' }}"
                                 placeholder="Search travel orders..." 
-                                class="w-full rounded-l-lg border-gray-300 shadow-sm focus:border-[#009639] focus:ring focus:ring-[#009639] focus:ring-opacity-50 py-3 px-4 text-base transition duration-300 h-[50px]"
+                                class="flex-1 rounded-lg border-gray-300 shadow-sm focus:border-[#009639] focus:ring focus:ring-[#009639] focus:ring-opacity-50 py-2 px-4 text-base transition duration-300 min-h-[42px]"
                             >
                             <button 
                                 id="searchButton"
-                                class="bg-[#009639] hover:bg-[#007d31] text-white px-6 py-3 rounded-r-lg transition duration-300 flex items-center text-base font-medium shadow-sm hover:shadow-md h-[50px]"
-                            >
+                                class="bg-[#009639] hover:bg-[#007d31] text-white px-4 py-2 rounded-lg transition duration-300 flex items-center text-base font-medium shadow-sm hover:shadow-md min-h-[42px] justify-center">
                                 <i class="fas fa-search mr-2"></i> Search
                             </button>
                         </div>
                     </div>
 
                     <!-- Tabs -->
-                    <div class="border-b border-gray-200 mb-6">
-                        <nav class="-mb-px flex space-x-8">
+                    <div class="border-b border-gray-200 mb-6 overflow-x-auto">
+                        <nav class="-mb-px flex space-x-6 md:space-x-8 min-w-max">
                             <a href="?tab=pending" 
                                class="whitespace-nowrap pb-3 px-1 border-b-2 font-medium text-sm {{ $activeTab == 'pending' ? 'border-[#009639] text-[#009639]' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' }}">
                                 Pending
@@ -51,16 +52,16 @@
                         <table class="min-w-full divide-y divide-gray-200" id="travelOrdersTable">
                             <thead class="bg-gray-50">
                                 <tr>
-                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">No.</th>
-                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Employee</th>
-                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Purpose</th>
-                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Destination</th>
-                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date From</th>
-                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date To</th>
-                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Departure Time</th>
-                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date Filed</th>
-                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Remarks</th>
-                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                                    <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">No.</th>
+                                    <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Employee</th>
+                                    <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Purpose</th>
+                                    <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Destination</th>
+                                    <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date From</th>
+                                    <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date To</th>
+                                    <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Departure</th>
+                                    <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Filed</th>
+                                    <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Remarks</th>
+                                    <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                                 </tr>
                             </thead>
                             <tbody class="bg-white divide-y divide-gray-200">
@@ -70,15 +71,15 @@
                                         data-purpose="{{ $order->purpose }}"
                                         data-employee="{{ $order->employee->full_name ?? 'N/A' }}"
                                         data-destination="{{ $order->destination ?? 'N/A' }}">
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ $index + 1 }}</td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $order->employee->full_name ?? 'N/A' }}</td>
-                                        <td class="px-6 py-4 text-sm text-gray-900 max-w-xs truncate">{{ $order->purpose }}</td>
-                                        <td class="px-6 py-4 text-sm text-gray-900">{{ $order->destination ?? 'N/A' }}</td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $order->date_from ? $order->date_from->format('M d, Y') : 'N/A' }}</td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $order->date_to ? $order->date_to->format('M d, Y') : 'N/A' }}</td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $order->departure_time ?? 'N/A' }}</td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $order->created_at->format('M d, Y') }}</td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm 
+                                        <td class="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">{{ $index + 1 }}</td>
+                                        <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{{ $order->employee->full_name ?? 'N/A' }}</td>
+                                        <td class="px-4 py-3 text-sm text-gray-900 max-w-xs truncate">{{ $order->purpose }}</td>
+                                        <td class="px-4 py-3 text-sm text-gray-900">{{ $order->destination ?? 'N/A' }}</td>
+                                        <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{{ $order->date_from ? $order->date_from->format('M d, Y') : 'N/A' }}</td>
+                                        <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{{ $order->date_to ? $order->date_to->format('M d, Y') : 'N/A' }}</td>
+                                        <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{{ $order->departure_time ?? 'N/A' }}</td>
+                                        <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{{ $order->created_at->format('M d, Y') }}</td>
+                                        <td class="px-4 py-3 whitespace-nowrap text-sm 
                                             @if($activeTab == 'approved') text-green-600 
                                             @elseif($activeTab == 'cancelled') text-red-600 
                                             @else text-yellow-600 @endif">
@@ -96,7 +97,7 @@
                                                 Cancelled
                                             @endif
                                         </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                        <td class="px-4 py-3 whitespace-nowrap text-sm font-medium">
                                             @if($activeTab == 'pending')
                                                 <a href="{{ route('travel-orders.edit', $order) }}" class="text-[#009639] hover:text-[#007d31] mr-3">Edit</a>
                                                 <a href="#" class="text-blue-600 hover:text-blue-900 mr-3">View</a>
@@ -114,7 +115,7 @@
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="10" class="px-6 py-4 text-center text-sm text-gray-500">
+                                        <td colspan="10" class="px-4 py-3 text-center text-sm text-gray-500">
                                             No travel orders found.
                                         </td>
                                     </tr>
@@ -218,4 +219,4 @@
             });
         });
     </script>
-</x-app-layout>
+@endsection
