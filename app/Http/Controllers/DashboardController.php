@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
+use App\Models\TravelOrder;
 
 class DashboardController extends Controller
 {
@@ -31,7 +32,28 @@ class DashboardController extends Controller
         } elseif ($user->isEmployee()) {
             // Load the employee relationship
             $user->load('employee');
-            return view('dashboards.employee', compact('user'));
+            
+            // Get travel order counts for the employee
+            $employeeId = $user->employee->id;
+            $pendingCount = TravelOrder::where('employee_id', $employeeId)
+                ->where(function ($query) {
+                    $query->where('divisionhead_approved', 0)
+                          ->orWhereNull('divisionhead_approved')
+                          ->orWhere(function ($q) {
+                              $q->where('divisionhead_approved', 1)
+                                ->whereNull('vp_approved');
+                          });
+                })
+                ->count();
+                
+            $approvedCount = TravelOrder::where('employee_id', $employeeId)
+                ->where('divisionhead_approved', 1)
+                ->where('vp_approved', 1)
+                ->count();
+                
+            $totalCount = TravelOrder::where('employee_id', $employeeId)->count();
+            
+            return view('dashboards.employee', compact('user', 'pendingCount', 'approvedCount', 'totalCount'));
         }
 
         // Default dashboard if no role matches
