@@ -11,6 +11,12 @@
         <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-4 md:p-6 text-gray-900">
+                    <!-- Page Title -->
+                    <div class="mb-6 pb-4 border-b border-gray-200">
+                        <h1 class="text-2xl font-bold text-gray-800">Create Travel Order</h1>
+                        <p class="text-gray-600 mt-1">Fill in the details below to submit a new travel request</p>
+                    </div>
+                    
                     <form action="{{ route('travel-orders.store') }}" method="POST" id="travelOrderForm">
                         @csrf
                         
@@ -23,7 +29,7 @@
                                 id="purpose" 
                                 name="purpose" 
                                 rows="3" 
-                                class="w-full rounded-md border-gray-300 shadow-sm focus:border-[#1e6031] focus:ring focus:ring-[#1e6031] focus:ring-opacity-50"
+                                class="w-full rounded-md border-gray-300 shadow-sm focus:border-[#1e6031] focus:ring focus:ring-[#1e6031] focus:ring-opacity-50 transition duration-200"
                                 placeholder="Enter the purpose of your travel..."
                                 required
                             ></textarea>
@@ -42,7 +48,7 @@
                                     type="date" 
                                     id="date_from" 
                                     name="date_from" 
-                                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-[#1e6031] focus:ring focus:ring-[#1e6031] focus:ring-opacity-50"
+                                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-[#1e6031] focus:ring focus:ring-[#1e6031] focus:ring-opacity-50 transition duration-200"
                                     required
                                 >
                                 @error('date_from')
@@ -59,7 +65,7 @@
                                     type="date" 
                                     id="date_to" 
                                     name="date_to" 
-                                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-[#1e6031] focus:ring focus:ring-[#1e6031] focus:ring-opacity-50"
+                                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-[#1e6031] focus:ring focus:ring-[#1e6031] focus:ring-opacity-50 transition duration-200"
                                     required
                                 >
                                 @error('date_to')
@@ -77,7 +83,7 @@
                                 type="text" 
                                 id="destination" 
                                 name="destination" 
-                                class="w-full rounded-md border-gray-300 shadow-sm focus:border-[#1e6031] focus:ring focus:ring-[#1e6031] focus:ring-opacity-50"
+                                class="w-full rounded-md border-gray-300 shadow-sm focus:border-[#1e6031] focus:ring focus:ring-[#1e6031] focus:ring-opacity-50 transition duration-200"
                                 placeholder="Enter your destination..."
                                 required
                             >
@@ -87,7 +93,7 @@
                         </div>
 
                         <!-- Departure Time -->
-                        <div class="mb-6">
+                        <div class="mb-8">
                             <label for="departure_time" class="block text-sm font-medium text-gray-700 mb-2">
                                 Departure Time
                             </label>
@@ -95,7 +101,7 @@
                                 type="time" 
                                 id="departure_time" 
                                 name="departure_time" 
-                                class="w-full rounded-md border-gray-300 shadow-sm focus:border-[#1e6031] focus:ring focus:ring-[#1e6031] focus:ring-opacity-50"
+                                class="w-full rounded-md border-gray-300 shadow-sm focus:border-[#1e6031] focus:ring focus:ring-[#1e6031] focus:ring-opacity-50 transition duration-200"
                                 required
                             >
                             @error('departure_time')
@@ -104,13 +110,13 @@
                         </div>
 
                         <!-- Submit Button -->
-                        <div class="flex items-center justify-end gap-3">
-                            <a href="{{ route('travel-orders.index', ['tab' => 'pending']) }}" class="text-gray-600 hover:text-gray-900 px-4 py-2">
+                        <div class="flex items-center justify-end gap-3 pt-4 border-t border-gray-200">
+                            <a href="{{ route('travel-orders.index', ['tab' => 'pending']) }}" class="text-gray-600 hover:text-gray-900 px-4 py-2 rounded-md transition duration-200">
                                 Back
                             </a>
                             <button 
                                 type="submit" 
-                                class="bg-[#1e6031] hover:bg-[#1e6031] text-white font-medium py-2 px-6 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#1e6031] transition duration-300"
+                                class="bg-[#1e6031] hover:bg-[#164f2a] text-white font-medium py-2 px-6 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#1e6031] transition duration-300 shadow-sm hover:shadow-md"
                                 id="submitBtn"
                             >
                                 Submit Travel Order

@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 
 Route::get('/', function () {
-    return redirect()->route('login');
+    return view('welcome');
 });
 
 Route::get('/dashboard', [DashboardController::class, 'index'])
@@ -36,6 +36,10 @@ Route::middleware('auth')->group(function () {
 Route::get('/login', function () {
     return view('auth.login');
 })->name('login');
+
+Route::get('/about', function () {
+    return view('about');
+})->name('about');
 
 Route::post('/login', [AuthenticatedSessionController::class, 'store']);
 

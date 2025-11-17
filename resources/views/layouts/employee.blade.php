@@ -25,7 +25,7 @@
                         <div :class="sidebarOpen ? 'block' : 'hidden'" class="text-xl font-semibold text-white truncate">
                             Employee Panel
                         </div>
-                        <button @click="sidebarOpen = !sidebarOpen" class="text-white hover:text-gray-200 focus:outline-none">
+                        <button @click="sidebarOpen = !sidebarOpen; $dispatch('sidebarToggled')" @sidebarToggled.window="setTimeout(() => { if (window.dispatchEvent) { window.dispatchEvent(new Event('resize')); } }, 350)" class="text-white hover:text-gray-200 focus:outline-none">
                             <svg :class="sidebarOpen ? 'rotate-180' : ''" class="h-6 w-6 transform transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
                             </svg>
@@ -55,6 +55,16 @@
                     </div>
                     <!-- Navigation Menu -->
                     <nav class="flex-1 px-2 py-4 overflow-y-auto">
+                        <!-- Dashboard -->
+                        <a href="{{ route('dashboard') }}" class="flex items-center px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors duration-200 mb-1">
+                            <div class="rounded-lg bg-[#1e6031] p-2 mr-3 flex-shrink-0">
+                                <svg class="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                                </svg>
+                            </div>
+                            <span :class="sidebarOpen ? 'block' : 'hidden'" class="font-medium truncate">Dashboard</span>
+                        </a>
+                        
                         <!-- My Requests -->
                         <a href="{{ route('travel-orders.index') }}" class="flex items-center px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors duration-200 mb-1">
                             <div class="rounded-lg bg-[#1e6031] p-2 mr-3 flex-shrink-0">
@@ -75,14 +85,14 @@
                             <span :class="sidebarOpen ? 'block' : 'hidden'" class="font-medium truncate">Create Travel Order</span>
                         </a>
                         
-                        <!-- Vehicle Calendar -->
+                        <!-- Calendar -->
                         <a href="{{ route('vehicle-calendar.index') }}" class="flex items-center px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors duration-200 mb-1">
                             <div class="rounded-lg bg-[#1e6031] p-2 mr-3 flex-shrink-0">
                                 <svg class="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                                 </svg>
                             </div>
-                            <span :class="sidebarOpen ? 'block' : 'hidden'" class="font-medium truncate">Vehicle Calendar</span>
+                            <span :class="sidebarOpen ? 'block' : 'hidden'" class="font-medium truncate">Calendar</span>
                         </a>
                         
                         <!-- Travel History -->

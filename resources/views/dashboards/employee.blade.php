@@ -49,7 +49,7 @@
                             </div>
                         </a>
                         
-                        <!-- Vehicle Calendar -->
+                        <!-- Calendar -->
                         <a href="{{ route('vehicle-calendar.index') }}" class="bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200 block">
                             <div class="p-6">
                                 <div class="rounded-lg bg-[#1e6031] p-3 w-12 h-12 flex items-center justify-center mb-4">
@@ -57,8 +57,8 @@
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                                     </svg>
                                 </div>
-                                <h4 class="text-lg font-semibold text-gray-800 mb-2">Vehicle Calendar</h4>
-                                <p class="text-gray-600 text-sm">Check vehicle availability</p>
+                                <h4 class="text-lg font-semibold text-gray-800 mb-2">Calendar</h4>
+                                <p class="text-gray-600 text-sm">View travel schedule only</p>
                             </div>
                         </a>
                         
