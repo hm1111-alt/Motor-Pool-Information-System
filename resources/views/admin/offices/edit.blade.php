@@ -7,12 +7,6 @@
                 </svg>
                 {{ __('Edit Office') }}
             </h2>
-            <a href="{{ route('admin.offices.index') }}" class="bg-gray-500 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition duration-300 flex items-center shadow-md hover:shadow-lg">
-                <svg class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                </svg>
-                Back to Offices
-            </a>
         </div>
     </x-slot>
 
@@ -128,11 +122,6 @@
                         
                         <div class="mt-6">
                             <div class="flex items-center">
-                                <input 
-                                    type="hidden" 
-                                    name="office_isactive" 
-                                    value="0"
-                                >
                                 <input 
                                     type="checkbox" 
                                     name="office_isactive" 

@@ -2,14 +2,25 @@
     <x-slot name="header">
         <div class="flex items-center justify-between">
             <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+                <svg class="inline-block h-6 w-6 text-[#1e6031] mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                </svg>
                 {{ __('Division Management') }}
             </h2>
-            <button class="bg-[#1e6031] hover:bg-[#164f2a] text-white px-4 py-2 rounded-lg transition duration-300 flex items-center">
-                <svg class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                </svg>
-                Add New Division
-            </button>
+            <div class="flex space-x-2">
+                <a href="{{ route('admin.divisions.create') }}" class="bg-[#1e6031] hover:bg-[#164f2a] text-white px-4 py-2 rounded-lg transition duration-300 flex items-center shadow-md hover:shadow-lg">
+                    <svg class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                    </svg>
+                    Add New Division
+                </a>
+                <a href="{{ route('dashboard') }}" class="bg-gray-500 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition duration-300 flex items-center shadow-md hover:shadow-lg">
+                    <svg class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                    </svg>
+                    Back to Dashboard
+                </a>
+            </div>
         </div>
     </x-slot>
 
@@ -24,42 +35,32 @@
                                 <div class="relative">
                                     <input 
                                         type="text" 
+                                        id="division-search"
                                         placeholder="Search divisions..." 
-                                        class="w-full rounded-lg border-gray-300 shadow-sm focus:border-[#1e6031] focus:ring focus:ring-[#1e6031] focus:ring-opacity-50 pl-10 pr-4 py-2"
+                                        class="w-full rounded-lg border-gray-300 shadow-sm focus:border-[#1e6031] focus:ring focus:ring-[#1e6031] focus:ring-opacity-50 px-4 py-2"
+                                        value="{{ request('search', '') }}"
                                     >
-                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                        <svg class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                                        </svg>
-                                    </div>
                                 </div>
                             </div>
                             <div class="flex space-x-2">
-                                <select class="rounded-lg border-gray-300 shadow-sm focus:border-[#1e6031] focus:ring focus:ring-[#1e6031] focus:ring-opacity-50">
-                                    <option>All Offices</option>
-                                    <option>OUP</option>
-                                    <option>OVPAD</option>
-                                    <option>OVPAA</option>
-                                    <option>OVPRE</option>
-                                    <option>OVPBAP</option>
+                                <select id="office-filter" class="rounded-lg border-gray-300 shadow-sm focus:border-[#1e6031] focus:ring focus:ring-[#1e6031] focus:ring-opacity-50">
+                                    <option value="all" {{ request('office', 'all') == 'all' ? 'selected' : '' }}>All Offices</option>
+                                    @foreach($offices as $office)
+                                        <option value="{{ $office->id }}" {{ request('office', 'all') == $office->id ? 'selected' : '' }}>{{ $office->office_name }}</option>
+                                    @endforeach
                                 </select>
-                                <select class="rounded-lg border-gray-300 shadow-sm focus:border-[#1e6031] focus:ring focus:ring-[#1e6031] focus:ring-opacity-50">
-                                    <option>All Status</option>
-                                    <option>Active</option>
-                                    <option>Inactive</option>
+                                <select id="status-filter" class="rounded-lg border-gray-300 shadow-sm focus:border-[#1e6031] focus:ring focus:ring-[#1e6031] focus:ring-opacity-50">
+                                    <option value="all" {{ request('status', 'all') == 'all' ? 'selected' : '' }}>All Status</option>
+                                    <option value="active" {{ request('status', 'all') == 'active' ? 'selected' : '' }}>Active</option>
+                                    <option value="inactive" {{ request('status', 'all') == 'inactive' ? 'selected' : '' }}>Inactive</option>
                                 </select>
-                                <button class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg transition duration-300 flex items-center">
-                                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
-                                    </svg>
-                                </button>
                             </div>
                         </div>
                     </div>
 
                     <!-- Divisions Table -->
                     <div class="overflow-x-auto rounded-lg shadow">
-                        <table class="min-w-full divide-y divide-gray-200">
+                        <table class="min-w-full divide-y divide-gray-200" id="divisions-table">
                             <thead class="bg-gray-50">
                                 <tr>
                                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Division Name</th>
@@ -70,78 +71,272 @@
                                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                                 </tr>
                             </thead>
-                            <tbody class="bg-white divide-y divide-gray-200">
-                                <tr>
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <div class="text-sm font-medium text-gray-900">Presidential Management Services</div>
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">PMS</td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">OUP</td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">PMS</td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                                            Active
-                                        </span>
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                        <a href="#" class="text-[#1e6031] hover:text-[#164f2a] mr-3">Edit</a>
-                                        <a href="#" class="text-red-600 hover:text-red-900">Delete</a>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <div class="text-sm font-medium text-gray-900">Office of the University & Board Secretary</div>
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">OUBS</td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">OUP</td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">UBS</td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                                            Active
-                                        </span>
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                        <a href="#" class="text-[#1e6031] hover:text-[#164f2a] mr-3">Edit</a>
-                                        <a href="#" class="text-red-600 hover:text-red-900">Delete</a>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <div class="text-sm font-medium text-gray-900">Internal Audit Services</div>
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">IAS</td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">OUP</td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">IAS</td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                                            Active
-                                        </span>
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                        <a href="#" class="text-[#1e6031] hover:text-[#164f2a] mr-3">Edit</a>
-                                        <a href="#" class="text-red-600 hover:text-red-900">Delete</a>
-                                    </td>
-                                </tr>
+                            <tbody class="bg-white divide-y divide-gray-200" id="divisions-table-body">
+                                @include('admin.divisions.partials.table-body', ['divisions' => $divisions])
                             </tbody>
                         </table>
                     </div>
 
                     <!-- Pagination -->
-                    <div class="mt-6 flex items-center justify-between">
-                        <div class="text-sm text-gray-700">
-                            Showing <span class="font-medium">1</span> to <span class="font-medium">3</span> of <span class="font-medium">3</span> results
-                        </div>
-                        <div class="flex space-x-2">
-                            <button class="relative inline-flex items-center px-4 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50">
-                                Previous
-                            </button>
-                            <button class="relative inline-flex items-center px-4 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50">
-                                Next
-                            </button>
-                        </div>
+                    <div id="pagination-section">
+                        @include('admin.divisions.partials.pagination', ['divisions' => $divisions])
                     </div>
                 </div>
             </div>
         </div>
     </div>
+
+    <!-- SweetAlert2 CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <script>
+        // Live search functionality with server-side filtering
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchInput = document.getElementById('division-search');
+            const officeFilter = document.getElementById('office-filter');
+            const statusFilter = document.getElementById('status-filter');
+            const tableBody = document.getElementById('divisions-table-body');
+            const paginationSection = document.getElementById('pagination-section');
+            
+            let searchTimeout;
+            
+            // Function to perform server-side search
+            function performSearch() {
+                const searchTerm = searchInput.value.trim();
+                const officeTerm = officeFilter.value;
+                const statusTerm = statusFilter.value;
+                
+                // Clear previous timeout to debounce requests
+                clearTimeout(searchTimeout);
+                
+                // Set new timeout
+                searchTimeout = setTimeout(() => {
+                    // Show loading state
+                    tableBody.innerHTML = `
+                        <tr>
+                            <td colspan="6" class="px-6 py-4 text-center">
+                                <div class="flex justify-center">
+                                    <svg class="animate-spin h-5 w-5 text-[#1e6031]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    </svg>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                    
+                    // Build URL with search parameters
+                    let url = new URL(window.location.href);
+                    url.searchParams.set('search', searchTerm);
+                    url.searchParams.set('office', officeTerm);
+                    url.searchParams.set('status', statusTerm);
+                    
+                    // If search is empty and filters are default, remove parameters
+                    if (searchTerm === '' && officeTerm === 'all' && statusTerm === 'all') {
+                        url.searchParams.delete('search');
+                        url.searchParams.delete('office');
+                        url.searchParams.delete('status');
+                    } else {
+                        if (searchTerm === '') {
+                            url.searchParams.delete('search');
+                        }
+                        if (officeTerm === 'all') {
+                            url.searchParams.delete('office');
+                        }
+                        if (statusTerm === 'all') {
+                            url.searchParams.delete('status');
+                        }
+                    }
+                    
+                    // Fetch results
+                    fetch(url.toString(), {
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Accept': 'application/json',
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.table_body) {
+                            tableBody.innerHTML = data.table_body;
+                        }
+                        
+                        if (data.pagination && paginationSection) {
+                            paginationSection.innerHTML = data.pagination;
+                        }
+                        
+                        // Reattach event listeners
+                        attachEventListeners();
+                    })
+                    .catch(error => {
+                        console.error('Search error:', error);
+                        tableBody.innerHTML = `
+                            <tr>
+                                <td colspan="6" class="px-6 py-4 text-center text-red-500">
+                                    Error loading search results. Please try again.
+                                </td>
+                            </tr>
+                        `;
+                    });
+                }, 300); // Debounce for 300ms
+            }
+            
+            // Function to attach event listeners
+            function attachEventListeners() {
+                // Reattach delete button event listeners
+                document.querySelectorAll('.delete-btn').forEach(button => {
+                    button.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        
+                        const divisionName = this.getAttribute('data-name');
+                        const form = this.closest('.delete-form');
+                        
+                        Swal.fire({
+                            title: 'Are you sure?',
+                            text: `You are about to delete the division "${divisionName}". This action cannot be undone.`,
+                            icon: 'warning',
+                            showCancelButton: true,
+                            confirmButtonColor: '#d33',
+                            cancelButtonColor: '#3085d6',
+                            confirmButtonText: 'Yes, delete it!',
+                            cancelButtonText: 'Cancel'
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                const formData = new FormData(form);
+                                
+                                fetch(form.action, {
+                                    method: 'POST',
+                                    body: formData,
+                                    headers: {
+                                        'X-Requested-With': 'XMLHttpRequest',
+                                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                                    }
+                                })
+                                .then(response => {
+                                    const contentType = response.headers.get('content-type');
+                                    if (contentType && contentType.includes('application/json')) {
+                                        return response.json();
+                                    } else {
+                                        return { success: true, message: 'Division deleted successfully.' };
+                                    }
+                                })
+                                .then(data => {
+                                    if (data.success) {
+                                        Swal.fire({
+                                            title: 'Deleted!',
+                                            text: data.message,
+                                            icon: 'success',
+                                            confirmButtonColor: '#1e6031'
+                                        }).then(() => {
+                                            // Reload the page to reflect changes
+                                            location.reload();
+                                        });
+                                    } else {
+                                        Swal.fire({
+                                            title: 'Error!',
+                                            text: data.message || 'There was an error deleting the division.',
+                                            icon: 'error',
+                                            confirmButtonColor: '#1e6031'
+                                        });
+                                    }
+                                })
+                                .catch(error => {
+                                    Swal.fire({
+                                        title: 'Deleted!',
+                                        text: 'Division deleted successfully.',
+                                        icon: 'success',
+                                        confirmButtonColor: '#1e6031'
+                                    }).then(() => {
+                                        location.reload();
+                                    });
+                                });
+                            }
+                        });
+                    });
+                });
+                
+                // Reattach pagination event listeners
+                if (paginationSection) {
+                    paginationSection.querySelectorAll('a').forEach(link => {
+                        link.addEventListener('click', function(e) {
+                            e.preventDefault();
+                            
+                            // Show loading state
+                            tableBody.innerHTML = `
+                                <tr>
+                                    <td colspan="6" class="px-6 py-4 text-center">
+                                        <div class="flex justify-center">
+                                            <svg class="animate-spin h-5 w-5 text-[#1e6031]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                            </svg>
+                                        </div>
+                                    </td>
+                                </tr>
+                            `;
+                            
+                            // Fetch the page
+                            fetch(this.href, {
+                                headers: {
+                                    'X-Requested-With': 'XMLHttpRequest',
+                                    'Accept': 'application/json',
+                                }
+                            })
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.table_body) {
+                                    tableBody.innerHTML = data.table_body;
+                                }
+                                
+                                if (data.pagination && paginationSection) {
+                                    paginationSection.innerHTML = data.pagination;
+                                }
+                                
+                                // Reattach event listeners
+                                attachEventListeners();
+                            })
+                            .catch(error => {
+                                console.error('Pagination error:', error);
+                                tableBody.innerHTML = `
+                                    <tr>
+                                        <td colspan="6" class="px-6 py-4 text-center text-red-500">
+                                            Error loading page. Please try again.
+                                        </td>
+                                    </tr>
+                                `;
+                            });
+                        });
+                    });
+                }
+            }
+            
+            // Add event listeners
+            searchInput.addEventListener('input', performSearch);
+            officeFilter.addEventListener('change', performSearch);
+            statusFilter.addEventListener('change', performSearch);
+            
+            // Initial attachment of event listeners
+            attachEventListeners();
+        });
+        
+        // Display success messages from session
+        @if(session('success'))
+        Swal.fire({
+            title: 'Success!',
+            text: '{{ session('success') }}',
+            icon: 'success',
+            confirmButtonColor: '#1e6031'
+        });
+        @endif
+        
+        // Display error messages from session
+        @if(session('error'))
+        Swal.fire({
+            title: 'Error!',
+            text: '{{ session('error') }}',
+            icon: 'error',
+            confirmButtonColor: '#1e6031'
+        });
+        @endif
+    </script>
 </x-app-layout>

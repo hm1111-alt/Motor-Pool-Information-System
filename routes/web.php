@@ -5,6 +5,11 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\TravelOrderController;
 use App\Http\Controllers\CalendarController;
 use App\Http\Controllers\OfficeController;
+use App\Http\Controllers\DivisionController;
+use App\Http\Controllers\UnitController;
+use App\Http\Controllers\SubunitController;
+use App\Http\Controllers\ClassController;
+use App\Http\Controllers\EmployeeController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use Illuminate\Support\Facades\Auth;
@@ -39,45 +44,45 @@ Route::middleware('auth')->group(function () {
     Route::put('/admin/offices/{office}', [OfficeController::class, 'update'])->name('admin.offices.update');
     Route::delete('/admin/offices/{office}', [OfficeController::class, 'destroy'])->name('admin.offices.destroy');
     
-    Route::get('/admin/divisions', function () {
-        // Check if user is admin
-        if (!Auth::user()->isAdmin()) {
-            return redirect()->route('dashboard');
-        }
-        return view('admin.divisions.index');
-    })->name('admin.divisions.index');
+    Route::get('/admin/divisions', [DivisionController::class, 'index'])->name('admin.divisions.index');
+    Route::get('/admin/divisions/create', [DivisionController::class, 'create'])->name('admin.divisions.create');
+    Route::post('/admin/divisions', [DivisionController::class, 'store'])->name('admin.divisions.store');
+    Route::get('/admin/divisions/{division}/edit', [DivisionController::class, 'edit'])->name('admin.divisions.edit');
+    Route::put('/admin/divisions/{division}', [DivisionController::class, 'update'])->name('admin.divisions.update');
+    Route::delete('/admin/divisions/{division}', [DivisionController::class, 'destroy'])->name('admin.divisions.destroy');
     
-    Route::get('/admin/units', function () {
-        // Check if user is admin
-        if (!Auth::user()->isAdmin()) {
-            return redirect()->route('dashboard');
-        }
-        return view('admin.units.index');
-    })->name('admin.units.index');
+    Route::get('/admin/units', [UnitController::class, 'index'])->name('admin.units.index');
+    Route::get('/admin/units/create', [UnitController::class, 'create'])->name('admin.units.create');
+    Route::post('/admin/units', [UnitController::class, 'store'])->name('admin.units.store');
+    Route::get('/admin/units/{unit}/edit', [UnitController::class, 'edit'])->name('admin.units.edit');
+    Route::put('/admin/units/{unit}', [UnitController::class, 'update'])->name('admin.units.update');
+    Route::delete('/admin/units/{unit}', [UnitController::class, 'destroy'])->name('admin.units.destroy');
     
-    Route::get('/admin/subunits', function () {
-        // Check if user is admin
-        if (!Auth::user()->isAdmin()) {
-            return redirect()->route('dashboard');
-        }
-        return view('admin.subunits.index');
-    })->name('admin.subunits.index');
+    Route::get('/admin/subunits', [SubunitController::class, 'index'])->name('admin.subunits.index');
+    Route::get('/admin/subunits/create', [SubunitController::class, 'create'])->name('admin.subunits.create');
+    Route::post('/admin/subunits', [SubunitController::class, 'store'])->name('admin.subunits.store');
+    Route::get('/admin/subunits/{subunit}/edit', [SubunitController::class, 'edit'])->name('admin.subunits.edit');
+    Route::put('/admin/subunits/{subunit}', [SubunitController::class, 'update'])->name('admin.subunits.update');
+    Route::delete('/admin/subunits/{subunit}', [SubunitController::class, 'destroy'])->name('admin.subunits.destroy');
     
-    Route::get('/admin/classes', function () {
-        // Check if user is admin
-        if (!Auth::user()->isAdmin()) {
-            return redirect()->route('dashboard');
-        }
-        return view('admin.classes.index');
-    })->name('admin.classes.index');
+    Route::get('/admin/classes', [ClassController::class, 'index'])->name('admin.classes.index');
+    Route::get('/admin/classes/create', [ClassController::class, 'create'])->name('admin.classes.create');
+    Route::post('/admin/classes', [ClassController::class, 'store'])->name('admin.classes.store');
+    Route::get('/admin/classes/{class}/edit', [ClassController::class, 'edit'])->name('admin.classes.edit');
+    Route::put('/admin/classes/{class}', [ClassController::class, 'update'])->name('admin.classes.update');
+    Route::delete('/admin/classes/{class}', [ClassController::class, 'destroy'])->name('admin.classes.destroy');
     
-    Route::get('/admin/employees', function () {
-        // Check if user is admin
-        if (!Auth::user()->isAdmin()) {
-            return redirect()->route('dashboard');
-        }
-        return view('admin.employees.index');
-    })->name('admin.employees.index');
+    Route::get('/admin/employees', [EmployeeController::class, 'index'])->name('admin.employees.index');
+    Route::get('/admin/employees/create', [EmployeeController::class, 'create'])->name('admin.employees.create');
+    Route::post('/admin/employees', [EmployeeController::class, 'store'])->name('admin.employees.store');
+    Route::get('/admin/employees/{employee}/edit', [EmployeeController::class, 'edit'])->name('admin.employees.edit');
+    Route::put('/admin/employees/{employee}', [EmployeeController::class, 'update'])->name('admin.employees.update');
+    Route::delete('/admin/employees/{employee}', [EmployeeController::class, 'destroy'])->name('admin.employees.destroy');
+    
+    // AJAX routes for employee form dependencies
+    Route::get('/admin/employees/get-divisions-by-office', [EmployeeController::class, 'getDivisionsByOffice'])->name('admin.employees.get-divisions-by-office');
+    Route::get('/admin/employees/get-units-by-division', [EmployeeController::class, 'getUnitsByDivision'])->name('admin.employees.get-units-by-division');
+    Route::get('/admin/employees/get-subunits-by-unit', [EmployeeController::class, 'getSubunitsByUnit'])->name('admin.employees.get-subunits-by-unit');
     
     Route::get('/admin/leaders', function () {
         // Check if user is admin

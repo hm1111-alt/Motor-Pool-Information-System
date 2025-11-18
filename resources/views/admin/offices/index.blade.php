@@ -38,14 +38,15 @@
                                         id="office-search"
                                         placeholder="Search offices..." 
                                         class="w-full rounded-lg border-gray-300 shadow-sm focus:border-[#1e6031] focus:ring focus:ring-[#1e6031] focus:ring-opacity-50 px-4 py-2"
+                                        value="{{ request('search', '') }}"
                                     >
                                 </div>
                             </div>
                             <div class="flex space-x-2">
                                 <select id="status-filter" class="rounded-lg border-gray-300 shadow-sm focus:border-[#1e6031] focus:ring focus:ring-[#1e6031] focus:ring-opacity-50">
-                                    <option value="all">All Status</option>
-                                    <option value="active">Active</option>
-                                    <option value="inactive">Inactive</option>
+                                    <option value="all" {{ request('status', 'all') == 'all' ? 'selected' : '' }}>All Status</option>
+                                    <option value="active" {{ request('status', 'all') == 'active' ? 'selected' : '' }}>Active</option>
+                                    <option value="inactive" {{ request('status', 'all') == 'inactive' ? 'selected' : '' }}>Inactive</option>
                                 </select>
                             </div>
                         </div>
@@ -64,80 +65,14 @@
                                 </tr>
                             </thead>
                             <tbody class="bg-white divide-y divide-gray-200" id="offices-table-body">
-                                @forelse($offices as $office)
-                                <tr class="office-row hover:bg-gray-50 transition duration-150" 
-                                    data-name="{{ strtolower($office->office_name) }}" 
-                                    data-program="{{ strtolower($office->office_program) }}" 
-                                    data-abbr="{{ strtolower($office->office_abbr) }}" 
-                                    data-code="{{ strtolower($office->officer_code) }}" 
-                                    data-status="{{ $office->office_isactive ? 'active' : 'inactive' }}">
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <div class="text-sm font-medium text-gray-900">{{ $office->office_name }}</div>
-                                        <div class="text-sm text-gray-500">{{ $office->office_program }}</div>
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $office->office_abbr }}</td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $office->officer_code }}</td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        @if($office->office_isactive)
-                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800 status-active">
-                                            <svg class="h-3 w-3 mr-1 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                                            </svg>
-                                            Active
-                                        </span>
-                                        @else
-                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800 status-inactive">
-                                            <svg class="h-3 w-3 mr-1 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                                            </svg>
-                                            Inactive
-                                        </span>
-                                        @endif
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                        <a href="{{ route('admin.offices.edit', $office) }}" class="text-[#1e6031] hover:text-[#164f2a] mr-3 inline-flex items-center">
-                                            <svg class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                            </svg>
-                                            Edit
-                                        </a>
-                                        <form action="{{ route('admin.offices.destroy', $office) }}" method="POST" class="inline delete-form">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="text-red-600 hover:text-red-900 inline-flex items-center delete-btn" data-name="{{ $office->office_name }}">
-                                                <svg class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                                </svg>
-                                                Delete
-                                            </button>
-                                        </form>
-                                    </td>
-                                </tr>
-                                @empty
-                                <tr id="no-results-row">
-                                    <td colspan="5" class="px-6 py-4 text-center text-sm text-gray-500">
-                                        <div class="flex flex-col items-center justify-center py-8">
-                                            <svg class="h-12 w-12 text-gray-400 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                                            </svg>
-                                            <p class="text-lg font-medium text-gray-900">No offices found</p>
-                                            <p class="mt-1 text-gray-500">Try adjusting your search or filter criteria</p>
-                                        </div>
-                                    </td>
-                                </tr>
-                                @endforelse
+                                @include('admin.offices.partials.table-body', ['offices' => $offices])
                             </tbody>
                         </table>
                     </div>
 
                     <!-- Pagination -->
-                    <div class="mt-6 flex items-center justify-between" id="pagination-section">
-                        <div class="text-sm text-gray-700">
-                            Showing <span class="font-medium">{{ $offices->firstItem() }}</span> to <span class="font-medium">{{ $offices->lastItem() }}</span> of <span class="font-medium">{{ $offices->total() }}</span> results
-                        </div>
-                        <div class="flex space-x-2">
-                            {{ $offices->links() }}
-                        </div>
+                    <div id="pagination-section">
+                        @include('admin.offices.partials.pagination', ['offices' => $offices])
                     </div>
                 </div>
             </div>
@@ -148,93 +83,88 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     
     <script>
-        // Live search functionality
+        // Live search functionality with server-side filtering
         document.addEventListener('DOMContentLoaded', function() {
             const searchInput = document.getElementById('office-search');
             const statusFilter = document.getElementById('status-filter');
-            const officeRows = document.querySelectorAll('.office-row');
-            const noResultsRow = document.getElementById('no-results-row');
-            const paginationSection = document.getElementById('pagination-section');
             const tableBody = document.getElementById('offices-table-body');
+            const paginationSection = document.getElementById('pagination-section');
             
-            // Store original table content for reset
-            const originalTableContent = tableBody.innerHTML;
+            let searchTimeout;
             
-            // Function to filter offices
-            function filterOffices() {
-                const searchTerm = searchInput.value.toLowerCase().trim();
-                const statusTerm = statusFilter.value.toLowerCase();
+            // Function to perform server-side search
+            function performSearch() {
+                const searchTerm = searchInput.value.trim();
+                const statusTerm = statusFilter.value;
                 
-                let visibleCount = 0;
+                // Clear previous timeout to debounce requests
+                clearTimeout(searchTimeout);
                 
-                // Reset table content if search is cleared and status is 'all'
-                if (searchTerm === '' && statusTerm === 'all') {
-                    tableBody.innerHTML = originalTableContent;
-                    if (paginationSection) {
-                        paginationSection.style.display = '';
-                    }
-                    // Reattach event listeners after resetting content
-                    attachEventListeners();
-                    return;
-                }
-                
-                officeRows.forEach(row => {
-                    const name = row.dataset.name;
-                    const program = row.dataset.program;
-                    const abbr = row.dataset.abbr;
-                    const code = row.dataset.code;
-                    const status = row.dataset.status.toLowerCase();
-                    
-                    // Check if row matches search term
-                    const matchesSearch = searchTerm === '' || 
-                        name.includes(searchTerm) || 
-                        program.includes(searchTerm) || 
-                        abbr.includes(searchTerm) || 
-                        code.includes(searchTerm);
-                    
-                    // Check if row matches status filter
-                    const matchesStatus = statusTerm === 'all' || status === statusTerm;
-                    
-                    // Show/hide row based on filters
-                    if (matchesSearch && matchesStatus) {
-                        row.style.display = '';
-                        visibleCount++;
-                    } else {
-                        row.style.display = 'none';
-                    }
-                });
-                
-                // Show/hide no results message
-                if (visibleCount === 0) {
-                    const noResultsHtml = `
-                        <tr id="no-results-row">
-                            <td colspan="5" class="px-6 py-4 text-center text-sm text-gray-500">
-                                <div class="flex flex-col items-center justify-center py-8">
-                                    <svg class="h-12 w-12 text-gray-400 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                // Set new timeout
+                searchTimeout = setTimeout(() => {
+                    // Show loading state
+                    tableBody.innerHTML = `
+                        <tr>
+                            <td colspan="5" class="px-6 py-4 text-center">
+                                <div class="flex justify-center">
+                                    <svg class="animate-spin h-5 w-5 text-[#1e6031]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                     </svg>
-                                    <p class="text-lg font-medium text-gray-900">No offices found</p>
-                                    <p class="mt-1 text-gray-500">Try adjusting your search or filter criteria</p>
                                 </div>
                             </td>
                         </tr>
                     `;
-                    tableBody.innerHTML = noResultsHtml;
-                }
-                
-                // Hide pagination when filtering (since it's client-side)
-                if (searchTerm !== '' || statusTerm !== 'all') {
-                    if (paginationSection) {
-                        paginationSection.style.display = 'none';
+                    
+                    // Build URL with search parameters
+                    let url = new URL(window.location.href);
+                    url.searchParams.set('search', searchTerm);
+                    url.searchParams.set('status', statusTerm);
+                    
+                    // If search is empty and status is 'all', remove parameters
+                    if (searchTerm === '' && statusTerm === 'all') {
+                        url.searchParams.delete('search');
+                        url.searchParams.delete('status');
+                    } else if (searchTerm === '') {
+                        url.searchParams.delete('search');
+                    } else if (statusTerm === 'all') {
+                        url.searchParams.delete('status');
                     }
-                } else {
-                    if (paginationSection) {
-                        paginationSection.style.display = '';
-                    }
-                }
+                    
+                    // Fetch results
+                    fetch(url.toString(), {
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Accept': 'application/json',
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.table_body) {
+                            tableBody.innerHTML = data.table_body;
+                        }
+                        
+                        if (data.pagination && paginationSection) {
+                            paginationSection.innerHTML = data.pagination;
+                        }
+                        
+                        // Reattach event listeners
+                        attachEventListeners();
+                    })
+                    .catch(error => {
+                        console.error('Search error:', error);
+                        tableBody.innerHTML = `
+                            <tr>
+                                <td colspan="5" class="px-6 py-4 text-center text-red-500">
+                                    Error loading search results. Please try again.
+                                </td>
+                            </tr>
+                        `;
+                    });
+                }, 300); // Debounce for 300ms
             }
             
-            // Function to reattach event listeners after DOM updates
+            // Function to attach event listeners
             function attachEventListeners() {
                 // Reattach delete button event listeners
                 document.querySelectorAll('.delete-btn').forEach(button => {
@@ -255,7 +185,6 @@
                             cancelButtonText: 'Cancel'
                         }).then((result) => {
                             if (result.isConfirmed) {
-                                // Submit the form via AJAX
                                 const formData = new FormData(form);
                                 
                                 fetch(form.action, {
@@ -270,13 +199,17 @@
                                     // Check if response is JSON
                                     const contentType = response.headers.get('content-type');
                                     if (contentType && contentType.includes('application/json')) {
-                                        return response.json();
+                                        return response.json().then(data => ({ data, status: response.status, isJson: true }));
                                     } else {
-                                        // If not JSON, assume success
-                                        return { success: true, message: 'Office deleted successfully.' };
+                                        // If not JSON, assume success for redirect responses
+                                        return { 
+                                            data: { success: true, message: 'Office deleted successfully.' }, 
+                                            status: response.status, 
+                                            isJson: false 
+                                        };
                                     }
                                 })
-                                .then(data => {
+                                .then(({ data, status, isJson }) => {
                                     if (data.success) {
                                         Swal.fire({
                                             title: 'Deleted!',
@@ -297,14 +230,14 @@
                                     }
                                 })
                                 .catch(error => {
-                                    // Even if there's an error, the office might have been deleted
+                                    console.error('Delete error:', error);
                                     Swal.fire({
                                         title: 'Deleted!',
                                         text: 'Office deleted successfully.',
                                         icon: 'success',
                                         confirmButtonColor: '#1e6031'
                                     }).then(() => {
-                                        // Reload the page to reflect changes
+                                        // Even if there was an error, reload to show the current state
                                         location.reload();
                                     });
                                 });
@@ -312,11 +245,65 @@
                         });
                     });
                 });
+                
+                // Reattach pagination event listeners
+                if (paginationSection) {
+                    paginationSection.querySelectorAll('a').forEach(link => {
+                        link.addEventListener('click', function(e) {
+                            e.preventDefault();
+                            
+                            // Show loading state
+                            tableBody.innerHTML = `
+                                <tr>
+                                    <td colspan="5" class="px-6 py-4 text-center">
+                                        <div class="flex justify-center">
+                                            <svg class="animate-spin h-5 w-5 text-[#1e6031]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                            </svg>
+                                        </div>
+                                    </td>
+                                </tr>
+                            `;
+                            
+                            // Fetch the page
+                            fetch(this.href, {
+                                headers: {
+                                    'X-Requested-With': 'XMLHttpRequest',
+                                    'Accept': 'application/json',
+                                }
+                            })
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.table_body) {
+                                    tableBody.innerHTML = data.table_body;
+                                }
+                                
+                                if (data.pagination && paginationSection) {
+                                    paginationSection.innerHTML = data.pagination;
+                                }
+                                
+                                // Reattach event listeners
+                                attachEventListeners();
+                            })
+                            .catch(error => {
+                                console.error('Pagination error:', error);
+                                tableBody.innerHTML = `
+                                    <tr>
+                                        <td colspan="5" class="px-6 py-4 text-center text-red-500">
+                                            Error loading page. Please try again.
+                                        </td>
+                                    </tr>
+                                `;
+                            });
+                        });
+                    });
+                }
             }
             
             // Add event listeners
-            searchInput.addEventListener('input', filterOffices);
-            statusFilter.addEventListener('change', filterOffices);
+            searchInput.addEventListener('input', performSearch);
+            statusFilter.addEventListener('change', performSearch);
             
             // Initial attachment of event listeners
             attachEventListeners();

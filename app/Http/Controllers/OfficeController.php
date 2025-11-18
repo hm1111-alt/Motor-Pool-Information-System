@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Office;
+use App\Models\Employee;
+use App\Models\Division;
 use Illuminate\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\JsonResponse;
@@ -14,7 +16,7 @@ class OfficeController extends Controller
     /**
      * Display a listing of the offices.
      */
-    public function index(Request $request): View
+    public function index(Request $request): View|JsonResponse
     {
         $query = Office::query();
         
@@ -23,6 +25,7 @@ class OfficeController extends Controller
             $search = $request->search;
             $query->where(function($q) use ($search) {
                 $q->where('office_name', 'like', '%' . $search . '%')
+                  ->orWhere('office_program', 'like', '%' . $search . '%')
                   ->orWhere('office_abbr', 'like', '%' . $search . '%')
                   ->orWhere('officer_code', 'like', '%' . $search . '%');
             });
@@ -34,7 +37,15 @@ class OfficeController extends Controller
             $query->where('office_isactive', $isActive);
         }
         
-        $offices = $query->paginate(10);
+        $offices = $query->paginate(10)->appends($request->except('page'));
+        
+        // Handle AJAX requests
+        if ($request->ajax()) {
+            return response()->json([
+                'table_body' => view('admin.offices.partials.table-body', compact('offices'))->render(),
+                'pagination' => view('admin.offices.partials.pagination', compact('offices'))->render()
+            ]);
+        }
         
         return view('admin.offices.index', compact('offices'));
     }
@@ -64,7 +75,7 @@ class OfficeController extends Controller
         ]);
 
         // Handle checkbox value properly
-        $isActive = $request->has('office_isactive') ? 1 : 0;
+        $isActive = $request->has('office_isactive') && $request->office_isactive == '1' ? 1 : 0;
 
         $office = Office::create([
             'office_program' => $request->office_program,
@@ -110,7 +121,7 @@ class OfficeController extends Controller
         ]);
 
         // Handle checkbox value properly
-        $isActive = $request->has('office_isactive') ? 1 : 0;
+        $isActive = $request->has('office_isactive') && $request->office_isactive == '1' ? 1 : 0;
 
         $office->update([
             'office_program' => $request->office_program,
@@ -137,16 +148,45 @@ class OfficeController extends Controller
      */
     public function destroy(Office $office): RedirectResponse|JsonResponse
     {
-        $office->delete();
-
-        if (request()->wantsJson()) {
-            return response()->json([
-                'success' => true,
-                'message' => 'Office deleted successfully.'
-            ]);
+        try {
+            // Check if office has related records
+            if ($office->employees()->count() > 0 || $office->divisions()->count() > 0) {
+                $message = 'Cannot delete office because it has related records (employees or divisions). Please remove or reassign these records first.';
+                
+                if (request()->wantsJson() || request()->ajax()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => $message
+                    ], 422);
+                }
+                
+                return redirect()->route('admin.offices.index')
+                                 ->with('error', $message);
+            }
+            
+            $office->delete();
+            
+            if (request()->wantsJson() || request()->ajax()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Office deleted successfully.'
+                ]);
+            }
+            
+            return redirect()->route('admin.offices.index')
+                             ->with('success', 'Office deleted successfully.');
+        } catch (\Exception $e) {
+            \Log::error('Error deleting office: ' . $e->getMessage());
+            
+            if (request()->wantsJson() || request()->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'There was an error deleting the office.'
+                ], 500);
+            }
+            
+            return redirect()->route('admin.offices.index')
+                             ->with('error', 'There was an error deleting the office.');
         }
-
-        return redirect()->route('admin.offices.index')
-                         ->with('success', 'Office deleted successfully.');
     }
 }
