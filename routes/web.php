@@ -4,8 +4,10 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\TravelOrderController;
 use App\Http\Controllers\CalendarController;
+use App\Http\Controllers\OfficeController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
+use Illuminate\Support\Facades\Auth;
 
 Route::get('/', function () {
     return view('welcome');
@@ -27,6 +29,63 @@ Route::middleware('auth')->group(function () {
     Route::get('/travel-orders/{travelOrder}/edit', [TravelOrderController::class, 'edit'])->name('travel-orders.edit');
     Route::put('/travel-orders/{travelOrder}', [TravelOrderController::class, 'update'])->name('travel-orders.update');
     Route::delete('/travel-orders/{travelOrder}', [TravelOrderController::class, 'destroy'])->name('travel-orders.destroy');
+    
+    // Admin Routes
+    // Organization Structure Management
+    Route::get('/admin/offices', [OfficeController::class, 'index'])->name('admin.offices.index');
+    Route::get('/admin/offices/create', [OfficeController::class, 'create'])->name('admin.offices.create');
+    Route::post('/admin/offices', [OfficeController::class, 'store'])->name('admin.offices.store');
+    Route::get('/admin/offices/{office}/edit', [OfficeController::class, 'edit'])->name('admin.offices.edit');
+    Route::put('/admin/offices/{office}', [OfficeController::class, 'update'])->name('admin.offices.update');
+    Route::delete('/admin/offices/{office}', [OfficeController::class, 'destroy'])->name('admin.offices.destroy');
+    
+    Route::get('/admin/divisions', function () {
+        // Check if user is admin
+        if (!Auth::user()->isAdmin()) {
+            return redirect()->route('dashboard');
+        }
+        return view('admin.divisions.index');
+    })->name('admin.divisions.index');
+    
+    Route::get('/admin/units', function () {
+        // Check if user is admin
+        if (!Auth::user()->isAdmin()) {
+            return redirect()->route('dashboard');
+        }
+        return view('admin.units.index');
+    })->name('admin.units.index');
+    
+    Route::get('/admin/subunits', function () {
+        // Check if user is admin
+        if (!Auth::user()->isAdmin()) {
+            return redirect()->route('dashboard');
+        }
+        return view('admin.subunits.index');
+    })->name('admin.subunits.index');
+    
+    Route::get('/admin/classes', function () {
+        // Check if user is admin
+        if (!Auth::user()->isAdmin()) {
+            return redirect()->route('dashboard');
+        }
+        return view('admin.classes.index');
+    })->name('admin.classes.index');
+    
+    Route::get('/admin/employees', function () {
+        // Check if user is admin
+        if (!Auth::user()->isAdmin()) {
+            return redirect()->route('dashboard');
+        }
+        return view('admin.employees.index');
+    })->name('admin.employees.index');
+    
+    Route::get('/admin/leaders', function () {
+        // Check if user is admin
+        if (!Auth::user()->isAdmin()) {
+            return redirect()->route('dashboard');
+        }
+        return view('admin.leaders.index');
+    })->name('admin.leaders.index');
     
     // Calendar Routes
     Route::get('/vehicle-calendar', [CalendarController::class, 'index'])->name('vehicle-calendar.index');
