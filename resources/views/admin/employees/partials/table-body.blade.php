@@ -19,6 +19,9 @@
         </td>
         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $employee->position_name }}</td>
         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $employee->office->office_name ?? 'N/A' }}</td>
+        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $employee->division->division_name ?? 'N/A' }}</td>
+        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $employee->unit->unit_name ?? 'N/A' }}</td>
+        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $employee->subunit->subunit_name ?? 'N/A' }}</td>
         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $employee->class->class_name ?? 'N/A' }}</td>
         <td class="px-6 py-4 whitespace-nowrap">
             @if($employee->emp_status)

@@ -53,6 +53,15 @@
                                         <option value="{{ $office->id }}">{{ $office->office_name }}</option>
                                     @endforeach
                                 </select>
+                                <select id="divisionFilter" class="rounded-lg border-gray-300 shadow-sm focus:border-[#1e6031] focus:ring focus:ring-[#1e6031] focus:ring-opacity-50">
+                                    <option value="all">All Divisions</option>
+                                </select>
+                                <select id="unitFilter" class="rounded-lg border-gray-300 shadow-sm focus:border-[#1e6031] focus:ring focus:ring-[#1e6031] focus:ring-opacity-50">
+                                    <option value="all">All Units</option>
+                                </select>
+                                <select id="subunitFilter" class="rounded-lg border-gray-300 shadow-sm focus:border-[#1e6031] focus:ring focus:ring-[#1e6031] focus:ring-opacity-50">
+                                    <option value="all">All Subunits</option>
+                                </select>
                                 <select id="classFilter" class="rounded-lg border-gray-300 shadow-sm focus:border-[#1e6031] focus:ring focus:ring-[#1e6031] focus:ring-opacity-50">
                                     <option value="all">All Classes</option>
                                     @foreach($classes as $class)
@@ -81,6 +90,9 @@
                                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Employee Name</th>
                                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Position</th>
                                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Office</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Division</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Unit</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Subunit</th>
                                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Class</th>
                                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
@@ -123,6 +135,9 @@
         document.addEventListener('DOMContentLoaded', function() {
             const searchInput = document.getElementById('searchInput');
             const officeFilter = document.getElementById('officeFilter');
+            const divisionFilter = document.getElementById('divisionFilter');
+            const unitFilter = document.getElementById('unitFilter');
+            const subunitFilter = document.getElementById('subunitFilter');
             const classFilter = document.getElementById('classFilter');
             const statusFilter = document.getElementById('statusFilter');
             const resetFilters = document.getElementById('resetFilters');
@@ -135,6 +150,9 @@
             let currentDeleteUrl = null;
             let currentSearch = '';
             let currentOffice = 'all';
+            let currentDivision = 'all';
+            let currentUnit = 'all';
+            let currentSubunit = 'all';
             let currentClass = 'all';
             let currentStatus = 'all';
             let currentPage = 1;
@@ -144,6 +162,9 @@
                 const url = new URL('{{ route("admin.employees.index") }}', window.location.origin);
                 url.searchParams.append('search', currentSearch);
                 url.searchParams.append('office', currentOffice);
+                url.searchParams.append('division', currentDivision);
+                url.searchParams.append('unit', currentUnit);
+                url.searchParams.append('subunit', currentSubunit);
                 url.searchParams.append('class', currentClass);
                 url.searchParams.append('status', currentStatus);
                 url.searchParams.append('page', currentPage);
@@ -191,6 +212,54 @@
             
             officeFilter.addEventListener('change', function() {
                 currentOffice = this.value;
+                // Reset dependent filters
+                divisionFilter.innerHTML = '<option value="all">All Divisions</option>';
+                unitFilter.innerHTML = '<option value="all">All Units</option>';
+                subunitFilter.innerHTML = '<option value="all">All Subunits</option>';
+                currentDivision = 'all';
+                currentUnit = 'all';
+                currentSubunit = 'all';
+                currentPage = 1;
+                fetchEmployees();
+                
+                // Load divisions if office is selected
+                if (currentOffice !== 'all') {
+                    fetchDivisions(currentOffice);
+                }
+            });
+            
+            divisionFilter.addEventListener('change', function() {
+                currentDivision = this.value;
+                // Reset dependent filters
+                unitFilter.innerHTML = '<option value="all">All Units</option>';
+                subunitFilter.innerHTML = '<option value="all">All Subunits</option>';
+                currentUnit = 'all';
+                currentSubunit = 'all';
+                currentPage = 1;
+                fetchEmployees();
+                
+                // Load units if division is selected
+                if (currentDivision !== 'all') {
+                    fetchUnits(currentDivision);
+                }
+            });
+            
+            unitFilter.addEventListener('change', function() {
+                currentUnit = this.value;
+                // Reset dependent filter
+                subunitFilter.innerHTML = '<option value="all">All Subunits</option>';
+                currentSubunit = 'all';
+                currentPage = 1;
+                fetchEmployees();
+                
+                // Load subunits if unit is selected
+                if (currentUnit !== 'all') {
+                    fetchSubunits(currentUnit);
+                }
+            });
+            
+            subunitFilter.addEventListener('change', function() {
+                currentSubunit = this.value;
                 currentPage = 1;
                 fetchEmployees();
             });
@@ -210,10 +279,16 @@
             resetFilters.addEventListener('click', function() {
                 searchInput.value = '';
                 officeFilter.value = 'all';
+                divisionFilter.innerHTML = '<option value="all">All Divisions</option>';
+                unitFilter.innerHTML = '<option value="all">All Units</option>';
+                subunitFilter.innerHTML = '<option value="all">All Subunits</option>';
                 classFilter.value = 'all';
                 statusFilter.value = 'all';
                 currentSearch = '';
                 currentOffice = 'all';
+                currentDivision = 'all';
+                currentUnit = 'all';
+                currentSubunit = 'all';
                 currentClass = 'all';
                 currentStatus = 'all';
                 currentPage = 1;
@@ -289,6 +364,43 @@
                     });
                 }
             });
+
+            // Functions to fetch dependent dropdown options
+            function fetchDivisions(officeId) {
+                fetch(`{{ route('admin.employees.get-divisions-by-office') }}?office_id=${officeId}`)
+                    .then(response => response.json())
+                    .then(divisions => {
+                        divisionFilter.innerHTML = '<option value="all">All Divisions</option>';
+                        divisions.forEach(division => {
+                            divisionFilter.innerHTML += `<option value="${division.id}">${division.division_name}</option>`;
+                        });
+                    })
+                    .catch(error => console.error('Error:', error));
+            }
+
+            function fetchUnits(divisionId) {
+                fetch(`{{ route('admin.employees.get-units-by-division') }}?division_id=${divisionId}`)
+                    .then(response => response.json())
+                    .then(units => {
+                        unitFilter.innerHTML = '<option value="all">All Units</option>';
+                        units.forEach(unit => {
+                            unitFilter.innerHTML += `<option value="${unit.id}">${unit.unit_name}</option>`;
+                        });
+                    })
+                    .catch(error => console.error('Error:', error));
+            }
+
+            function fetchSubunits(unitId) {
+                fetch(`{{ route('admin.employees.get-subunits-by-unit') }}?unit_id=${unitId}`)
+                    .then(response => response.json())
+                    .then(subunits => {
+                        subunitFilter.innerHTML = '<option value="all">All Subunits</option>';
+                        subunits.forEach(subunit => {
+                            subunitFilter.innerHTML += `<option value="${subunit.id}">${subunit.subunit_name}</option>`;
+                        });
+                    })
+                    .catch(error => console.error('Error:', error));
+            }
 
             // Initial load
             attachEventListeners();

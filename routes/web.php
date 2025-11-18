@@ -10,6 +10,7 @@ use App\Http\Controllers\UnitController;
 use App\Http\Controllers\SubunitController;
 use App\Http\Controllers\ClassController;
 use App\Http\Controllers\EmployeeController;
+use App\Http\Controllers\LeaderController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use Illuminate\Support\Facades\Auth;
@@ -84,13 +85,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/admin/employees/get-units-by-division', [EmployeeController::class, 'getUnitsByDivision'])->name('admin.employees.get-units-by-division');
     Route::get('/admin/employees/get-subunits-by-unit', [EmployeeController::class, 'getSubunitsByUnit'])->name('admin.employees.get-subunits-by-unit');
     
-    Route::get('/admin/leaders', function () {
-        // Check if user is admin
-        if (!Auth::user()->isAdmin()) {
-            return redirect()->route('dashboard');
-        }
-        return view('admin.leaders.index');
-    })->name('admin.leaders.index');
+    // Leadership Routes
+    Route::get('/admin/leaders', [LeaderController::class, 'index'])->name('admin.leaders.index');
+    Route::get('/admin/leaders/edit/{type}/{id?}', [LeaderController::class, 'edit'])->name('admin.leaders.edit');
+    Route::post('/admin/leaders/update', [LeaderController::class, 'update'])->name('admin.leaders.update');
     
     // Calendar Routes
     Route::get('/vehicle-calendar', [CalendarController::class, 'index'])->name('vehicle-calendar.index');

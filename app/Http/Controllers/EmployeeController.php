@@ -38,6 +38,21 @@ class EmployeeController extends Controller
             $query->where('office_id', $request->office);
         }
         
+        // Handle division filter
+        if ($request->has('division') && $request->division !== 'all') {
+            $query->where('division_id', $request->division);
+        }
+        
+        // Handle unit filter
+        if ($request->has('unit') && $request->unit !== 'all') {
+            $query->where('unit_id', $request->unit);
+        }
+        
+        // Handle subunit filter
+        if ($request->has('subunit') && $request->subunit !== 'all') {
+            $query->where('subunit_id', $request->subunit);
+        }
+        
         // Handle class filter
         if ($request->has('class') && $request->class !== 'all') {
             $query->where('class_id', $request->class);
