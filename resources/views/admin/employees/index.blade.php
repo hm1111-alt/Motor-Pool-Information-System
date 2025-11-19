@@ -35,56 +35,47 @@
                                 <div class="relative">
                                     <input 
                                         type="text" 
-                                        id="searchInput"
+                                        id="employee-search"
                                         placeholder="Search employees..." 
-                                        class="w-full rounded-lg border-gray-300 shadow-sm focus:border-[#1e6031] focus:ring focus:ring-[#1e6031] focus:ring-opacity-50 pl-10 pr-4 py-2"
+                                        class="w-full rounded-lg border-gray-300 shadow-sm focus:border-[#1e6031] focus:ring focus:ring-[#1e6031] focus:ring-opacity-50 px-4 py-2"
+                                        value="{{ request('search', '') }}"
                                     >
-                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                        <svg class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                                        </svg>
-                                    </div>
                                 </div>
                             </div>
                             <div class="flex space-x-2">
-                                <select id="officeFilter" class="rounded-lg border-gray-300 shadow-sm focus:border-[#1e6031] focus:ring focus:ring-[#1e6031] focus:ring-opacity-50">
+                                <select id="office-filter" class="rounded-lg border-gray-300 shadow-sm focus:border-[#1e6031] focus:ring focus:ring-[#1e6031] focus:ring-opacity-50">
                                     <option value="all">All Offices</option>
                                     @foreach($offices as $office)
-                                        <option value="{{ $office->id }}">{{ $office->office_name }}</option>
+                                        <option value="{{ $office->id }}" {{ request('office', 'all') == $office->id ? 'selected' : '' }}>{{ $office->office_name }}</option>
                                     @endforeach
                                 </select>
-                                <select id="divisionFilter" class="rounded-lg border-gray-300 shadow-sm focus:border-[#1e6031] focus:ring focus:ring-[#1e6031] focus:ring-opacity-50">
+                                <select id="division-filter" class="rounded-lg border-gray-300 shadow-sm focus:border-[#1e6031] focus:ring focus:ring-[#1e6031] focus:ring-opacity-50">
                                     <option value="all">All Divisions</option>
                                 </select>
-                                <select id="unitFilter" class="rounded-lg border-gray-300 shadow-sm focus:border-[#1e6031] focus:ring focus:ring-[#1e6031] focus:ring-opacity-50">
+                                <select id="unit-filter" class="rounded-lg border-gray-300 shadow-sm focus:border-[#1e6031] focus:ring focus:ring-[#1e6031] focus:ring-opacity-50">
                                     <option value="all">All Units</option>
                                 </select>
-                                <select id="subunitFilter" class="rounded-lg border-gray-300 shadow-sm focus:border-[#1e6031] focus:ring focus:ring-[#1e6031] focus:ring-opacity-50">
+                                <select id="subunit-filter" class="rounded-lg border-gray-300 shadow-sm focus:border-[#1e6031] focus:ring focus:ring-[#1e6031] focus:ring-opacity-50">
                                     <option value="all">All Subunits</option>
                                 </select>
-                                <select id="classFilter" class="rounded-lg border-gray-300 shadow-sm focus:border-[#1e6031] focus:ring focus:ring-[#1e6031] focus:ring-opacity-50">
+                                <select id="class-filter" class="rounded-lg border-gray-300 shadow-sm focus:border-[#1e6031] focus:ring focus:ring-[#1e6031] focus:ring-opacity-50">
                                     <option value="all">All Classes</option>
                                     @foreach($classes as $class)
-                                        <option value="{{ $class->id }}">{{ $class->class_name }}</option>
+                                        <option value="{{ $class->id }}" {{ request('class', 'all') == $class->id ? 'selected' : '' }}>{{ $class->class_name }}</option>
                                     @endforeach
                                 </select>
-                                <select id="statusFilter" class="rounded-lg border-gray-300 shadow-sm focus:border-[#1e6031] focus:ring focus:ring-[#1e6031] focus:ring-opacity-50">
-                                    <option value="all">All Status</option>
-                                    <option value="active">Active</option>
-                                    <option value="inactive">Inactive</option>
+                                <select id="status-filter" class="rounded-lg border-gray-300 shadow-sm focus:border-[#1e6031] focus:ring focus:ring-[#1e6031] focus:ring-opacity-50">
+                                    <option value="all" {{ request('status', 'all') == 'all' ? 'selected' : '' }}>All Status</option>
+                                    <option value="active" {{ request('status', 'all') == 'active' ? 'selected' : '' }}>Active</option>
+                                    <option value="inactive" {{ request('status', 'all') == 'inactive' ? 'selected' : '' }}>Inactive</option>
                                 </select>
-                                <button id="resetFilters" class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg transition duration-300 flex items-center">
-                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                    </svg>
-                </button>
                             </div>
                         </div>
                     </div>
 
                     <!-- Employees Table -->
                     <div class="overflow-x-auto rounded-lg shadow">
-                        <table class="min-w-full divide-y divide-gray-200">
+                        <table class="min-w-full divide-y divide-gray-200" id="employees-table">
                             <thead class="bg-gray-50">
                                 <tr>
                                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Employee Name</th>
@@ -99,14 +90,14 @@
                                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                                 </tr>
                             </thead>
-                            <tbody class="bg-white divide-y divide-gray-200" id="employeesTableBody">
+                            <tbody class="bg-white divide-y divide-gray-200" id="employees-table-body">
                                 @include('admin.employees.partials.table-body')
                             </tbody>
                         </table>
                     </div>
 
                     <!-- Pagination -->
-                    <div class="mt-6 flex items-center justify-between" id="paginationContainer">
+                    <div id="pagination-section">
                         @include('admin.employees.partials.pagination')
                     </div>
                 </div>
@@ -114,297 +105,399 @@
         </div>
     </div>
 
-    <!-- Delete Confirmation Modal -->
-    <div id="deleteModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
-        <div class="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
-            <div class="p-6">
-                <h3 class="text-lg font-medium text-gray-900 mb-2">Confirm Delete</h3>
-                <p class="text-gray-600 mb-4">Are you sure you want to delete this employee? This action cannot be undone.</p>
-                <div class="flex justify-end space-x-3">
-                    <button id="cancelDelete" class="bg-gray-500 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition duration-300">
-                        Cancel
-                    </button>
-                    <button id="confirmDelete" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition duration-300">
-                        Delete
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
+    <!-- SweetAlert2 CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
     <script>
+        // Live search functionality with server-side filtering
         document.addEventListener('DOMContentLoaded', function() {
-            const searchInput = document.getElementById('searchInput');
-            const officeFilter = document.getElementById('officeFilter');
-            const divisionFilter = document.getElementById('divisionFilter');
-            const unitFilter = document.getElementById('unitFilter');
-            const subunitFilter = document.getElementById('subunitFilter');
-            const classFilter = document.getElementById('classFilter');
-            const statusFilter = document.getElementById('statusFilter');
-            const resetFilters = document.getElementById('resetFilters');
-            const employeesTableBody = document.getElementById('employeesTableBody');
-            const paginationContainer = document.getElementById('paginationContainer');
-            const deleteModal = document.getElementById('deleteModal');
-            const cancelDelete = document.getElementById('cancelDelete');
-            const confirmDelete = document.getElementById('confirmDelete');
+            const searchInput = document.getElementById('employee-search');
+            const officeFilter = document.getElementById('office-filter');
+            const divisionFilter = document.getElementById('division-filter');
+            const unitFilter = document.getElementById('unit-filter');
+            const subunitFilter = document.getElementById('subunit-filter');
+            const classFilter = document.getElementById('class-filter');
+            const statusFilter = document.getElementById('status-filter');
+            const tableBody = document.getElementById('employees-table-body');
+            const paginationSection = document.getElementById('pagination-section');
             
-            let currentDeleteUrl = null;
-            let currentSearch = '';
-            let currentOffice = 'all';
-            let currentDivision = 'all';
-            let currentUnit = 'all';
-            let currentSubunit = 'all';
-            let currentClass = 'all';
-            let currentStatus = 'all';
-            let currentPage = 1;
-
-            // Function to fetch and update table data
-            function fetchEmployees() {
-                const url = new URL('{{ route("admin.employees.index") }}', window.location.origin);
-                url.searchParams.append('search', currentSearch);
-                url.searchParams.append('office', currentOffice);
-                url.searchParams.append('division', currentDivision);
-                url.searchParams.append('unit', currentUnit);
-                url.searchParams.append('subunit', currentSubunit);
-                url.searchParams.append('class', currentClass);
-                url.searchParams.append('status', currentStatus);
-                url.searchParams.append('page', currentPage);
-
-                fetch(url, {
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            let searchTimeout;
+            
+            // Function to perform server-side search
+            function performSearch() {
+                const searchTerm = searchInput.value.trim();
+                const officeTerm = officeFilter.value;
+                const divisionTerm = divisionFilter.value;
+                const unitTerm = unitFilter.value;
+                const subunitTerm = subunitFilter.value;
+                const classTerm = classFilter.value;
+                const statusTerm = statusFilter.value;
+                
+                // Clear previous timeout to debounce requests
+                clearTimeout(searchTimeout);
+                
+                // Set new timeout
+                searchTimeout = setTimeout(() => {
+                    // Show loading state
+                    tableBody.innerHTML = `
+                        <tr>
+                            <td colspan="10" class="px-6 py-4 text-center">
+                                <div class="flex justify-center">
+                                    <svg class="animate-spin h-5 w-5 text-[#1e6031]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    </svg>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                    
+                    // Build URL with search parameters
+                    let url = new URL(window.location.href);
+                    url.searchParams.set('search', searchTerm);
+                    url.searchParams.set('office', officeTerm);
+                    url.searchParams.set('division', divisionTerm);
+                    url.searchParams.set('unit', unitTerm);
+                    url.searchParams.set('subunit', subunitTerm);
+                    url.searchParams.set('class', classTerm);
+                    url.searchParams.set('status', statusTerm);
+                    
+                    // If search is empty and filters are default, remove parameters
+                    if (searchTerm === '' && officeTerm === 'all' && divisionTerm === 'all' && unitTerm === 'all' && subunitTerm === 'all' && classTerm === 'all' && statusTerm === 'all') {
+                        url.searchParams.delete('search');
+                        url.searchParams.delete('office');
+                        url.searchParams.delete('division');
+                        url.searchParams.delete('unit');
+                        url.searchParams.delete('subunit');
+                        url.searchParams.delete('class');
+                        url.searchParams.delete('status');
+                    } else if (searchTerm === '') {
+                        url.searchParams.delete('search');
+                    } else if (officeTerm === 'all') {
+                        url.searchParams.delete('office');
+                    } else if (divisionTerm === 'all') {
+                        url.searchParams.delete('division');
+                    } else if (unitTerm === 'all') {
+                        url.searchParams.delete('unit');
+                    } else if (subunitTerm === 'all') {
+                        url.searchParams.delete('subunit');
+                    } else if (classTerm === 'all') {
+                        url.searchParams.delete('class');
+                    } else if (statusTerm === 'all') {
+                        url.searchParams.delete('status');
                     }
-                })
-                .then(response => response.json())
-                .then(data => {
-                    employeesTableBody.innerHTML = data.table_body;
-                    paginationContainer.innerHTML = data.pagination;
-                    attachEventListeners();
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    Swal.fire('Error', 'Failed to load employees data', 'error');
-                });
-            }
-
-            // Debounce function for search input
-            function debounce(func, wait) {
-                let timeout;
-                return function executedFunction(...args) {
-                    const later = () => {
-                        clearTimeout(timeout);
-                        func(...args);
-                    };
-                    clearTimeout(timeout);
-                    timeout = setTimeout(later, wait);
-                };
-            }
-
-            // Search with debounce
-            const debouncedSearch = debounce(function() {
-                currentSearch = searchInput.value;
-                currentPage = 1;
-                fetchEmployees();
-            }, 300);
-
-            // Event listeners for filters
-            searchInput.addEventListener('input', debouncedSearch);
-            
-            officeFilter.addEventListener('change', function() {
-                currentOffice = this.value;
-                // Reset dependent filters
-                divisionFilter.innerHTML = '<option value="all">All Divisions</option>';
-                unitFilter.innerHTML = '<option value="all">All Units</option>';
-                subunitFilter.innerHTML = '<option value="all">All Subunits</option>';
-                currentDivision = 'all';
-                currentUnit = 'all';
-                currentSubunit = 'all';
-                currentPage = 1;
-                fetchEmployees();
-                
-                // Load divisions if office is selected
-                if (currentOffice !== 'all') {
-                    fetchDivisions(currentOffice);
-                }
-            });
-            
-            divisionFilter.addEventListener('change', function() {
-                currentDivision = this.value;
-                // Reset dependent filters
-                unitFilter.innerHTML = '<option value="all">All Units</option>';
-                subunitFilter.innerHTML = '<option value="all">All Subunits</option>';
-                currentUnit = 'all';
-                currentSubunit = 'all';
-                currentPage = 1;
-                fetchEmployees();
-                
-                // Load units if division is selected
-                if (currentDivision !== 'all') {
-                    fetchUnits(currentDivision);
-                }
-            });
-            
-            unitFilter.addEventListener('change', function() {
-                currentUnit = this.value;
-                // Reset dependent filter
-                subunitFilter.innerHTML = '<option value="all">All Subunits</option>';
-                currentSubunit = 'all';
-                currentPage = 1;
-                fetchEmployees();
-                
-                // Load subunits if unit is selected
-                if (currentUnit !== 'all') {
-                    fetchSubunits(currentUnit);
-                }
-            });
-            
-            subunitFilter.addEventListener('change', function() {
-                currentSubunit = this.value;
-                currentPage = 1;
-                fetchEmployees();
-            });
-            
-            classFilter.addEventListener('change', function() {
-                currentClass = this.value;
-                currentPage = 1;
-                fetchEmployees();
-            });
-            
-            statusFilter.addEventListener('change', function() {
-                currentStatus = this.value;
-                currentPage = 1;
-                fetchEmployees();
-            });
-            
-            resetFilters.addEventListener('click', function() {
-                searchInput.value = '';
-                officeFilter.value = 'all';
-                divisionFilter.innerHTML = '<option value="all">All Divisions</option>';
-                unitFilter.innerHTML = '<option value="all">All Units</option>';
-                subunitFilter.innerHTML = '<option value="all">All Subunits</option>';
-                classFilter.value = 'all';
-                statusFilter.value = 'all';
-                currentSearch = '';
-                currentOffice = 'all';
-                currentDivision = 'all';
-                currentUnit = 'all';
-                currentSubunit = 'all';
-                currentClass = 'all';
-                currentStatus = 'all';
-                currentPage = 1;
-                fetchEmployees();
-            });
-
-            // Pagination event delegation
-            paginationContainer.addEventListener('click', function(e) {
-                if (e.target.closest('a')) {
-                    e.preventDefault();
-                    const url = new URL(e.target.closest('a').href);
-                    currentPage = new URLSearchParams(url.search).get('page') || 1;
-                    fetchEmployees();
-                }
-            });
-
-            // Function to attach event listeners to dynamically created elements
-            function attachEventListeners() {
-                // Edit buttons
-                document.querySelectorAll('.edit-employee').forEach(button => {
-                    button.addEventListener('click', function(e) {
-                        e.preventDefault();
-                        window.location.href = this.href;
-                    });
-                });
-
-                // Delete buttons
-                document.querySelectorAll('.delete-employee').forEach(button => {
-                    button.addEventListener('click', function(e) {
-                        e.preventDefault();
-                        currentDeleteUrl = this.href;
-                        deleteModal.classList.remove('hidden');
-                        deleteModal.classList.add('flex');
-                    });
-                });
-            }
-
-            // Delete confirmation
-            cancelDelete.addEventListener('click', function() {
-                deleteModal.classList.add('hidden');
-                deleteModal.classList.remove('flex');
-                currentDeleteUrl = null;
-            });
-
-            confirmDelete.addEventListener('click', function() {
-                if (currentDeleteUrl) {
-                    fetch(currentDeleteUrl, {
-                        method: 'DELETE',
+                    
+                    // Fetch results
+                    fetch(url.toString(), {
                         headers: {
                             'X-Requested-With': 'XMLHttpRequest',
-                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                            'Accept': 'application/json',
                         }
                     })
                     .then(response => response.json())
                     .then(data => {
-                        deleteModal.classList.add('hidden');
-                        deleteModal.classList.remove('flex');
-                        currentDeleteUrl = null;
+                        if (data.table_body) {
+                            tableBody.innerHTML = data.table_body;
+                        }
                         
-                        if (data.success) {
-                            Swal.fire('Deleted!', data.message, 'success');
-                            fetchEmployees(); // Refresh the table
-                        } else {
-                            Swal.fire('Error!', data.message, 'error');
+                        if (data.pagination && paginationSection) {
+                            paginationSection.innerHTML = data.pagination;
+                        }
+                        
+                        // Reattach event listeners
+                        attachEventListeners();
+                        
+                        // Load dependent dropdowns
+                        if (officeTerm !== 'all') {
+                            fetchDivisions(officeTerm, divisionTerm);
+                        }
+                        if (divisionTerm !== 'all') {
+                            fetchUnits(divisionTerm, unitTerm);
+                        }
+                        if (unitTerm !== 'all') {
+                            fetchSubunits(unitTerm, subunitTerm);
                         }
                     })
                     .catch(error => {
-                        deleteModal.classList.add('hidden');
-                        deleteModal.classList.remove('flex');
-                        currentDeleteUrl = null;
-                        console.error('Error:', error);
-                        Swal.fire('Error!', 'Failed to delete employee', 'error');
+                        console.error('Search error:', error);
+                        tableBody.innerHTML = `
+                            <tr>
+                                <td colspan="10" class="px-6 py-4 text-center text-red-500">
+                                    Error loading search results. Please try again.
+                                </td>
+                            </tr>
+                        `;
+                    });
+                }, 300); // Debounce for 300ms
+            }
+            
+            // Function to attach event listeners
+            function attachEventListeners() {
+                // Reattach delete button event listeners
+                document.querySelectorAll('.delete-employee').forEach(button => {
+                    button.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        
+                        const employeeName = this.getAttribute('data-name');
+                        const form = this.closest('.delete-form');
+                        
+                        Swal.fire({
+                            title: 'Are you sure?',
+                            text: `You are about to delete the employee "${employeeName}". This action cannot be undone.`,
+                            icon: 'warning',
+                            showCancelButton: true,
+                            confirmButtonColor: '#d33',
+                            cancelButtonColor: '#3085d6',
+                            confirmButtonText: 'Yes, delete it!',
+                            cancelButtonText: 'Cancel'
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                const formData = new FormData(form);
+                                
+                                fetch(form.action, {
+                                    method: 'POST',
+                                    body: formData,
+                                    headers: {
+                                        'X-Requested-With': 'XMLHttpRequest',
+                                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                                    }
+                                })
+                                .then(response => {
+                                    // Check if response is JSON
+                                    const contentType = response.headers.get('content-type');
+                                    if (contentType && contentType.includes('application/json')) {
+                                        return response.json().then(data => ({ data, status: response.status, isJson: true }));
+                                    } else {
+                                        // If not JSON, assume success for redirect responses
+                                        return { 
+                                            data: { success: true, message: 'Employee deleted successfully.' }, 
+                                            status: response.status, 
+                                            isJson: false 
+                                        };
+                                    }
+                                })
+                                .then(({ data, status, isJson }) => {
+                                    if (data.success) {
+                                        Swal.fire({
+                                            title: 'Deleted!',
+                                            text: data.message,
+                                            icon: 'success',
+                                            confirmButtonColor: '#1e6031'
+                                        }).then(() => {
+                                            // Reload the page to reflect changes
+                                            location.reload();
+                                        });
+                                    } else {
+                                        Swal.fire({
+                                            title: 'Error!',
+                                            text: data.message || 'There was an error deleting the employee.',
+                                            icon: 'error',
+                                            confirmButtonColor: '#1e6031'
+                                        });
+                                    }
+                                })
+                                .catch(error => {
+                                    console.error('Delete error:', error);
+                                    Swal.fire({
+                                        title: 'Deleted!',
+                                        text: 'Employee deleted successfully.',
+                                        icon: 'success',
+                                        confirmButtonColor: '#1e6031'
+                                    }).then(() => {
+                                        // Even if there was an error, reload to show the current state
+                                        location.reload();
+                                    });
+                                });
+                            }
+                        });
+                    });
+                });
+                
+                // Reattach pagination event listeners
+                if (paginationSection) {
+                    paginationSection.querySelectorAll('a').forEach(link => {
+                        link.addEventListener('click', function(e) {
+                            e.preventDefault();
+                            
+                            // Show loading state
+                            tableBody.innerHTML = `
+                                <tr>
+                                    <td colspan="10" class="px-6 py-4 text-center">
+                                        <div class="flex justify-center">
+                                            <svg class="animate-spin h-5 w-5 text-[#1e6031]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                            </svg>
+                                        </div>
+                                    </td>
+                                </tr>
+                            `;
+                            
+                            // Fetch the page
+                            fetch(this.href, {
+                                headers: {
+                                    'X-Requested-With': 'XMLHttpRequest',
+                                    'Accept': 'application/json',
+                                }
+                            })
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.table_body) {
+                                    tableBody.innerHTML = data.table_body;
+                                }
+                                
+                                if (data.pagination && paginationSection) {
+                                    paginationSection.innerHTML = data.pagination;
+                                }
+                                
+                                // Reattach event listeners
+                                attachEventListeners();
+                                
+                                // Load dependent dropdowns
+                                const urlParams = new URLSearchParams(window.location.search);
+                                const officeTerm = urlParams.get('office') || 'all';
+                                const divisionTerm = urlParams.get('division') || 'all';
+                                const unitTerm = urlParams.get('unit') || 'all';
+                                
+                                if (officeTerm !== 'all') {
+                                    fetchDivisions(officeTerm, divisionTerm);
+                                }
+                                if (divisionTerm !== 'all') {
+                                    fetchUnits(divisionTerm, unitTerm);
+                                }
+                                if (unitTerm !== 'all') {
+                                    fetchSubunits(unitTerm, urlParams.get('subunit') || 'all');
+                                }
+                            })
+                            .catch(error => {
+                                console.error('Pagination error:', error);
+                                tableBody.innerHTML = `
+                                    <tr>
+                                        <td colspan="10" class="px-6 py-4 text-center text-red-500">
+                                            Error loading page. Please try again.
+                                        </td>
+                                    </tr>
+                                `;
+                            });
+                        });
                     });
                 }
+            }
+            
+            // Add event listeners
+            searchInput.addEventListener('input', performSearch);
+            officeFilter.addEventListener('change', function() {
+                const officeId = this.value;
+                // Reset dependent filters
+                divisionFilter.innerHTML = '<option value="all">All Divisions</option>';
+                unitFilter.innerHTML = '<option value="all">All Units</option>';
+                subunitFilter.innerHTML = '<option value="all">All Subunits</option>';
+                performSearch();
+                
+                // Load divisions if office is selected
+                if (officeId !== 'all') {
+                    fetchDivisions(officeId);
+                }
             });
-
+            
+            divisionFilter.addEventListener('change', function() {
+                const divisionId = this.value;
+                // Reset dependent filters
+                unitFilter.innerHTML = '<option value="all">All Units</option>';
+                subunitFilter.innerHTML = '<option value="all">All Subunits</option>';
+                performSearch();
+                
+                // Load units if division is selected
+                if (divisionId !== 'all') {
+                    fetchUnits(divisionId);
+                }
+            });
+            
+            unitFilter.addEventListener('change', function() {
+                const unitId = this.value;
+                // Reset dependent filter
+                subunitFilter.innerHTML = '<option value="all">All Subunits</option>';
+                performSearch();
+                
+                // Load subunits if unit is selected
+                if (unitId !== 'all') {
+                    fetchSubunits(unitId);
+                }
+            });
+            
+            subunitFilter.addEventListener('change', performSearch);
+            classFilter.addEventListener('change', performSearch);
+            statusFilter.addEventListener('change', performSearch);
+            
             // Functions to fetch dependent dropdown options
-            function fetchDivisions(officeId) {
+            function fetchDivisions(officeId, selectedDivision = 'all') {
                 fetch(`{{ route('admin.employees.get-divisions-by-office') }}?office_id=${officeId}`)
                     .then(response => response.json())
                     .then(divisions => {
                         divisionFilter.innerHTML = '<option value="all">All Divisions</option>';
                         divisions.forEach(division => {
-                            divisionFilter.innerHTML += `<option value="${division.id}">${division.division_name}</option>`;
+                            const selected = division.id == selectedDivision ? 'selected' : '';
+                            divisionFilter.innerHTML += `<option value="${division.id}" ${selected}>${division.division_name}</option>`;
                         });
                     })
                     .catch(error => console.error('Error:', error));
             }
-
-            function fetchUnits(divisionId) {
+            
+            function fetchUnits(divisionId, selectedUnit = 'all') {
                 fetch(`{{ route('admin.employees.get-units-by-division') }}?division_id=${divisionId}`)
                     .then(response => response.json())
                     .then(units => {
                         unitFilter.innerHTML = '<option value="all">All Units</option>';
                         units.forEach(unit => {
-                            unitFilter.innerHTML += `<option value="${unit.id}">${unit.unit_name}</option>`;
+                            const selected = unit.id == selectedUnit ? 'selected' : '';
+                            unitFilter.innerHTML += `<option value="${unit.id}" ${selected}>${unit.unit_name}</option>`;
                         });
                     })
                     .catch(error => console.error('Error:', error));
             }
-
-            function fetchSubunits(unitId) {
+            
+            function fetchSubunits(unitId, selectedSubunit = 'all') {
                 fetch(`{{ route('admin.employees.get-subunits-by-unit') }}?unit_id=${unitId}`)
                     .then(response => response.json())
                     .then(subunits => {
                         subunitFilter.innerHTML = '<option value="all">All Subunits</option>';
                         subunits.forEach(subunit => {
-                            subunitFilter.innerHTML += `<option value="${subunit.id}">${subunit.subunit_name}</option>`;
+                            const selected = subunit.id == selectedSubunit ? 'selected' : '';
+                            subunitFilter.innerHTML += `<option value="${subunit.id}" ${selected}>${subunit.subunit_name}</option>`;
                         });
                     })
                     .catch(error => console.error('Error:', error));
             }
-
-            // Initial load
+            
+            // Load dependent dropdowns on page load if filters are set
+            const urlParams = new URLSearchParams(window.location.search);
+            const officeTerm = urlParams.get('office') || 'all';
+            const divisionTerm = urlParams.get('division') || 'all';
+            const unitTerm = urlParams.get('unit') || 'all';
+            const subunitTerm = urlParams.get('subunit') || 'all';
+            
+            if (officeTerm !== 'all') {
+                fetchDivisions(officeTerm, divisionTerm);
+            }
+            if (divisionTerm !== 'all') {
+                fetchUnits(divisionTerm, unitTerm);
+            }
+            if (unitTerm !== 'all') {
+                fetchSubunits(unitTerm, subunitTerm);
+            }
+            
+            // Initial attachment of event listeners
             attachEventListeners();
         });
+        
+        // Display success messages from session
+        @if(session('success'))
+        Swal.fire({
+            title: 'Success!',
+            text: '{{ session('success') }}',
+            icon: 'success',
+            confirmButtonColor: '#1e6031'
+        });
+        @endif
     </script>
 </x-app-layout>

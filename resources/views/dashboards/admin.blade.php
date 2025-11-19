@@ -208,19 +208,19 @@
                         <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
                             <div class="bg-white p-4 rounded-lg border border-gray-200 text-center">
                                 <p class="text-sm text-gray-600">Total Offices</p>
-                                <p class="text-2xl font-bold text-[#1e6031]">5</p>
+                                <p class="text-2xl font-bold text-[#1e6031]">{{ \App\Models\Office::count() }}</p>
                             </div>
                             <div class="bg-white p-4 rounded-lg border border-gray-200 text-center">
                                 <p class="text-sm text-gray-600">Total Divisions</p>
-                                <p class="text-2xl font-bold text-[#1e6031]">22</p>
+                                <p class="text-2xl font-bold text-[#1e6031]">{{ \App\Models\Division::count() }}</p>
+                            </div>
+                            <div class="bg-white p-4 rounded-lg border border-gray-200 text-center">
+                                <p class="text-sm text-gray-600">Total Units</p>
+                                <p class="text-2xl font-bold text-[#1e6031]">{{ \App\Models\Unit::count() }}</p>
                             </div>
                             <div class="bg-white p-4 rounded-lg border border-gray-200 text-center">
                                 <p class="text-sm text-gray-600">Total Employees</p>
-                                <p class="text-2xl font-bold text-[#1e6031]">450</p>
-                            </div>
-                            <div class="bg-white p-4 rounded-lg border border-gray-200 text-center">
-                                <p class="text-sm text-gray-600">Active Users</p>
-                                <p class="text-2xl font-bold text-[#1e6031]">128</p>
+                                <p class="text-2xl font-bold text-[#1e6031]">{{ \App\Models\Employee::count() }}</p>
                             </div>
                         </div>
                     </div>

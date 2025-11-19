@@ -21,14 +21,21 @@
                         @csrf
                         <input type="hidden" name="type" value="{{ $type }}">
                         
+                        <!-- Organization information for specific roles -->
+                        @if(in_array($type, ['vp', 'division_head', 'unit_head']))
+                            <input type="hidden" name="organization_id" value="{{ $organization->id ?? '' }}">
+                        @endif
+                        
                         <div class="mb-6">
                             <h3 class="text-lg font-medium text-gray-900 mb-4">
                                 @if($type == 'president')
                                     Assign University President
                                 @elseif($type == 'vp')
-                                    Assign Vice President
+                                    Assign Vice President for {{ $organization->office_name ?? 'Office' }}
                                 @elseif($type == 'division_head')
-                                    Assign Division Head
+                                    Assign Division Head for {{ $organization->division_name ?? 'Division' }}
+                                @elseif($type == 'unit_head')
+                                    Assign Unit Head for {{ $organization->unit_name ?? 'Unit' }}
                                 @endif
                             </h3>
                             
@@ -39,9 +46,12 @@
                                 <select name="employee_id" id="employee_id" class="w-full rounded-lg border-gray-300 shadow-sm focus:border-[#1e6031] focus:ring focus:ring-[#1e6031] focus:ring-opacity-50">
                                     <option value="">None (Remove current assignment)</option>
                                     @foreach($employees as $emp)
+                                        {{-- Exclude President from VP assignments --}}
+                                        @if($type != 'vp' || !$emp->is_president)
                                         <option value="{{ $emp->id }}" {{ (isset($employee) && $employee->id == $emp->id) ? 'selected' : '' }}>
                                             {{ $emp->first_name }} {{ $emp->last_name }} - {{ $emp->position_name }}
                                         </option>
+                                        @endif
                                     @endforeach
                                 </select>
                             </div>
