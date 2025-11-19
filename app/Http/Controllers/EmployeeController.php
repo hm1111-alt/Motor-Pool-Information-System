@@ -3,16 +3,17 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 use App\Models\Employee;
 use App\Models\Office;
 use App\Models\Division;
 use App\Models\Unit;
 use App\Models\Subunit;
 use App\Models\ClassModel;
-use Illuminate\View\View;
+use App\Models\User;
+use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\JsonResponse;
+use Illuminate\View\View;
 
 class EmployeeController extends Controller
 {
@@ -21,58 +22,60 @@ class EmployeeController extends Controller
      */
     public function index(Request $request): View|JsonResponse
     {
-        $query = Employee::with(['office', 'division', 'unit', 'subunit', 'class']);
+        $query = Employee::with(['office', 'division', 'unit', 'subunit', 'class', 'user']); // Load user relationship
         
-        // Handle search
-        if ($request->has('search') && $request->search) {
+        // Apply search filter
+        if ($request->filled('search')) {
             $search = $request->search;
-            $query->where(function($q) use ($search) {
-                $q->where('first_name', 'like', '%' . $search . '%')
-                  ->orWhere('last_name', 'like', '%' . $search . '%')
-                  ->orWhere('position_name', 'like', '%' . $search . '%');
+            $query->where(function ($q) use ($search) {
+                $q->where('first_name', 'like', "%{$search}%")
+                  ->orWhere('last_name', 'like', "%{$search}%")
+                  ->orWhere('position_name', 'like', "%{$search}%")
+                  ->orWhereHas('user', function ($userQuery) use ($search) {
+                      $userQuery->where('email', 'like', "%{$search}%");
+                  });
             });
         }
         
-        // Handle office filter
-        if ($request->has('office') && $request->office !== 'all') {
+        // Apply office filter
+        if ($request->filled('office') && $request->office !== 'all') {
             $query->where('office_id', $request->office);
         }
         
-        // Handle division filter
-        if ($request->has('division') && $request->division !== 'all') {
+        // Apply division filter
+        if ($request->filled('division') && $request->division !== 'all') {
             $query->where('division_id', $request->division);
         }
         
-        // Handle unit filter
-        if ($request->has('unit') && $request->unit !== 'all') {
+        // Apply unit filter
+        if ($request->filled('unit') && $request->unit !== 'all') {
             $query->where('unit_id', $request->unit);
         }
         
-        // Handle subunit filter
-        if ($request->has('subunit') && $request->subunit !== 'all') {
+        // Apply subunit filter
+        if ($request->filled('subunit') && $request->subunit !== 'all') {
             $query->where('subunit_id', $request->subunit);
         }
         
-        // Handle class filter
-        if ($request->has('class') && $request->class !== 'all') {
+        // Apply class filter
+        if ($request->filled('class') && $request->class !== 'all') {
             $query->where('class_id', $request->class);
         }
         
-        // Handle status filter
-        if ($request->has('status') && $request->status !== 'all') {
-            $isActive = $request->status === 'active' ? 1 : 0;
-            $query->where('emp_status', $isActive);
+        // Apply status filter
+        if ($request->filled('status') && $request->status !== 'all') {
+            $status = $request->status === 'active' ? 1 : 0;
+            $query->where('emp_status', $status);
         }
         
-        $employees = $query->paginate(10)->appends($request->except('page'));
+        $employees = $query->paginate(10);
         $offices = Office::all();
         $classes = ClassModel::all();
         
-        // Handle AJAX requests
-        if ($request->ajax()) {
+        if ($request->wantsJson() || $request->ajax()) {
             return response()->json([
                 'table_body' => view('admin.employees.partials.table-body', compact('employees'))->render(),
-                'pagination' => view('admin.employees.partials.pagination', compact('employees'))->render()
+                'pagination' => view('admin.employees.partials.pagination', ['employees' => $employees])->render()
             ]);
         }
         
@@ -85,12 +88,9 @@ class EmployeeController extends Controller
     public function create(): View
     {
         $offices = Office::all();
-        $divisions = collect(); // Will be loaded via AJAX
-        $units = collect(); // Will be loaded via AJAX
-        $subunits = collect(); // Will be loaded via AJAX
         $classes = ClassModel::all();
         
-        return view('admin.employees.create', compact('offices', 'divisions', 'units', 'subunits', 'classes'));
+        return view('admin.employees.create', compact('offices', 'classes'));
     }
 
     /**
@@ -105,23 +105,39 @@ class EmployeeController extends Controller
             'ext_name' => 'nullable|string|max:10',
             'sex' => 'required|string|in:M,F',
             'prefix' => 'nullable|string|max:10',
+            'email' => 'required|email|unique:users,email',
+            'password' => 'required|string|min:8|confirmed',
             'position_name' => 'required|string|max:255',
-            'office_id' => 'required|exists:offices,id',
-            'division_id' => 'required|exists:divisions,id',
-            'unit_id' => 'required|exists:units,id',
-            'subunit_id' => 'required|exists:subunits,id',
-            'class_id' => 'required|exists:class,id',
+            'office_id' => 'nullable|exists:offices,id',
+            'division_id' => 'nullable|exists:divisions,id',
+            'unit_id' => 'nullable|exists:units,id',
+            'subunit_id' => 'nullable|exists:subunits,id',
+            'class_id' => 'nullable|exists:class,id',
             'emp_status' => 'required|boolean',
+            'is_head' => 'boolean',
             'is_divisionhead' => 'boolean',
             'is_vp' => 'boolean',
+            'is_president' => 'boolean',
         ]);
 
         // Handle checkbox values properly
         $isActive = $request->has('emp_status') && $request->emp_status == '1' ? 1 : 0;
+        $isHead = $request->has('is_head') && $request->is_head == '1' ? 1 : 0;
         $isDivisionHead = $request->has('is_divisionhead') && $request->is_divisionhead == '1' ? 1 : 0;
         $isVP = $request->has('is_vp') && $request->is_vp == '1' ? 1 : 0;
+        $isPresident = $request->has('is_president') && $request->is_president == '1' ? 1 : 0;
 
+        // Create the user first
+        $user = User::create([
+            'name' => $request->first_name . ' ' . $request->last_name,
+            'email' => $request->email,
+            'password' => bcrypt($request->password),
+            'role' => User::ROLE_EMPLOYEE,
+        ]);
+
+        // Create the employee and link to the user
         $employee = Employee::create([
+            'user_id' => $user->id,
             'first_name' => $request->first_name,
             'last_name' => $request->last_name,
             'middle_initial' => $request->middle_initial,
@@ -137,8 +153,10 @@ class EmployeeController extends Controller
             'subunit_id' => $request->subunit_id,
             'class_id' => $request->class_id,
             'emp_status' => $isActive,
+            'is_head' => $isHead,
             'is_divisionhead' => $isDivisionHead,
             'is_vp' => $isVP,
+            'is_president' => $isPresident,
         ]);
 
         if ($request->wantsJson()) {
@@ -158,6 +176,8 @@ class EmployeeController extends Controller
      */
     public function edit(Employee $employee): View
     {
+        $employee->load('user'); // Load the user relationship
+        
         $offices = Office::all();
         $divisions = Division::where('office_id', $employee->office_id)->get();
         $units = Unit::where('division_id', $employee->division_id)->get();
@@ -179,21 +199,53 @@ class EmployeeController extends Controller
             'ext_name' => 'nullable|string|max:10',
             'sex' => 'required|string|in:M,F',
             'prefix' => 'nullable|string|max:10',
+            'email' => 'required|email|unique:users,email,' . ($employee->user_id ?? 0),
+            'password' => 'nullable|string|min:8|confirmed',
             'position_name' => 'required|string|max:255',
-            'office_id' => 'required|exists:offices,id',
-            'division_id' => 'required|exists:divisions,id',
-            'unit_id' => 'required|exists:units,id',
-            'subunit_id' => 'required|exists:subunits,id',
-            'class_id' => 'required|exists:class,id',
+            'office_id' => 'nullable|exists:offices,id',
+            'division_id' => 'nullable|exists:divisions,id',
+            'unit_id' => 'nullable|exists:units,id',
+            'subunit_id' => 'nullable|exists:subunits,id',
+            'class_id' => 'nullable|exists:class,id',
             'emp_status' => 'required|boolean',
+            'is_head' => 'boolean',
             'is_divisionhead' => 'boolean',
             'is_vp' => 'boolean',
+            'is_president' => 'boolean',
         ]);
 
         // Handle checkbox values properly
         $isActive = $request->has('emp_status') && $request->emp_status == '1' ? 1 : 0;
+        $isHead = $request->has('is_head') && $request->is_head == '1' ? 1 : 0;
         $isDivisionHead = $request->has('is_divisionhead') && $request->is_divisionhead == '1' ? 1 : 0;
         $isVP = $request->has('is_vp') && $request->is_vp == '1' ? 1 : 0;
+        $isPresident = $request->has('is_president') && $request->is_president == '1' ? 1 : 0;
+
+        // Update the user if it exists
+        if ($employee->user) {
+            $userData = [
+                'name' => $request->first_name . ' ' . $request->last_name,
+                'email' => $request->email,
+            ];
+            
+            // Only update password if provided
+            if ($request->filled('password')) {
+                $userData['password'] = bcrypt($request->password);
+            }
+            
+            $employee->user->update($userData);
+        } else {
+            // Create user if it doesn't exist
+            $user = User::create([
+                'name' => $request->first_name . ' ' . $request->last_name,
+                'email' => $request->email,
+                'password' => bcrypt($request->password),
+                'role' => User::ROLE_EMPLOYEE,
+            ]);
+            
+            // Update employee with user_id
+            $employee->user_id = $user->id;
+        }
 
         $employee->update([
             'first_name' => $request->first_name,
@@ -211,8 +263,10 @@ class EmployeeController extends Controller
             'subunit_id' => $request->subunit_id,
             'class_id' => $request->class_id,
             'emp_status' => $isActive,
+            'is_head' => $isHead,
             'is_divisionhead' => $isDivisionHead,
             'is_vp' => $isVP,
+            'is_president' => $isPresident,
         ]);
 
         if ($request->wantsJson()) {

@@ -32,8 +32,10 @@ class Employee extends Model
         'division_id',
         'unit_id',
         'subunit_id',
+        'is_head',
         'is_divisionhead',
         'is_vp',
+        'is_president',
     ];
 
     /**
@@ -42,8 +44,10 @@ class Employee extends Model
      * @var array<string, string>
      */
     protected $casts = [
+        'is_head' => 'boolean',
         'is_divisionhead' => 'boolean',
         'is_vp' => 'boolean',
+        'is_president' => 'boolean',
         'emp_status' => 'integer',
         'class_id' => 'integer',
         'office_id' => 'integer',

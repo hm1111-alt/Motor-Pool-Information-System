@@ -91,8 +91,10 @@ return new class extends Migration {
             $table->foreignId('division_id')->nullable()->constrained('divisions')->nullOnDelete();
             $table->foreignId('unit_id')->nullable()->constrained('units')->nullOnDelete();
             $table->foreignId('subunit_id')->nullable()->constrained('subunits')->nullOnDelete();
+            $table->boolean('is_head')->nullable();
             $table->boolean('is_divisionhead')->nullable();
             $table->boolean('is_vp')->nullable();
+            $table->boolean('is_president')->nullable();
             $table->timestamps();
         });
 

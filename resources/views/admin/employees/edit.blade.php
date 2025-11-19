@@ -45,13 +45,13 @@
                                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
                                     <div>
                                         <label for="middle_initial" class="block text-sm font-medium text-gray-700 mb-1">Middle Initial</label>
-                                        <input type="text" name="middle_initial" id="middle_initial" value="{{ old('middle_initial', $employee->middle_initial) }}"
+                                        <input type="text" name="middle_initial" id="middle_initial" value="{{ old('middle_initial', $employee->middle_initial) }}" maxlength="10"
                                             class="w-full rounded-lg border-gray-300 shadow-sm focus:border-[#1e6031] focus:ring focus:ring-[#1e6031] focus:ring-opacity-50">
                                     </div>
                                     
                                     <div>
                                         <label for="ext_name" class="block text-sm font-medium text-gray-700 mb-1">Extension Name</label>
-                                        <input type="text" name="ext_name" id="ext_name" value="{{ old('ext_name', $employee->ext_name) }}"
+                                        <input type="text" name="ext_name" id="ext_name" value="{{ old('ext_name', $employee->ext_name) }}" maxlength="10"
                                             class="w-full rounded-lg border-gray-300 shadow-sm focus:border-[#1e6031] focus:ring focus:ring-[#1e6031] focus:ring-opacity-50">
                                     </div>
                                     
@@ -67,9 +67,33 @@
                                 </div>
                                 
                                 <div class="mt-4">
-                                    <label for="prefix" class="block text-sm font-medium text-gray-700 mb-1">Prefix (e.g., Dr., Engr.)</label>
+                                    <label for="prefix" class="block text-sm font-medium text-gray-700 mb-1">Prefix</label>
                                     <input type="text" name="prefix" id="prefix" value="{{ old('prefix', $employee->prefix) }}"
                                         class="w-full rounded-lg border-gray-300 shadow-sm focus:border-[#1e6031] focus:ring focus:ring-[#1e6031] focus:ring-opacity-50">
+                                </div>
+                                
+                                <!-- Login Credentials -->
+                                <div class="mt-4">
+                                    <h4 class="text-md font-medium text-gray-800 mb-2">Login Credentials</h4>
+                                    
+                                    <div>
+                                        <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email *</label>
+                                        <input type="email" name="email" id="email" value="{{ old('email', $employee->user->email ?? '') }}" required
+                                            class="w-full rounded-lg border-gray-300 shadow-sm focus:border-[#1e6031] focus:ring focus:ring-[#1e6031] focus:ring-opacity-50">
+                                    </div>
+                                    
+                                    <div class="mt-4">
+                                        <label for="password" class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                                        <input type="password" name="password" id="password"
+                                            class="w-full rounded-lg border-gray-300 shadow-sm focus:border-[#1e6031] focus:ring focus:ring-[#1e6031] focus:ring-opacity-50">
+                                        <p class="text-xs text-gray-500 mt-1">Leave blank to keep current password</p>
+                                    </div>
+                                    
+                                    <div class="mt-4">
+                                        <label for="password_confirmation" class="block text-sm font-medium text-gray-700 mb-1">Confirm Password</label>
+                                        <input type="password" name="password_confirmation" id="password_confirmation"
+                                            class="w-full rounded-lg border-gray-300 shadow-sm focus:border-[#1e6031] focus:ring focus:ring-[#1e6031] focus:ring-opacity-50">
+                                    </div>
                                 </div>
                             </div>
                             
@@ -84,8 +108,8 @@
                                 </div>
                                 
                                 <div class="mt-4">
-                                    <label for="class_id" class="block text-sm font-medium text-gray-700 mb-1">Class *</label>
-                                    <select name="class_id" id="class_id" required
+                                    <label for="class_id" class="block text-sm font-medium text-gray-700 mb-1">Class</label>
+                                    <select name="class_id" id="class_id"
                                         class="w-full rounded-lg border-gray-300 shadow-sm focus:border-[#1e6031] focus:ring focus:ring-[#1e6031] focus:ring-opacity-50">
                                         <option value="">Select Class</option>
                                         @foreach($classes as $class)
@@ -97,8 +121,8 @@
                                 </div>
                                 
                                 <div class="mt-4">
-                                    <label for="office_id" class="block text-sm font-medium text-gray-700 mb-1">Office *</label>
-                                    <select name="office_id" id="office_id" required
+                                    <label for="office_id" class="block text-sm font-medium text-gray-700 mb-1">Office</label>
+                                    <select name="office_id" id="office_id"
                                         class="w-full rounded-lg border-gray-300 shadow-sm focus:border-[#1e6031] focus:ring focus:ring-[#1e6031] focus:ring-opacity-50">
                                         <option value="">Select Office</option>
                                         @foreach($offices as $office)
@@ -110,8 +134,8 @@
                                 </div>
                                 
                                 <div class="mt-4">
-                                    <label for="division_id" class="block text-sm font-medium text-gray-700 mb-1">Division *</label>
-                                    <select name="division_id" id="division_id" required
+                                    <label for="division_id" class="block text-sm font-medium text-gray-700 mb-1">Division</label>
+                                    <select name="division_id" id="division_id"
                                         class="w-full rounded-lg border-gray-300 shadow-sm focus:border-[#1e6031] focus:ring focus:ring-[#1e6031] focus:ring-opacity-50">
                                         <option value="">Select Division</option>
                                         @foreach($divisions as $division)
@@ -123,8 +147,8 @@
                                 </div>
                                 
                                 <div class="mt-4">
-                                    <label for="unit_id" class="block text-sm font-medium text-gray-700 mb-1">Unit *</label>
-                                    <select name="unit_id" id="unit_id" required
+                                    <label for="unit_id" class="block text-sm font-medium text-gray-700 mb-1">Unit</label>
+                                    <select name="unit_id" id="unit_id"
                                         class="w-full rounded-lg border-gray-300 shadow-sm focus:border-[#1e6031] focus:ring focus:ring-[#1e6031] focus:ring-opacity-50">
                                         <option value="">Select Unit</option>
                                         @foreach($units as $unit)
@@ -136,8 +160,8 @@
                                 </div>
                                 
                                 <div class="mt-4">
-                                    <label for="subunit_id" class="block text-sm font-medium text-gray-700 mb-1">Subunit *</label>
-                                    <select name="subunit_id" id="subunit_id" required
+                                    <label for="subunit_id" class="block text-sm font-medium text-gray-700 mb-1">Subunit</label>
+                                    <select name="subunit_id" id="subunit_id"
                                         class="w-full rounded-lg border-gray-300 shadow-sm focus:border-[#1e6031] focus:ring focus:ring-[#1e6031] focus:ring-opacity-50">
                                         <option value="">Select Subunit</option>
                                         @foreach($subunits as $subunit)
@@ -161,6 +185,13 @@
                                 </div>
                                 
                                 <div class="flex items-center mt-2">
+                                    <input type="hidden" name="is_head" value="0">
+                                    <input type="checkbox" name="is_head" id="is_head" value="1" {{ old('is_head', $employee->is_head) ? 'checked' : '' }}
+                                        class="rounded border-gray-300 text-[#1e6031] shadow-sm focus:border-[#1e6031] focus:ring focus:ring-[#1e6031] focus:ring-opacity-50">
+                                    <label for="is_head" class="ml-2 block text-sm text-gray-900">Head</label>
+                                </div>
+                                
+                                <div class="flex items-center mt-2">
                                     <input type="hidden" name="is_divisionhead" value="0">
                                     <input type="checkbox" name="is_divisionhead" id="is_divisionhead" value="1" {{ old('is_divisionhead', $employee->is_divisionhead) ? 'checked' : '' }}
                                         class="rounded border-gray-300 text-[#1e6031] shadow-sm focus:border-[#1e6031] focus:ring focus:ring-[#1e6031] focus:ring-opacity-50">
@@ -172,6 +203,13 @@
                                     <input type="checkbox" name="is_vp" id="is_vp" value="1" {{ old('is_vp', $employee->is_vp) ? 'checked' : '' }}
                                         class="rounded border-gray-300 text-[#1e6031] shadow-sm focus:border-[#1e6031] focus:ring focus:ring-[#1e6031] focus:ring-opacity-50">
                                     <label for="is_vp" class="ml-2 block text-sm text-gray-900">VP</label>
+                                </div>
+                                
+                                <div class="flex items-center mt-2">
+                                    <input type="hidden" name="is_president" value="0">
+                                    <input type="checkbox" name="is_president" id="is_president" value="1" {{ old('is_president', $employee->is_president) ? 'checked' : '' }}
+                                        class="rounded border-gray-300 text-[#1e6031] shadow-sm focus:border-[#1e6031] focus:ring focus:ring-[#1e6031] focus:ring-opacity-50">
+                                    <label for="is_president" class="ml-2 block text-sm text-gray-900">President</label>
                                 </div>
                             </div>
                         </div>
