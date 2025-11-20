@@ -36,7 +36,7 @@ class DashboardController extends Controller
             
             // Check if employee is a head (division head, VP, or unit head)
             $employee = $user->employee;
-            if ($employee && ($employee->is_head || $employee->is_divisionhead || $employee->is_vp)) {
+            if ($employee) {
                 // Get travel order counts for the employee
                 $employeeId = $user->employee->id;
                 $pendingCount = TravelOrder::where('employee_id', $employeeId)
@@ -57,7 +57,19 @@ class DashboardController extends Controller
                     
                 $totalCount = TravelOrder::where('employee_id', $employeeId)->count();
                 
-                return view('dashboards.head', compact('user', 'pendingCount', 'approvedCount', 'totalCount'));
+                // Determine which dashboard to show based on specific role
+                if ($employee->is_president) {
+                    return view('dashboards.president', compact('user', 'pendingCount', 'approvedCount', 'totalCount'));
+                } elseif ($employee->is_vp) {
+                    return view('dashboards.vp', compact('user', 'pendingCount', 'approvedCount', 'totalCount'));
+                } elseif ($employee->is_divisionhead) {
+                    return view('dashboards.divisionhead', compact('user', 'pendingCount', 'approvedCount', 'totalCount'));
+                } elseif ($employee->is_head) {
+                    return view('dashboards.head', compact('user', 'pendingCount', 'approvedCount', 'totalCount'));
+                } else {
+                    // Regular employee dashboard
+                    return view('dashboards.employee', compact('user', 'pendingCount', 'approvedCount', 'totalCount'));
+                }
             } else {
                 // Regular employee dashboard
                 // Get travel order counts for the employee
