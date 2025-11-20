@@ -31,6 +31,10 @@ class TravelOrder extends Model
         'divisionhead_declined_at',
         'vp_declined',
         'vp_declined_at',
+        'head_approved',
+        'head_disapproved',
+        'head_approved_at',
+        'head_disapproved_at',
     ];
 
     /**
@@ -45,10 +49,14 @@ class TravelOrder extends Model
         'vp_approved' => 'boolean',
         'divisionhead_declined' => 'boolean',
         'vp_declined' => 'boolean',
+        'head_approved' => 'boolean',
+        'head_disapproved' => 'boolean',
         'divisionhead_approved_at' => 'datetime',
         'vp_approved_at' => 'datetime',
         'divisionhead_declined_at' => 'datetime',
         'vp_declined_at' => 'datetime',
+        'head_approved_at' => 'datetime',
+        'head_disapproved_at' => 'datetime',
     ];
 
     /**

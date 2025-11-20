@@ -35,6 +35,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/travel-orders/{travelOrder}/edit', [TravelOrderController::class, 'edit'])->name('travel-orders.edit');
     Route::put('/travel-orders/{travelOrder}', [TravelOrderController::class, 'update'])->name('travel-orders.update');
     Route::delete('/travel-orders/{travelOrder}', [TravelOrderController::class, 'destroy'])->name('travel-orders.destroy');
+    Route::get('/travel-orders/{travelOrder}', [TravelOrderController::class, 'show'])->name('travel-orders.show');
+    Route::put('/travel-orders/{travelOrder}/approve', [TravelOrderController::class, 'approve'])->name('travel-orders.approve');
     
     // Admin Routes
     // Organization Structure Management
