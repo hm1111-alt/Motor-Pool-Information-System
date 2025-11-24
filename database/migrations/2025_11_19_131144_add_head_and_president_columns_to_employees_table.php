@@ -12,7 +12,6 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('employees', function (Blueprint $table) {
-            $table->boolean('is_head')->nullable()->after('subunit_id');
             $table->boolean('is_president')->nullable()->after('is_vp');
         });
     }
@@ -23,7 +22,6 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('employees', function (Blueprint $table) {
-            $table->dropColumn('is_head');
             $table->dropColumn('is_president');
         });
     }

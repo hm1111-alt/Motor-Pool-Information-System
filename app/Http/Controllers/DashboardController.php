@@ -167,6 +167,11 @@ class DashboardController extends Controller
                 $q->where('unit_id', $employee->unit_id);
             })->whereNull('head_approved')->whereNull('head_disapproved');
         }
+        // If employee is a president, show orders pending president approval
+        elseif ($employee->is_president) {
+            \Log::info('Employee is president, filtering by president approval status');
+            $query->where('vp_approved', 1)->whereNull('president_approved')->whereNull('president_declined');
+        }
         // If none of the above, return empty collection
         else {
             \Log::info('Employee is not a head, division head, or VP');

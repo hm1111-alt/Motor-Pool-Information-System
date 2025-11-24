@@ -176,6 +176,23 @@ class TravelOrderController extends Controller
                     break;
             }
         }
+        // If employee is a president, show orders pending president approval
+        elseif ($employee->is_president) {
+            // Apply status filter based on the active tab
+            switch ($activeTab) {
+                case 'pending':
+                    $query->where('vp_approved', 1)->whereNull('president_approved')->whereNull('president_declined');
+                    break;
+                    
+                case 'approved':
+                    $query->where('president_approved', 1);
+                    break;
+                    
+                case 'cancelled':
+                    $query->where('president_declined', 1);
+                    break;
+            }
+        }
         
         // Apply search filter if provided
         if ($search) {
@@ -237,14 +254,33 @@ class TravelOrderController extends Controller
             $travelOrder->destination = $validatedData['destination'];
             $travelOrder->departure_time = $validatedData['departure_time'];
             
-            // Set initial status based on employee type
-            if ($employee->is_head || $employee->is_divisionhead || $employee->is_vp) {
-                // Heads, division heads, and VPs don't need head approval
+            // Set initial status based on employee type according to the approval workflow
+            if ($employee->is_president) {
+                // President's travel orders go directly to Motorpool Admin
                 $travelOrder->head_approved = true;
                 $travelOrder->head_approved_at = now();
+                $travelOrder->divisionhead_approved = true;
+                $travelOrder->divisionhead_approved_at = now();
+                $travelOrder->vp_approved = true;
+                $travelOrder->vp_approved_at = now();
+                $travelOrder->status = 'Pending Motorpool Admin Approval';
+            } elseif ($employee->is_vp) {
+                // VP's travel orders need President approval
+                $travelOrder->head_approved = true;
+                $travelOrder->head_approved_at = now();
+                $travelOrder->divisionhead_approved = true;
+                $travelOrder->divisionhead_approved_at = now();
+                $travelOrder->status = 'Pending President Approval';
+            } elseif ($employee->is_divisionhead) {
+                // Division Head's travel orders need VP and President approval
+                $travelOrder->head_approved = true;
+                $travelOrder->head_approved_at = now();
+                $travelOrder->status = 'Pending VP Approval';
+            } elseif ($employee->is_head) {
+                // Head's travel orders need Division Head and VP approval
                 $travelOrder->status = 'Pending Division Head Approval';
             } else {
-                // Regular employees need head approval
+                // Regular employees need Head approval
                 $travelOrder->status = 'Pending Head Approval';
             }
             
@@ -415,6 +451,11 @@ class TravelOrderController extends Controller
                 $travelOrder->employee->unit_id === $employee->unit_id) {
             $canView = true;
         }
+        // Presidents can view orders that are pending their approval
+        elseif ($employee->is_president && $travelOrder->vp_approved && 
+                is_null($travelOrder->president_approved) && is_null($travelOrder->president_declined)) {
+            $canView = true;
+        }
         
         if (!$canView) {
             abort(403);
@@ -433,7 +474,7 @@ class TravelOrderController extends Controller
         
         // Validate the request
         $request->validate([
-            'approval_type' => 'required|in:divisionhead,vp,head',
+            'approval_type' => 'required|in:divisionhead,vp,head,president',
             'action' => 'required|in:approve,decline'
         ]);
         
@@ -466,21 +507,35 @@ class TravelOrderController extends Controller
                 !$travelOrder->head_approved && !$travelOrder->head_disapproved) {
                 $canApprove = true;
             }
+        } elseif ($request->approval_type === 'president') {
+            // Presidents can approve orders that have been approved by VPs
+            if ($employee->is_president && $travelOrder->vp_approved && 
+                is_null($travelOrder->president_approved) && is_null($travelOrder->president_declined)) {
+                $canApprove = true;
+            }
         }
         
         if (!$canApprove) {
             return redirect()->back()->with('error', 'You are not authorized to approve this travel order.');
         }
         
-        // Process the approval/decline
+        // Process the approval/decline based on the multi-level workflow
         if ($request->approval_type === 'divisionhead') {
             if ($request->action === 'approve') {
                 $travelOrder->divisionhead_approved = true;
                 $travelOrder->divisionhead_approved_at = now();
                 $travelOrder->divisionhead_approved_by = $employee->id;
-                // If division head approves and employee is not a VP, the overall status becomes Approved
-                if (!$travelOrder->employee->is_vp) {
-                    $travelOrder->status = 'Approved';
+                
+                // Determine next step based on employee role
+                if ($travelOrder->employee->is_head) {
+                    // Head's travel order goes to VP after division head approval
+                    $travelOrder->status = 'Pending VP Approval';
+                } elseif ($travelOrder->employee->is_divisionhead) {
+                    // Division head's travel order goes to President after division head approval
+                    $travelOrder->status = 'Pending President Approval';
+                } else {
+                    // Regular employee's travel order goes to VP after division head approval
+                    $travelOrder->status = 'For VP Approval';
                 }
             } else {
                 $travelOrder->divisionhead_declined = true;
@@ -495,14 +550,44 @@ class TravelOrderController extends Controller
                 $travelOrder->vp_approved_at = now();
                 $travelOrder->vp_approved_by = $employee->id;
                 
-                // If VP approves, the overall status becomes Approved
-                $travelOrder->status = 'Approved';
+                // Determine next step based on employee role
+                if ($travelOrder->employee->is_divisionhead) {
+                    // Division head's travel order goes to President after VP approval
+                    $travelOrder->status = 'Pending President Approval';
+                } elseif ($travelOrder->employee->is_vp) {
+                    // VP's travel order goes to President after VP approval
+                    $travelOrder->status = 'Pending President Approval';
+                } else {
+                    // Regular employee's travel order is approved after VP approval
+                    $travelOrder->status = 'Approved';
+                }
             } else {
                 $travelOrder->vp_declined = true;
                 $travelOrder->vp_declined_at = now();
                 $travelOrder->vp_declined_by = $employee->id;
                 
                 // If VP declines, the overall status becomes Cancelled
+                $travelOrder->status = 'Cancelled';
+            }
+        } elseif ($request->approval_type === 'president') {
+            if ($request->action === 'approve') {
+                $travelOrder->president_approved = true;
+                $travelOrder->president_approved_at = now();
+                $travelOrder->president_approved_by = $employee->id;
+                
+                // President's approval sends it to Motorpool Admin
+                if ($travelOrder->employee->is_president) {
+                    $travelOrder->status = 'Pending Motorpool Admin Approval';
+                } else {
+                    // VP's and Division Head's travel orders are approved after President approval
+                    $travelOrder->status = 'Approved';
+                }
+            } else {
+                $travelOrder->president_declined = true;
+                $travelOrder->president_declined_at = now();
+                $travelOrder->president_declined_by = $employee->id;
+                
+                // If President declines, the overall status becomes Cancelled
                 $travelOrder->status = 'Cancelled';
             }
         } elseif ($request->approval_type === 'head') {
