@@ -41,29 +41,29 @@ class EmployeeTravelOrderApprovalTest extends TestCase
 
         // Get the created travel order
         $travelOrder = TravelOrder::first();
-        $this->assertEquals('Pending Head Approval', $travelOrder->status);
+        $this->assertEquals('Pending', $travelOrder->status);
 
         // Manually update the travel order to simulate head approval
         $travelOrder->head_approved = true;
         $travelOrder->head_approved_at = now();
-        $travelOrder->status = 'Pending Division Head Approval';
+        $travelOrder->status = 'Pending';
         $travelOrder->save();
 
         // Verify the status after head approval
         $travelOrder->refresh();
         $this->assertTrue($travelOrder->head_approved);
-        $this->assertEquals('Pending Division Head Approval', $travelOrder->status);
+        $this->assertEquals('Pending', $travelOrder->status);
 
         // Manually update the travel order to simulate division head approval
         $travelOrder->divisionhead_approved = true;
         $travelOrder->divisionhead_approved_at = now();
-        $travelOrder->status = 'For VP Approval';
+        $travelOrder->status = 'Pending';
         $travelOrder->save();
 
         // Verify the status after division head approval
         $travelOrder->refresh();
         $this->assertTrue($travelOrder->divisionhead_approved);
-        $this->assertEquals('For VP Approval', $travelOrder->status);
+        $this->assertEquals('Pending', $travelOrder->status);
 
         // Manually update the travel order to simulate VP approval
         $travelOrder->vp_approved = true;

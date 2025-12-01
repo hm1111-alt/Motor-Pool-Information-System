@@ -43,7 +43,7 @@ class TravelOrderApprovalWorkflowTest extends TestCase
         // Assert the travel order was created with correct status
         $this->assertDatabaseHas('travel_orders', [
             'employee_id' => $employee->id,
-            'status' => 'Pending Head Approval'
+            'status' => 'Pending'
         ]);
     }
 
@@ -77,7 +77,7 @@ class TravelOrderApprovalWorkflowTest extends TestCase
         // Assert the travel order was created with correct status
         $this->assertDatabaseHas('travel_orders', [
             'employee_id' => $employee->id,
-            'status' => 'Pending Division Head Approval'
+            'status' => 'Pending'
         ]);
     }
 
@@ -111,7 +111,7 @@ class TravelOrderApprovalWorkflowTest extends TestCase
         // Assert the travel order was created with correct status
         $this->assertDatabaseHas('travel_orders', [
             'employee_id' => $employee->id,
-            'status' => 'Pending VP Approval'
+            'status' => 'Pending'
         ]);
     }
 
@@ -145,7 +145,7 @@ class TravelOrderApprovalWorkflowTest extends TestCase
         // Assert the travel order was created with correct status
         $this->assertDatabaseHas('travel_orders', [
             'employee_id' => $employee->id,
-            'status' => 'Pending President Approval'
+            'status' => 'Pending'
         ]);
     }
 
@@ -179,7 +179,7 @@ class TravelOrderApprovalWorkflowTest extends TestCase
         // Assert the travel order was created with correct status
         $this->assertDatabaseHas('travel_orders', [
             'employee_id' => $employee->id,
-            'status' => 'Pending Motorpool Admin Approval'
+            'status' => 'Pending'
         ]);
     }
 }

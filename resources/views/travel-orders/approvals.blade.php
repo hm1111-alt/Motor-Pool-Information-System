@@ -65,7 +65,7 @@
                                         <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Employee</th>
                                         <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Destination</th>
                                         <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date Range</th>
-                                        <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                        <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Remarks</th>
                                         <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                                     </tr>
                                 </thead>
@@ -88,16 +88,26 @@
                                             </td>
                                             <td class="px-4 py-3 whitespace-nowrap text-sm">
                                                 @if(request()->get('status', 'pending') === 'pending')
-                                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                                                        Not yet Approved
-                                                    </span>
+                                                    @if($order->head_approved == 1 && $order->divisionhead_approved == 1 && is_null($order->vp_approved))
+                                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                                            For VP Approval
+                                                        </span>
+                                                    @elseif($order->head_approved == 1 && is_null($order->divisionhead_approved))
+                                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                                            For Division Head Approval
+                                                        </span>
+                                                    @else
+                                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                                            Not yet Approved
+                                                        </span>
+                                                    @endif
                                                 @elseif(request()->get('status') === 'approved')
                                                     <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                                        Approved by Head
+                                                        Approved
                                                     </span>
                                                 @elseif(request()->get('status') === 'cancelled')
                                                     <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                                                        Cancelled by Head
+                                                        Cancelled
                                                     </span>
                                                 @endif
                                             </td>

@@ -63,7 +63,7 @@
                                         <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Purpose</th>
                                         <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Destination</th>
                                         <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Dates</th>
-                                        <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                        <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Remarks</th>
                                         <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                                     </tr>
                                 </thead>
@@ -86,13 +86,13 @@
                                             </td>
                                             <td class="px-4 py-3 whitespace-nowrap text-sm">
                                                 @if($activeTab == 'pending')
-                                                    @if($order->divisionhead_approved == 1 && is_null($order->vp_approved))
+                                                    @if($order->head_approved == 1 && $order->divisionhead_approved == 1 && is_null($order->vp_approved))
                                                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
                                                             For VP approval
                                                         </span>
-                                                    @elseif($order->divisionhead_approved == 1 && $order->vp_approved == 0)
+                                                    @elseif($order->head_approved == 1 && is_null($order->divisionhead_approved))
                                                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                                                            For VP approval
+                                                            For Division Head approval
                                                         </span>
                                                     @else
                                                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">

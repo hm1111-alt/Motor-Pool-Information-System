@@ -138,10 +138,24 @@ class TravelOrderController extends Controller
         }
         // If employee is a VP, show orders pending VP approval
         elseif ($employee->is_vp) {
+            // Log VP information for debugging
+            \Log::info('VP user check:', [
+                'user_id' => $user->id,
+                'employee_id' => $employee->id,
+                'is_vp' => $employee->is_vp
+            ]);
+            
             // Apply status filter based on the active tab
             switch ($activeTab) {
                 case 'pending':
+                    \Log::info('VP query conditions:', [
+                        'divisionhead_approved' => 1,
+                        'vp_approved' => null,
+                        'vp_declined' => null
+                    ]);
                     $query->where('divisionhead_approved', 1)->whereNull('vp_approved')->whereNull('vp_declined');
+                    // Log the query SQL for debugging
+                    \Log::info('VP pending query SQL:', ['sql' => $query->toSql(), 'bindings' => $query->getBindings()]);
                     break;
                     
                 case 'approved':
@@ -209,7 +223,24 @@ class TravelOrderController extends Controller
         // Paginate the results (10 per page)
         $travelOrders = $query->orderBy('created_at', 'desc')->paginate(10)->appends(['status' => $activeTab, 'search' => $search]);
         
-        \Log::info('Found travel orders for approval:', ['count' => $travelOrders->count()]);
+        // Log the results for debugging
+        \Log::info('Found travel orders for approval:', [
+            'count' => $travelOrders->count(), 
+            'orders' => $travelOrders->pluck('id'),
+            'active_tab' => $activeTab
+        ]);
+        
+        // Log the actual travel order data for debugging
+        foreach ($travelOrders as $order) {
+            \Log::info('Travel order details:', [
+                'id' => $order->id,
+                'employee_id' => $order->employee_id,
+                'head_approved' => $order->head_approved,
+                'divisionhead_approved' => $order->divisionhead_approved,
+                'vp_approved' => $order->vp_approved,
+                'vp_declined' => $order->vp_declined
+            ]);
+        }
         
         return view('travel-orders.approvals', compact('travelOrders', 'search'));
     }
@@ -263,25 +294,25 @@ class TravelOrderController extends Controller
                 $travelOrder->divisionhead_approved_at = now();
                 $travelOrder->vp_approved = true;
                 $travelOrder->vp_approved_at = now();
-                $travelOrder->status = 'Pending Motorpool Admin Approval';
+                $travelOrder->status = 'Pending';
             } elseif ($employee->is_vp) {
                 // VP's travel orders need President approval
                 $travelOrder->head_approved = true;
                 $travelOrder->head_approved_at = now();
                 $travelOrder->divisionhead_approved = true;
                 $travelOrder->divisionhead_approved_at = now();
-                $travelOrder->status = 'Pending President Approval';
+                $travelOrder->status = 'Pending';
             } elseif ($employee->is_divisionhead) {
                 // Division Head's travel orders need VP and President approval
                 $travelOrder->head_approved = true;
                 $travelOrder->head_approved_at = now();
-                $travelOrder->status = 'Pending VP Approval';
+                $travelOrder->status = 'Pending';
             } elseif ($employee->is_head) {
                 // Head's travel orders need Division Head and VP approval
-                $travelOrder->status = 'Pending Division Head Approval';
+                $travelOrder->status = 'Pending';
             } else {
-                // Regular employees need Head approval
-                $travelOrder->status = 'Pending Head Approval';
+                // Regular employees only need Head and VP approval (skip division head and president)
+                $travelOrder->status = 'Pending';
             }
             
             $travelOrder->save();
@@ -489,10 +520,21 @@ class TravelOrderController extends Controller
                 $canApprove = true;
             }
             // Unit heads can approve orders from their unit (as division heads)
+            // But for regular employees, division head approval is auto-set
             elseif ($employee->is_head && $employee->unit_id && 
                     $travelOrder->employee->unit_id === $employee->unit_id &&
                     !$travelOrder->divisionhead_approved && !$travelOrder->divisionhead_declined) {
-                $canApprove = true;
+                // Check if this is a regular employee (not head, divisionhead, vp, or president)
+                $isRegularEmployee = !$travelOrder->employee->is_head && 
+                                   !$travelOrder->employee->is_divisionhead && 
+                                   !$travelOrder->employee->is_vp && 
+                                   !$travelOrder->employee->is_president;
+                
+                // For regular employees, they don't need division head approval
+                // For heads, they do need division head approval
+                if (!$isRegularEmployee) {
+                    $canApprove = true;
+                }
             }
         } elseif ($request->approval_type === 'vp') {
             // VPs can approve orders that have been approved by division heads
@@ -529,13 +571,13 @@ class TravelOrderController extends Controller
                 // Determine next step based on employee role
                 if ($travelOrder->employee->is_head) {
                     // Head's travel order goes to VP after division head approval
-                    $travelOrder->status = 'Pending VP Approval';
+                    $travelOrder->status = 'Pending';
                 } elseif ($travelOrder->employee->is_divisionhead) {
                     // Division head's travel order goes to President after division head approval
-                    $travelOrder->status = 'Pending President Approval';
+                    $travelOrder->status = 'Pending';
                 } else {
                     // Regular employee's travel order goes to VP after division head approval
-                    $travelOrder->status = 'For VP Approval';
+                    $travelOrder->status = 'Pending';
                 }
             } else {
                 $travelOrder->divisionhead_declined = true;
@@ -553,12 +595,12 @@ class TravelOrderController extends Controller
                 // Determine next step based on employee role
                 if ($travelOrder->employee->is_divisionhead) {
                     // Division head's travel order goes to President after VP approval
-                    $travelOrder->status = 'Pending President Approval';
+                    $travelOrder->status = 'Pending';
                 } elseif ($travelOrder->employee->is_vp) {
                     // VP's travel order goes to President after VP approval
-                    $travelOrder->status = 'Pending President Approval';
+                    $travelOrder->status = 'Pending';
                 } else {
-                    // Regular employee's travel order is approved after VP approval
+                    // For regular employees and heads, travel order is approved after VP approval
                     $travelOrder->status = 'Approved';
                 }
             } else {
@@ -577,7 +619,7 @@ class TravelOrderController extends Controller
                 
                 // President's approval sends it to Motorpool Admin
                 if ($travelOrder->employee->is_president) {
-                    $travelOrder->status = 'Pending Motorpool Admin Approval';
+                    $travelOrder->status = 'Pending';
                 } else {
                     // VP's and Division Head's travel orders are approved after President approval
                     $travelOrder->status = 'Approved';
@@ -594,11 +636,50 @@ class TravelOrderController extends Controller
             if ($request->action === 'approve') {
                 $travelOrder->head_approved = true;
                 $travelOrder->head_approved_at = now();
-                // If head approves, the order moves to division head for approval
-                $travelOrder->status = 'Pending Division Head Approval';
+                $travelOrder->head_approved_by = $employee->id;
+                
+                // For regular employees, skip division head and go directly to VP
+                $isRegularEmployee = !$travelOrder->employee->is_head && 
+                                   !$travelOrder->employee->is_divisionhead && 
+                                   !$travelOrder->employee->is_vp && 
+                                   !$travelOrder->employee->is_president;
+                
+                \Log::info('Employee role check:', [
+                    'employee_id' => $travelOrder->employee->id,
+                    'is_head' => $travelOrder->employee->is_head,
+                    'is_divisionhead' => $travelOrder->employee->is_divisionhead,
+                    'is_vp' => $travelOrder->employee->is_vp,
+                    'is_president' => $travelOrder->employee->is_president,
+                    'is_regular_employee' => $isRegularEmployee
+                ]);
+                
+                if ($isRegularEmployee) {
+                    // Log for debugging
+                    \Log::info('Regular employee approval:', [
+                        'employee_id' => $travelOrder->employee->id,
+                        'is_head' => $travelOrder->employee->is_head,
+                        'is_divisionhead' => $travelOrder->employee->is_divisionhead,
+                        'is_vp' => $travelOrder->employee->is_vp,
+                        'is_president' => $travelOrder->employee->is_president
+                    ]);
+                    // For regular employees, we only need Head and VP approval
+                    // Set divisionhead_approved to true to skip division head approval
+                    $travelOrder->divisionhead_approved = true;
+                    $travelOrder->divisionhead_approved_at = now();
+                    $travelOrder->divisionhead_approved_by = $employee->id; // Use head's ID for division head approval
+                    \Log::info('Setting divisionhead_approved for regular employee:', [
+                        'travel_order_id' => $travelOrder->id,
+                        'divisionhead_approved' => $travelOrder->divisionhead_approved
+                    ]);
+                    $travelOrder->status = 'Pending';
+                } else {
+                    // For other roles, follow normal workflow
+                    $travelOrder->status = 'Pending';
+                }
             } else {
                 $travelOrder->head_disapproved = true;
                 $travelOrder->head_disapproved_at = now();
+                $travelOrder->head_disapproved_by = $employee->id;
                 // If head disapproves, the overall status becomes Cancelled
                 $travelOrder->status = 'Cancelled';
             }
