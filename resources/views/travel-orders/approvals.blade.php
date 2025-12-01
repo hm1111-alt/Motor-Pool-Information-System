@@ -88,13 +88,25 @@
                                             </td>
                                             <td class="px-4 py-3 whitespace-nowrap text-sm">
                                                 @if(request()->get('status', 'pending') === 'pending')
-                                                    @if($order->head_approved == 1 && $order->divisionhead_approved == 1 && is_null($order->vp_approved))
+                                                    @if($order->head_disapproved == 1)
+                                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                                            Cancelled by Head
+                                                        </span>
+                                                    @elseif($order->vp_declined == 1)
+                                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                                            Cancelled by VP
+                                                        </span>
+                                                    @elseif($order->head_approved == 1 && is_null($order->divisionhead_approved) && is_null($order->vp_approved))
                                                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
                                                             For VP Approval
                                                         </span>
-                                                    @elseif($order->head_approved == 1 && is_null($order->divisionhead_approved))
+                                                    @elseif($order->head_approved == 1 && $order->divisionhead_approved == 1 && is_null($order->vp_approved))
                                                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                                                            For Division Head Approval
+                                                            For VP Approval
+                                                        </span>
+                                                    @elseif(is_null($order->head_approved) && is_null($order->head_disapproved))
+                                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                                            Not yet Approved
                                                         </span>
                                                     @else
                                                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
@@ -114,10 +126,35 @@
                                             <td class="px-4 py-3 whitespace-nowrap text-sm font-medium">
                                                 @if(request()->get('status', 'pending') === 'pending')
                                                     <!-- Pending tab actions -->
+                                                    @php
+                                                        // Determine the approval type based on user role and travel order status
+                                                        $approvalType = 'head'; // Default to head approval
+                                                        
+                                                        // Check if user is a division head and the travel order needs division head approval
+                                                        if (auth()->user()->employee->is_divisionhead && 
+                                                            $order->head_approved == 1 && 
+                                                            is_null($order->divisionhead_approved)) {
+                                                            $approvalType = 'divisionhead';
+                                                        }
+                                                        // Check if user is a VP and the travel order needs VP approval
+                                                        elseif (auth()->user()->employee->is_vp && 
+                                                                $order->head_approved == 1 && 
+                                                                is_null($order->divisionhead_approved) && 
+                                                                is_null($order->vp_approved)) {
+                                                            $approvalType = 'vp';
+                                                        }
+                                                        // Check if user is a president and the travel order needs president approval
+                                                        elseif (auth()->user()->employee->is_president && 
+                                                                $order->vp_approved == 1 && 
+                                                                is_null($order->president_approved) && 
+                                                                is_null($order->president_declined)) {
+                                                            $approvalType = 'president';
+                                                        }
+                                                    @endphp
                                                     <form action="{{ route('travel-orders.approve', $order) }}" method="POST" class="inline">
                                                         @csrf
                                                         @method('PUT')
-                                                        <input type="hidden" name="approval_type" value="head">
+                                                        <input type="hidden" name="approval_type" value="{{ $approvalType }}">
                                                         <button type="submit" name="action" value="approve" 
                                                                 class="text-green-600 hover:text-green-900 mr-3"
                                                                 onclick="return confirm('Are you sure you want to approve this travel order?')">
@@ -127,7 +164,7 @@
                                                     <form action="{{ route('travel-orders.approve', $order) }}" method="POST" class="inline">
                                                         @csrf
                                                         @method('PUT')
-                                                        <input type="hidden" name="approval_type" value="head">
+                                                        <input type="hidden" name="approval_type" value="{{ $approvalType }}">
                                                         <button type="submit" name="action" value="decline" 
                                                                 class="text-red-600 hover:text-red-900 mr-3"
                                                                 onclick="return confirm('Are you sure you want to cancel this travel order?')">
