@@ -38,6 +38,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/travel-orders/{travelOrder}', [TravelOrderController::class, 'show'])->name('travel-orders.show');
     Route::put('/travel-orders/{travelOrder}/approve', [TravelOrderController::class, 'approve'])->name('travel-orders.approve');
     
+    // Approved Travel Orders for Motorpool Admin
+    Route::get('/approved-travel-orders', [DashboardController::class, 'approvedTravelOrders'])->name('approved-travel-orders.index');
+    
     // Admin Routes
     // Organization Structure Management
     Route::get('/admin/offices', [OfficeController::class, 'index'])->name('admin.offices.index');

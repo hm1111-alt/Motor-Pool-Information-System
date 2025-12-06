@@ -133,6 +133,50 @@
                             </div>
                         </div>
                     </div>
+                    
+                    <!-- Recently Approved Travel Orders Section -->
+                    @if(isset($approvedTravelOrders) && $approvedTravelOrders->count() > 0)
+                        <div class="mt-8">
+                            <div class="flex items-center justify-between mb-4">
+                                <h3 class="text-lg font-semibold text-gray-800">Recently Approved Travel Orders</h3>
+                                <a href="{{ route('approved-travel-orders.index') }}" class="text-[#1e6031] hover:text-[#164f2a] text-sm font-medium">
+                                    View All →
+                                </a>
+                            </div>
+                            <div class="bg-white rounded-lg shadow-md overflow-hidden">
+                                <table class="min-w-full divide-y divide-gray-200">
+                                    <thead class="bg-gray-50">
+                                        <tr>
+                                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Employee</th>
+                                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Purpose</th>
+                                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Destination</th>
+                                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date Range</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="bg-white divide-y divide-gray-200">
+                                        @foreach($approvedTravelOrders as $travelOrder)
+                                            <tr>
+                                                <td class="px-6 py-4 whitespace-nowrap">
+                                                    <div class="text-sm font-medium text-gray-900">{{ $travelOrder->employee->first_name }} {{ $travelOrder->employee->last_name }}</div>
+                                                    <div class="text-sm text-gray-500">{{ $travelOrder->employee->position_name }}</div>
+                                                </td>
+                                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                                    {{ $travelOrder->purpose }}
+                                                </td>
+                                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                                    {{ $travelOrder->destination }}
+                                                </td>
+                                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                                    {{ \Carbon\Carbon::parse($travelOrder->date_from)->format('M d, Y') }} - 
+                                                    {{ \Carbon\Carbon::parse($travelOrder->date_to)->format('M d, Y') }}
+                                                </td>
+                                            </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    @endif
                 </div>
             </div>
         </div>

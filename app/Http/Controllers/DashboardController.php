@@ -25,7 +25,9 @@ class DashboardController extends Controller
 
         // Determine which dashboard to show based on user role
         if ($user->isMotorpoolAdmin()) {
-            return view('dashboards.motorpool-admin');
+            // Get fully approved travel orders
+            $approvedTravelOrders = $this->getApprovedTravelOrders();
+            return view('dashboards.motorpool-admin', compact('approvedTravelOrders'));
         } elseif ($user->isAdmin()) {
             return view('dashboards.admin');
         } elseif ($user->isDriver()) {
@@ -98,6 +100,86 @@ class DashboardController extends Controller
 
         // Default dashboard if no role matches
         return view('dashboard');
+    }
+    
+    /**
+     * Display approved travel orders for motorpool admin
+     */
+    public function approvedTravelOrders(): View
+    {
+        $approvedTravelOrders = $this->getApprovedTravelOrders();
+        return view('dashboards.approved-travel-orders', compact('approvedTravelOrders'));
+    }
+    
+    /**
+     * Get fully approved travel orders for motorpool admin
+     */
+    private function getApprovedTravelOrders()
+    {
+        // Get travel orders that are fully approved
+        // This means they have been approved by all required approvers
+        // For regular employees: head_approved = 1 AND vp_approved = 1
+        // For heads: divisionhead_approved = 1 AND vp_approved = 1
+        // For division heads: vp_approved = 1 AND president_approved = 1
+        // For VPs: president_approved = 1
+        
+        return TravelOrder::with('employee')
+            ->where(function ($query) {
+                // Regular employees - approved by head and VP
+                $query->whereHas('employee', function ($q) {
+                    $q->where('is_head', 0)
+                      ->where('is_divisionhead', 0)
+                      ->where('is_vp', 0)
+                      ->where('is_president', 0);
+                })
+                ->where('head_approved', 1)
+                ->where('vp_approved', 1)
+                ->whereNull('head_disapproved')
+                ->whereNull('vp_declined');
+            })
+            ->orWhere(function ($query) {
+                // Heads - approved by division head and VP
+                $query->whereHas('employee', function ($q) {
+                    $q->where('is_head', 1)
+                      ->where('is_divisionhead', 0)
+                      ->where('is_vp', 0)
+                      ->where('is_president', 0);
+                })
+                ->where('divisionhead_approved', 1)
+                ->where('vp_approved', 1)
+                ->whereNull('divisionhead_declined')
+                ->whereNull('vp_declined');
+            })
+            ->orWhere(function ($query) {
+                // Division heads - approved by VP and President
+                $query->whereHas('employee', function ($q) {
+                    $q->where('is_divisionhead', 1)
+                      ->where('is_president', 0);
+                })
+                ->where('vp_approved', 1)
+                ->where('president_approved', 1)
+                ->whereNull('vp_declined')
+                ->whereNull('president_declined');
+            })
+            ->orWhere(function ($query) {
+                // VPs - approved by President
+                $query->whereHas('employee', function ($q) {
+                    $q->where('is_vp', 1)
+                      ->where('is_president', 0);
+                })
+                ->where('president_approved', 1)
+                ->whereNull('president_declined');
+            })
+            ->orWhere(function ($query) {
+                // Presidents - approved by President (self-approved)
+                $query->whereHas('employee', function ($q) {
+                    $q->where('is_president', 1);
+                })
+                ->where('president_approved', 1);
+            })
+            ->orderBy('created_at', 'desc')
+            ->limit(10)
+            ->get();
     }
     
     /**
