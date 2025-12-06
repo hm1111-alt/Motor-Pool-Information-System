@@ -90,6 +90,10 @@
                                                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
                                                             Cancelled
                                                         </span>
+                                                    @elseif($order->divisionhead_declined == 1)
+                                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                                            Cancelled by Division Head
+                                                        </span>
                                                     @elseif($order->vp_declined == 1)
                                                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
                                                             Cancelled by VP
@@ -98,7 +102,11 @@
                                                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
                                                             For VP approval
                                                         </span>
-                                                    @elseif(is_null($order->head_approved) && is_null($order->head_disapproved))
+                                                    @elseif($order->divisionhead_approved == 1 && is_null($order->vp_approved))
+                                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                                            For VP approval
+                                                        </span>
+                                                    @elseif(is_null($order->head_approved) && is_null($order->head_disapproved) && is_null($order->divisionhead_approved))
                                                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
                                                             Not yet approved
                                                         </span>

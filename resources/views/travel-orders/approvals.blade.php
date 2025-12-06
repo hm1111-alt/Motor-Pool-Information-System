@@ -92,6 +92,10 @@
                                                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
                                                             Cancelled by Head
                                                         </span>
+                                                    @elseif($order->divisionhead_declined == 1)
+                                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                                            Cancelled by Division Head
+                                                        </span>
                                                     @elseif($order->vp_declined == 1)
                                                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
                                                             Cancelled by VP
@@ -100,11 +104,11 @@
                                                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
                                                             For VP Approval
                                                         </span>
-                                                    @elseif($order->head_approved == 1 && $order->divisionhead_approved == 1 && is_null($order->vp_approved))
+                                                    @elseif($order->divisionhead_approved == 1 && is_null($order->vp_approved))
                                                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
                                                             For VP Approval
                                                         </span>
-                                                    @elseif(is_null($order->head_approved) && is_null($order->head_disapproved))
+                                                    @elseif(is_null($order->head_approved) && is_null($order->head_disapproved) && is_null($order->divisionhead_approved))
                                                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
                                                             Not yet Approved
                                                         </span>
@@ -132,15 +136,14 @@
                                                         
                                                         // Check if user is a division head and the travel order needs division head approval
                                                         if (auth()->user()->employee->is_divisionhead && 
-                                                            $order->head_approved == 1 && 
-                                                            is_null($order->divisionhead_approved)) {
+                                                            (is_null($order->divisionhead_approved) && is_null($order->divisionhead_declined))) {
                                                             $approvalType = 'divisionhead';
                                                         }
                                                         // Check if user is a VP and the travel order needs VP approval
                                                         elseif (auth()->user()->employee->is_vp && 
-                                                                $order->head_approved == 1 && 
-                                                                is_null($order->divisionhead_approved) && 
-                                                                is_null($order->vp_approved)) {
+                                                                ((($order->employee->is_head || $order->employee->is_divisionhead || $order->employee->is_vp || $order->employee->is_president) && $order->divisionhead_approved == 1) ||
+                                                                 (!$order->employee->is_head && !$order->employee->is_divisionhead && !$order->employee->is_vp && !$order->employee->is_president && $order->head_approved == 1)) &&
+                                                                is_null($order->vp_approved) && is_null($order->vp_declined)) {
                                                             $approvalType = 'vp';
                                                         }
                                                         // Check if user is a president and the travel order needs president approval

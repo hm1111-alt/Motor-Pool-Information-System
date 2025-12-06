@@ -152,11 +152,13 @@
                             // Check if user can approve this travel order
                             if ($employee->is_divisionhead && $employee->division_id && 
                                 $travelOrder->employee->division_id === $employee->division_id &&
-                                !$travelOrder->divisionhead_approved && !$travelOrder->divisionhead_declined) {
+                                is_null($travelOrder->divisionhead_approved) && is_null($travelOrder->divisionhead_declined)) {
                                 $canApprove = true;
                                 $approvalType = 'divisionhead';
-                            } elseif ($employee->is_vp && $travelOrder->divisionhead_approved && 
-                                      is_null($travelOrder->vp_approved) && is_null($travelOrder->vp_declined)) {
+                            } elseif ($employee->is_vp && 
+                                     ((($travelOrder->employee->is_head || $travelOrder->employee->is_divisionhead || $travelOrder->employee->is_vp || $travelOrder->employee->is_president) && $travelOrder->divisionhead_approved == 1) ||
+                                      (!$travelOrder->employee->is_head && !$travelOrder->employee->is_divisionhead && !$travelOrder->employee->is_vp && !$travelOrder->employee->is_president && $travelOrder->head_approved == 1)) &&
+                                     is_null($travelOrder->vp_approved) && is_null($travelOrder->vp_declined)) {
                                 $canApprove = true;
                                 $approvalType = 'vp';
                             } elseif ($employee->is_head && $employee->unit_id && 

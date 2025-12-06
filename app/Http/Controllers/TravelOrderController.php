@@ -38,49 +38,46 @@ class TravelOrderController extends Controller
         // Get search query
         $search = $request->get('search');
         
-        // Build the query
+        // Build the query for travel orders
         $query = TravelOrder::where('employee_id', $employeeId);
-        
-        // Apply search filter if provided
-        if ($search) {
-            $query->where(function ($q) use ($search) {
-                $q->where('destination', 'like', '%' . $search . '%')
-                  ->orWhere('purpose', 'like', '%' . $search . '%')
-                  ->orWhere('date_from', 'like', '%' . $search . '%')
-                  ->orWhere('date_to', 'like', '%' . $search . '%')
-                  ->orWhere('departure_time', 'like', '%' . $search . '%');
-            });
-        }
         
         // Apply status filter based on the active tab
         switch ($activeTab) {
             case 'pending':
                 \Log::info('Employee dashboard - Pending tab query for employee ' . $employeeId);
-                $query->where(function ($q) {
-                    $q->where(function ($q) {
-                        // Regular employee travel orders that haven't been approved by head yet
-                        $q->whereNull('head_approved')
-                          ->whereNull('head_disapproved')
-                          ->whereNull('vp_approved')
-                          ->whereNull('vp_declined');
-                    })->orWhere(function ($q) {
-                        // Regular employee travel orders approved by head but not by VP yet
-                        $q->where('head_approved', 1)
-                          ->whereNull('head_disapproved')
-                          ->whereNull('divisionhead_approved')
-                          ->whereNull('vp_approved')
-                          ->whereNull('vp_declined');
-                    });
+                // For heads, we need to show travel orders that are either:
+                // 1. Not yet approved by division head
+                // 2. Approved by division head but not yet approved by VP
+                $query->where(function ($query) {
+                    // Head's own travel orders pending division head approval
+                    $query->whereNull('divisionhead_approved')
+                          ->whereHas('employee', function ($q) {
+                              $q->where('is_head', 1);
+                          })
+                          ->orWhere(function ($q) {
+                              // Head's travel orders approved by division head but not by VP yet
+                              $q->where('divisionhead_approved', 1)
+                                ->whereNull('vp_approved')
+                                ->whereHas('employee', function ($q2) {
+                                    $q2->where('is_head', 1);
+                                });
+                          })->orWhere(function ($q) {
+                              // Regular employee travel orders approved by head but not by VP yet
+                              $q->where('head_approved', 1)
+                                ->whereNull('head_disapproved')
+                                ->whereNull('divisionhead_approved')
+                                ->whereNull('vp_approved')
+                                ->whereNull('vp_declined');
+                          });
                 });
                 \Log::info('Employee dashboard - Pending tab SQL:', ['sql' => $query->toSql(), 'bindings' => $query->getBindings()]);
                 break;
                 
             case 'approved':
                 \Log::info('Employee dashboard - Approved tab query for employee ' . $employeeId);
-                $query->where('head_approved', 1)
-                      ->whereNull('divisionhead_approved')
+                $query->where('divisionhead_approved', 1)
                       ->where('vp_approved', 1)
-                      ->whereNull('head_disapproved')
+                      ->whereNull('divisionhead_declined')
                       ->whereNull('vp_declined');
                 \Log::info('Employee dashboard - Approved tab SQL:', ['sql' => $query->toSql(), 'bindings' => $query->getBindings()]);
                 break;
@@ -89,10 +86,19 @@ class TravelOrderController extends Controller
                 \Log::info('Employee dashboard - Cancelled tab query for employee ' . $employeeId);
                 $query->where(function ($q) {
                     $q->where('head_disapproved', 1)
+                      ->orWhere('divisionhead_declined', 1)
                       ->orWhere('vp_declined', 1);
                 });
                 \Log::info('Employee dashboard - Cancelled tab SQL:', ['sql' => $query->toSql(), 'bindings' => $query->getBindings()]);
                 break;
+        }
+        
+        // Apply search filter if provided
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('destination', 'like', '%' . $search . '%')
+                  ->orWhere('purpose', 'like', '%' . $search . '%');
+            });
         }
         
         // Paginate the results (10 per page)
@@ -148,8 +154,7 @@ class TravelOrderController extends Controller
                 case 'pending':
                     // Division heads should only see travel orders from heads, VPs, or presidents
                     // Not from regular employees
-                    $query->where('head_approved', 1)
-                          ->whereNull('divisionhead_approved')
+                    $query->whereNull('divisionhead_approved')
                           ->whereNull('divisionhead_declined')
                           ->whereHas('employee', function ($q) {
                               // Only show travel orders from employees with special roles
@@ -192,13 +197,12 @@ class TravelOrderController extends Controller
             switch ($activeTab) {
                 case 'pending':
                     \Log::info('VP query conditions:', [
-                        'head_approved' => 1,
-                        'divisionhead_approved' => null,
+                        'divisionhead_approved' => 1,
                         'vp_approved' => null,
                         'vp_declined' => null
                     ]);
-                    // For regular employees, show travel orders that have been approved by head but not by division head
-                    $query->where('head_approved', 1)->whereNull('divisionhead_approved')->whereNull('vp_approved')->whereNull('vp_declined');
+                    // Show travel orders that have been approved by division heads
+                    $query->where('divisionhead_approved', 1)->whereNull('vp_approved')->whereNull('vp_declined');
                     // Log the query SQL for debugging
                     \Log::info('VP pending query SQL:', ['sql' => $query->toSql(), 'bindings' => $query->getBindings()]);
                     break;
@@ -361,6 +365,7 @@ class TravelOrderController extends Controller
                 // For Head's own travel orders, don't set any approvals initially
                 $travelOrder->head_approved = null;
                 $travelOrder->divisionhead_approved = null;
+                $travelOrder->vp_approved = null;
                 $travelOrder->status = 'Pending';
             } else {
                 // Regular employees only need Head and VP approval
