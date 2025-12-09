@@ -119,4 +119,12 @@ class Employee extends Model
     {
         return $this->prefix ? $this->prefix . ' ' . $this->first_name . ' ' . $this->last_name : $this->first_name . ' ' . $this->last_name;
     }
+    
+    /**
+     * Get the travel orders for the employee.
+     */
+    public function travelOrders()
+    {
+        return $this->hasMany(TravelOrder::class);
+    }
 }

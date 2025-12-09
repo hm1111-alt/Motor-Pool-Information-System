@@ -2,7 +2,6 @@
 
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\DashboardController;
-use App\Http\Controllers\TravelOrderController;
 use App\Http\Controllers\CalendarController;
 use App\Http\Controllers\OfficeController;
 use App\Http\Controllers\DivisionController;
@@ -11,6 +10,10 @@ use App\Http\Controllers\SubunitController;
 use App\Http\Controllers\ClassController;
 use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\LeaderController;
+use App\Http\Controllers\RegularEmployeeTravelOrderController;
+use App\Http\Controllers\HeadTravelOrderController;
+use App\Http\Controllers\VpTravelOrderController;
+use App\Http\Controllers\MotorpoolAdminController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use Illuminate\Support\Facades\Auth;
@@ -27,19 +30,6 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-    
-    // Travel Order Routes
-    Route::get('/travel-orders', [TravelOrderController::class, 'index'])->name('travel-orders.index');
-    Route::get('/travel-orders/create', [TravelOrderController::class, 'create'])->name('travel-orders.create');
-    Route::post('/travel-orders', [TravelOrderController::class, 'store'])->name('travel-orders.store');
-    Route::get('/travel-orders/{travelOrder}/edit', [TravelOrderController::class, 'edit'])->name('travel-orders.edit');
-    Route::put('/travel-orders/{travelOrder}', [TravelOrderController::class, 'update'])->name('travel-orders.update');
-    Route::delete('/travel-orders/{travelOrder}', [TravelOrderController::class, 'destroy'])->name('travel-orders.destroy');
-    Route::get('/travel-orders/{travelOrder}', [TravelOrderController::class, 'show'])->name('travel-orders.show');
-    Route::put('/travel-orders/{travelOrder}/approve', [TravelOrderController::class, 'approve'])->name('travel-orders.approve');
-    
-    // Approved Travel Orders for Motorpool Admin
-    Route::get('/approved-travel-orders', [DashboardController::class, 'approvedTravelOrders'])->name('approved-travel-orders.index');
     
     // Admin Routes
     // Organization Structure Management
@@ -98,6 +88,43 @@ Route::middleware('auth')->group(function () {
     // Calendar Routes
     Route::get('/vehicle-calendar', [CalendarController::class, 'index'])->name('vehicle-calendar.index');
     Route::get('/vehicle-calendar/events', [CalendarController::class, 'getEvents'])->name('vehicle-calendar.events');
+    
+    // Travel Order Routes for Regular Employees
+    Route::get('/travel-orders', [RegularEmployeeTravelOrderController::class, 'index'])->name('travel-orders.index');
+    Route::get('/travel-orders/create', [RegularEmployeeTravelOrderController::class, 'create'])->name('travel-orders.create');
+    Route::post('/travel-orders', [RegularEmployeeTravelOrderController::class, 'store'])->name('travel-orders.store');
+    Route::get('/travel-orders/{travelOrder}', [RegularEmployeeTravelOrderController::class, 'show'])->name('travel-orders.show');
+    Route::get('/travel-orders/{travelOrder}/edit', [RegularEmployeeTravelOrderController::class, 'edit'])->name('travel-orders.edit');
+    Route::put('/travel-orders/{travelOrder}', [RegularEmployeeTravelOrderController::class, 'update'])->name('travel-orders.update');
+    Route::delete('/travel-orders/{travelOrder}', [RegularEmployeeTravelOrderController::class, 'destroy'])->name('travel-orders.destroy');
+    
+    // Travel Order Approval Routes for Heads
+    Route::get('/travel-orders/approvals/head', [HeadTravelOrderController::class, 'index'])->name('travel-orders.approvals.head');
+    Route::put('/travel-orders/{travelOrder}/approve/head', [HeadTravelOrderController::class, 'approve'])->name('travel-orders.approve.head');
+    Route::put('/travel-orders/{travelOrder}/reject/head', [HeadTravelOrderController::class, 'reject'])->name('travel-orders.reject.head');
+    
+    // Travel Order Approval Routes for VPs
+    Route::get('/travel-orders/approvals/vp', [VpTravelOrderController::class, 'index'])->name('travel-orders.approvals.vp');
+    Route::put('/travel-orders/{travelOrder}/approve/vp', [VpTravelOrderController::class, 'approve'])->name('travel-orders.approve.vp');
+    Route::put('/travel-orders/{travelOrder}/reject/vp', [VpTravelOrderController::class, 'reject'])->name('travel-orders.reject.vp');
+    
+    // Approved Travel Orders for Motorpool Admin
+    Route::get('/approved-travel-orders', [MotorpoolAdminController::class, 'approvedTravelOrders'])->name('approved-travel-orders.index');
+    
+    // Test route for travel order creation
+    Route::get('/test-create-travel-order', function () {
+        $user = \Illuminate\Support\Facades\Auth::user();
+        if (!$user) {
+            return 'Not authenticated';
+        }
+        
+        $employee = $user->employee;
+        if (!$employee) {
+            return 'User has no employee record';
+        }
+        
+        return 'User: ' . $user->name . ', Employee: ' . $employee->first_name . ' ' . $employee->last_name;
+    })->name('test-create-travel-order');
 });
 
 Route::get('/login', function () {

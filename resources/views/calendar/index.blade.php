@@ -14,7 +14,7 @@
                     <!-- Page Title -->
                     <div class="mb-2 pb-1.5 border-b border-gray-200">
                         <h1 class="text-base font-bold text-gray-800">Calendar</h1>
-                        <p class="text-gray-600 text-xs mt-0.5">View your travel schedule</p>
+                        <p class="text-gray-600 text-xs mt-0.5">View vehicle schedules</p>
                     </div>
                     
                     <!-- Month and Year Selection -->
@@ -65,7 +65,7 @@
         </div>
     </div>
     
-    <!-- Modal for showing travel order details -->
+    <!-- Modal for showing vehicle schedule details -->
     <div id="event-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50 p-1.5 overflow-y-auto">
         <div class="bg-white rounded-lg p-2 max-w-xs w-full my-4 shadow-xl transition duration-300 transform scale-95 opacity-0 modal-show">
             <div class="flex justify-between items-center mb-2 pb-1 border-b border-gray-200">
@@ -91,7 +91,7 @@
                     <p id="modal-date" class="text-gray-700 text-xs"></p>
                 </div>
                 <div class="mb-1.5">
-                    <h4 class="text-xs font-semibold text-gray-700 mb-0.5">Purpose:</h4>
+                    <h4 class="text-xs font-semibold text-gray-700 mb-0.5">Details:</h4>
                     <div id="modal-description" class="text-gray-600 text-xs"></div>
                 </div>
             </div>

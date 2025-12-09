@@ -2,7 +2,7 @@
 
 @section('header')
     <h2 class="font-semibold text-lg text-gray-800 leading-tight">
-        {{ __('My Travel Requests') }}
+        {{ __('Approve Travel Orders') }}
     </h2>
 @endsection
 
@@ -11,25 +11,23 @@
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-white overflow-hidden shadow rounded border border-gray-100">
                 <div class="p-4">
-                    <div class="flex justify-between items-center mb-4 pb-2 border-b border-gray-200">
-                        <h1 class="text-lg font-bold text-gray-800">My Travel Requests</h1>
-                        <a href="{{ route('travel-orders.create') }}" class="inline-flex items-center px-3 py-1.5 bg-[#1e6031] border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-[#164f2a] focus:bg-[#164f2a] active:bg-[#1e6031] focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150">
-                            Create New Request
-                        </a>
+                    <div class="mb-4 pb-2 border-b border-gray-200">
+                        <h1 class="text-lg font-bold text-gray-800">Travel Orders for Approval</h1>
+                        <p class="text-gray-600 text-sm mt-1">Review and approve travel requests from your unit members.</p>
                     </div>
                     
                     <!-- Tabs -->
                     <div class="mb-4 border-b border-gray-200">
                         <nav class="flex space-x-8" aria-label="Tabs">
-                            <a href="{{ route('travel-orders.index', ['tab' => 'pending']) }}" 
+                            <a href="{{ route('travel-orders.approvals.head', ['tab' => 'pending']) }}" 
                                class="{{ (isset($tab) && $tab == 'pending') || !isset($tab) ? 'border-[#1e6031] text-[#1e6031]' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' }} whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm">
                                 Pending
                             </a>
-                            <a href="{{ route('travel-orders.index', ['tab' => 'approved']) }}" 
+                            <a href="{{ route('travel-orders.approvals.head', ['tab' => 'approved']) }}" 
                                class="{{ isset($tab) && $tab == 'approved' ? 'border-[#1e6031] text-[#1e6031]' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' }} whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm">
                                 Approved
                             </a>
-                            <a href="{{ route('travel-orders.index', ['tab' => 'cancelled']) }}" 
+                            <a href="{{ route('travel-orders.approvals.head', ['tab' => 'cancelled']) }}" 
                                class="{{ isset($tab) && $tab == 'cancelled' ? 'border-[#1e6031] text-[#1e6031]' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' }} whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm">
                                 Cancelled
                             </a>
@@ -57,12 +55,12 @@
                         <table class="min-w-full divide-y divide-gray-200">
                             <thead class="bg-gray-50">
                                 <tr>
+                                    <th scope="col" class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Employee</th>
                                     <th scope="col" class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Destination</th>
                                     <th scope="col" class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date Range</th>
-                                    <th scope="col" class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Departure Time</th>
                                     <th scope="col" class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Purpose</th>
-                                    <th scope="col" class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                                     <th scope="col" class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Remarks</th>
+                                    <th scope="col" class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Submitted</th>
                                     @if((isset($tab) && $tab == 'pending') || !isset($tab))
                                         <th scope="col" class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                                     @endif
@@ -71,62 +69,57 @@
                             <tbody class="bg-white divide-y divide-gray-200">
                                 @forelse($travelOrders as $travelOrder)
                                     <tr>
+                                        <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-900">
+                                            {{ $travelOrder->employee->first_name }} {{ $travelOrder->employee->last_name }}
+                                        </td>
                                         <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-900">{{ $travelOrder->destination }}</td>
                                         <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-900">
                                             {{ $travelOrder->date_from->format('M d, Y') }} - {{ $travelOrder->date_to->format('M d, Y') }}
                                         </td>
-                                        <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-900">
-                                            @if($travelOrder->departure_time)
-                                                {{ date('g:i A', strtotime($travelOrder->departure_time)) }}
-                                            @else
-                                                N/A
-                                            @endif
-                                        </td>
                                         <td class="px-4 py-2 text-sm text-gray-900 max-w-xs truncate">{{ $travelOrder->purpose }}</td>
-                                        <td class="px-4 py-2 whitespace-nowrap">
-                                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
-                                                @if($travelOrder->status === 'approved') bg-green-100 text-green-800
-                                                @elseif($travelOrder->status === 'pending') bg-yellow-100 text-yellow-800
-                                                @else bg-red-100 text-red-800 @endif">
-                                                {{ ucfirst($travelOrder->status) }}
-                                            </span>
-                                        </td>
                                         <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-900">
                                             {{ $travelOrder->remarks }}
+                                        </td>
+                                        <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-900">
+                                            {{ $travelOrder->created_at->format('M d, Y') }}
                                         </td>
                                         @if((isset($tab) && $tab == 'pending') || !isset($tab))
                                             <td class="px-4 py-2 whitespace-nowrap text-sm font-medium">
                                                 <a href="{{ route('travel-orders.show', $travelOrder) }}" class="text-indigo-600 hover:text-indigo-900 mr-2">View</a>
-                                                @if(!$travelOrder->head_approved && !$travelOrder->vp_approved)
-                                                    <a href="{{ route('travel-orders.edit', $travelOrder) }}" class="text-blue-600 hover:text-blue-900 mr-2">Edit</a>
-                                                    <form action="{{ route('travel-orders.destroy', $travelOrder) }}" method="POST" class="inline">
-                                                        @csrf
-                                                        @method('DELETE')
-                                                        <button type="submit" class="text-red-600 hover:text-red-900" onclick="return confirm('Are you sure you want to delete this travel order?')">Delete</button>
-                                                    </form>
-                                                @endif
+                                                
+                                                <form action="{{ route('travel-orders.approve.head', $travelOrder) }}" method="POST" class="inline-block mr-2">
+                                                    @csrf
+                                                    @method('PUT')
+                                                    <button type="submit" class="text-green-600 hover:text-green-900" onclick="return confirm('Are you sure you want to approve this travel order?')">Approve</button>
+                                                </form>
+                                                
+                                                <form action="{{ route('travel-orders.reject.head', $travelOrder) }}" method="POST" class="inline-block">
+                                                    @csrf
+                                                    @method('PUT')
+                                                    <button type="submit" class="text-red-600 hover:text-red-900" onclick="return confirm('Are you sure you want to reject this travel order?')">Reject</button>
+                                                </form>
                                             </td>
                                         @endif
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="{{ (isset($tab) && $tab == 'pending') || !isset($tab) ? '7' : '6' }}" class="px-4 py-4 text-center text-sm text-gray-500">
+                                        <td colspan="{{ (isset($tab) && $tab == 'pending') || !isset($tab) ? '8' : '7' }}" class="px-4 py-4 text-center text-sm text-gray-500">
                                             @if(isset($tab))
                                                 @switch($tab)
                                                     @case('pending')
-                                                        No pending travel requests found.
+                                                        No travel orders pending your approval.
                                                         @break
                                                     @case('approved')
-                                                        No approved travel requests found.
+                                                        No approved travel orders found.
                                                         @break
                                                     @case('cancelled')
-                                                        No cancelled travel requests found.
+                                                        No cancelled travel orders found.
                                                         @break
                                                     @default
-                                                        No travel requests found.
+                                                        No travel orders found.
                                                 @endswitch
                                             @else
-                                                No pending travel requests found.
+                                                No travel orders pending your approval.
                                             @endif
                                         </td>
                                     </tr>

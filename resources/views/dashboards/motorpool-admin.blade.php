@@ -134,49 +134,20 @@
                         </div>
                     </div>
                     
-                    <!-- Recently Approved Travel Orders Section -->
-                    @if(isset($approvedTravelOrders) && $approvedTravelOrders->count() > 0)
-                        <div class="mt-8">
-                            <div class="flex items-center justify-between mb-4">
-                                <h3 class="text-lg font-semibold text-gray-800">Recently Approved Travel Orders</h3>
-                                <a href="{{ route('approved-travel-orders.index') }}" class="text-[#1e6031] hover:text-[#164f2a] text-sm font-medium">
-                                    View All →
-                                </a>
-                            </div>
-                            <div class="bg-white rounded-lg shadow-md overflow-hidden">
-                                <table class="min-w-full divide-y divide-gray-200">
-                                    <thead class="bg-gray-50">
-                                        <tr>
-                                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Employee</th>
-                                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Purpose</th>
-                                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Destination</th>
-                                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date Range</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody class="bg-white divide-y divide-gray-200">
-                                        @foreach($approvedTravelOrders as $travelOrder)
-                                            <tr>
-                                                <td class="px-6 py-4 whitespace-nowrap">
-                                                    <div class="text-sm font-medium text-gray-900">{{ $travelOrder->employee->first_name }} {{ $travelOrder->employee->last_name }}</div>
-                                                    <div class="text-sm text-gray-500">{{ $travelOrder->employee->position_name }}</div>
-                                                </td>
-                                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                                    {{ $travelOrder->purpose }}
-                                                </td>
-                                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                                    {{ $travelOrder->destination }}
-                                                </td>
-                                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                                    {{ \Carbon\Carbon::parse($travelOrder->date_from)->format('M d, Y') }} - 
-                                                    {{ \Carbon\Carbon::parse($travelOrder->date_to)->format('M d, Y') }}
-                                                </td>
-                                            </tr>
-                                        @endforeach
-                                    </tbody>
-                                </table>
-                            </div>
+                    <!-- Approved Travel Orders Section -->
+                    <div class="mt-8">
+                        <h3 class="text-xl font-semibold text-gray-800 mb-4">Recently Approved Travel Orders</h3>
+                        <div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-[#1e6031]">
+                            <p class="text-gray-600 mb-4">View the most recently approved travel orders that require motorpool attention.</p>
+                            <a href="{{ route('approved-travel-orders.index') }}" class="inline-flex items-center px-4 py-2 bg-[#1e6031] border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-[#164f2a] focus:bg-[#164f2a] active:bg-[#1e6031] focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150">
+                                View Approved Travel Orders
+                                <svg class="ml-1 h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                                </svg>
+                            </a>
                         </div>
-                    @endif
+                    </div>
+
                 </div>
             </div>
         </div>

@@ -65,26 +65,6 @@
                             <span :class="sidebarOpen ? 'block' : 'hidden'" class="font-medium truncate">Dashboard</span>
                         </a>
                         
-                        <!-- My Requests -->
-                        <a href="{{ route('travel-orders.index') }}" class="flex items-center px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors duration-200 mb-1">
-                            <div class="rounded-lg bg-[#1e6031] p-2 mr-3 flex-shrink-0">
-                                <svg class="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                                </svg>
-                            </div>
-                            <span :class="sidebarOpen ? 'block' : 'hidden'" class="font-medium truncate">My Travel Requests</span>
-                        </a>
-                        
-                        <!-- Create Travel Order -->
-                        <a href="{{ route('travel-orders.create') }}" class="flex items-center px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors duration-200 mb-1">
-                            <div class="rounded-lg bg-[#1e6031] p-2 mr-3 flex-shrink-0">
-                                <svg class="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                                </svg>
-                            </div>
-                            <span :class="sidebarOpen ? 'block' : 'hidden'" class="font-medium truncate">Create Travel Order</span>
-                        </a>
-                        
                         <!-- Calendar -->
                         <a href="{{ route('vehicle-calendar.index') }}" class="flex items-center px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors duration-200 mb-1">
                             <div class="rounded-lg bg-[#1e6031] p-2 mr-3 flex-shrink-0">
@@ -95,37 +75,9 @@
                             <span :class="sidebarOpen ? 'block' : 'hidden'" class="font-medium truncate">Calendar</span>
                         </a>
                         
-                        <!-- Travel History -->
-                        <a href="#" class="flex items-center px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors duration-200 mb-1">
-                            <div class="rounded-lg bg-[#1e6031] p-2 mr-3 flex-shrink-0">
-                                <svg class="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                                </svg>
-                            </div>
-                            <span :class="sidebarOpen ? 'block' : 'hidden'" class="font-medium truncate">Travel History</span>
-                        </a>
+
                         
-                        <!-- Approval Section for Heads -->
-                        @if(auth()->user()->employee && (auth()->user()->employee->is_head || auth()->user()->employee->is_divisionhead || auth()->user()->employee->is_vp))
-                            @php
-                                // Get pending approvals count
-                                $pendingApprovals = \App\Http\Controllers\DashboardController::getPendingApprovalsForSidebar(auth()->user()->employee);
-                            @endphp
-                            <div :class="sidebarOpen ? 'block' : 'hidden'" class="px-4 py-2 mt-4">
-                                <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Approvals</h3>
-                            </div>
-                            <a href="{{ route('travel-orders.index', ['status' => 'pending']) }}" class="flex items-center px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors duration-200 mb-1">
-                                <div class="rounded-lg bg-[#ffd700] p-2 mr-3 flex-shrink-0">
-                                    <svg class="h-5 w-5 text-[#1e6031]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                    </svg>
-                                </div>
-                                <span :class="sidebarOpen ? 'block' : 'hidden'" class="font-medium truncate">Approve Travel Orders</span>
-                                @if($pendingApprovals->count() > 0)
-                                    <span :class="sidebarOpen ? 'block' : 'hidden'" class="ml-auto inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white transform translate-x-1/4 -translate-y-1/4 bg-red-600 rounded-full">{{ $pendingApprovals->count() }}</span>
-                                @endif
-                            </a>
-                        @endif
+
                     </nav>
                     <!-- Logout Section -->
                     <div class="p-4 border-t border-gray-200 mt-auto">
