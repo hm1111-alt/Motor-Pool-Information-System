@@ -16,19 +16,19 @@
                         <p class="text-gray-600 text-sm mt-1">Division Head dashboard for overseeing vehicle requests and departmental approvals.</p>
                     </div>
                     
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        <!-- Department Requests -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <!-- My Travel Requests -->
                         <div class="bg-green-50 rounded-lg p-3 border border-green-100">
                             <div class="flex items-center mb-2">
                                 <div class="rounded-lg bg-[#1e6031] p-2 mr-3 flex-shrink-0">
                                     <svg class="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                                     </svg>
                                 </div>
-                                <h3 class="text-base font-semibold text-gray-800">Department Requests</h3>
+                                <h3 class="text-base font-semibold text-gray-800">My Travel Requests</h3>
                             </div>
-                            <p class="text-gray-600 text-sm mb-3">View all vehicle requests from units within your division.</p>
-                            <a href="#" class="inline-flex items-center px-3 py-1.5 bg-white border border-green-300 text-green-800 rounded-md hover:bg-green-100 focus:outline-none focus:ring-1 focus:ring-green-500 focus:ring-offset-1 text-xs font-medium transition duration-200 shadow-sm">
+                            <p class="text-gray-600 text-sm mb-3">Manage your travel requests and view their status.</p>
+                            <a href="{{ route('divisionhead.travel-orders.index', ['tab' => 'pending']) }}" class="inline-flex items-center px-3 py-1.5 bg-white border border-green-300 text-green-800 rounded-md hover:bg-green-100 focus:outline-none focus:ring-1 focus:ring-green-500 focus:ring-offset-1 text-xs font-medium transition duration-200 shadow-sm">
                                 View Requests
                                 <svg class="ml-1 h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
@@ -36,7 +36,26 @@
                             </a>
                         </div>
                         
-                        <!-- Pending Approvals -->
+                        <!-- Create Travel Order -->
+                        <div class="bg-indigo-50 rounded-lg p-3 border border-indigo-100">
+                            <div class="flex items-center mb-2">
+                                <div class="rounded-lg bg-indigo-600 p-2 mr-3 flex-shrink-0">
+                                    <svg class="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                                    </svg>
+                                </div>
+                                <h3 class="text-base font-semibold text-gray-800">Create Travel Order</h3>
+                            </div>
+                            <p class="text-gray-600 text-sm mb-3">Submit a new travel request for approval.</p>
+                            <a href="{{ route('divisionhead.travel-orders.create') }}" class="inline-flex items-center px-3 py-1.5 bg-white border border-indigo-300 text-indigo-800 rounded-md hover:bg-indigo-100 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:ring-offset-1 text-xs font-medium transition duration-200 shadow-sm">
+                                Create Request
+                                <svg class="ml-1 h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                                </svg>
+                            </a>
+                        </div>
+                        
+                        <!-- Travel Order Approvals -->
                         <div class="bg-yellow-50 rounded-lg p-3 border border-yellow-100">
                             <div class="flex items-center mb-2">
                                 <div class="rounded-lg bg-yellow-500 p-2 mr-3 flex-shrink-0">
@@ -44,10 +63,10 @@
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                                     </svg>
                                 </div>
-                                <h3 class="text-base font-semibold text-gray-800">Pending Approvals</h3>
+                                <h3 class="text-base font-semibold text-gray-800">Travel Order Approvals</h3>
                             </div>
-                            <p class="text-gray-600 text-sm mb-3">Review and approve vehicle requests from division heads.</p>
-                            <a href="#" class="inline-flex items-center px-3 py-1.5 bg-white border border-yellow-300 text-yellow-800 rounded-md hover:bg-yellow-100 focus:outline-none focus:ring-1 focus:ring-yellow-500 focus:ring-offset-1 text-xs font-medium transition duration-200 shadow-sm">
+                            <p class="text-gray-600 text-sm mb-3">Review and approve travel requests from Heads in your division.</p>
+                            <a href="{{ route('travel-orders.approvals.divisionhead') }}" class="inline-flex items-center px-3 py-1.5 bg-white border border-yellow-300 text-yellow-800 rounded-md hover:bg-yellow-100 focus:outline-none focus:ring-1 focus:ring-yellow-500 focus:ring-offset-1 text-xs font-medium transition duration-200 shadow-sm">
                                 Review Now
                                 <svg class="ml-1 h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />

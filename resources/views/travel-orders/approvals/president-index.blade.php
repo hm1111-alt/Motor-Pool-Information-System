@@ -2,7 +2,7 @@
 
 @section('header')
     <h2 class="font-semibold text-lg text-gray-800 leading-tight">
-        {{ __('VP Travel Order Approvals') }}
+        {{ __('Division Head Travel Order Approvals') }}
     </h2>
 @endsection
 
@@ -12,22 +12,22 @@
             <div class="bg-white overflow-hidden shadow rounded border border-gray-100">
                 <div class="p-4">
                     <div class="mb-4 pb-2 border-b border-gray-200">
-                        <h1 class="text-lg font-bold text-gray-800">Travel Orders for Approval</h1>
-                        <p class="text-gray-600 text-sm mt-1">Review and approve travel requests that have been approved by unit heads.</p>
+                        <h1 class="text-lg font-bold text-gray-800">Division Head Travel Orders for Approval</h1>
+                        <p class="text-gray-600 text-sm mt-1">Review and approve travel requests from division heads that have been approved by VPs.</p>
                     </div>
                     
                     <!-- Tabs -->
                     <div class="mb-4 border-b border-gray-200">
                         <nav class="flex space-x-8" aria-label="Tabs">
-                            <a href="{{ route('travel-orders.approvals.vp', ['tab' => 'pending']) }}" 
+                            <a href="{{ route('travel-orders.approvals.president', ['tab' => 'pending']) }}" 
                                class="{{ (isset($tab) && $tab == 'pending') || !isset($tab) ? 'border-[#1e6031] text-[#1e6031]' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' }} whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm">
                                 Pending
                             </a>
-                            <a href="{{ route('travel-orders.approvals.vp', ['tab' => 'approved']) }}" 
+                            <a href="{{ route('travel-orders.approvals.president', ['tab' => 'approved']) }}" 
                                class="{{ isset($tab) && $tab == 'approved' ? 'border-[#1e6031] text-[#1e6031]' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' }} whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm">
                                 Approved
                             </a>
-                            <a href="{{ route('travel-orders.approvals.vp', ['tab' => 'cancelled']) }}" 
+                            <a href="{{ route('travel-orders.approvals.president', ['tab' => 'cancelled']) }}" 
                                class="{{ isset($tab) && $tab == 'cancelled' ? 'border-[#1e6031] text-[#1e6031]' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' }} whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm">
                                 Cancelled
                             </a>
@@ -80,13 +80,7 @@
                                         </td>
                                         <td class="px-4 py-2 text-sm text-gray-900 max-w-xs truncate">{{ $travelOrder->purpose }}</td>
                                         <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-900">
-                                            @if($travelOrder->employee->is_head && !$travelOrder->employee->is_divisionhead)
-                                                {{ $travelOrder->divisionhead_approved_at ? $travelOrder->divisionhead_approved_at->format('M d, Y g:i A') : 'N/A' }}
-                                            @elseif(!$travelOrder->employee->is_head && !$travelOrder->employee->is_divisionhead)
-                                                {{ $travelOrder->head_approved_at ? $travelOrder->head_approved_at->format('M d, Y g:i A') : 'N/A' }}
-                                            @else
-                                                {{ 'N/A' }}
-                                            @endif
+                                            {{ $travelOrder->vp_approved_at ? $travelOrder->vp_approved_at->format('M d, Y g:i A') : 'N/A' }}
                                         </td>
                                         <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-900">
                                             {{ $travelOrder->remarks }}
@@ -95,13 +89,13 @@
                                             <td class="px-4 py-2 whitespace-nowrap text-sm font-medium">
                                                 <a href="{{ route('travel-orders.show', $travelOrder) }}" class="text-indigo-600 hover:text-indigo-900 mr-2">View</a>
                                                 
-                                                <form action="{{ route('travel-orders.approve.vp', $travelOrder) }}" method="POST" class="inline-block mr-2">
+                                                <form action="{{ route('travel-orders.approve.president', $travelOrder) }}" method="POST" class="inline-block mr-2">
                                                     @csrf
                                                     @method('PUT')
                                                     <button type="submit" class="text-green-600 hover:text-green-900" onclick="return confirm('Are you sure you want to approve this travel order?')">Approve</button>
                                                 </form>
                                                 
-                                                <form action="{{ route('travel-orders.reject.vp', $travelOrder) }}" method="POST" class="inline-block">
+                                                <form action="{{ route('travel-orders.reject.president', $travelOrder) }}" method="POST" class="inline-block">
                                                     @csrf
                                                     @method('PUT')
                                                     <button type="submit" class="text-red-600 hover:text-red-900" onclick="return confirm('Are you sure you want to reject this travel order?')">Reject</button>

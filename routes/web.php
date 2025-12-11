@@ -12,7 +12,12 @@ use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\LeaderController;
 use App\Http\Controllers\RegularEmployeeTravelOrderController;
 use App\Http\Controllers\HeadTravelOrderController;
+use App\Http\Controllers\HeadOwnTravelOrderController;
+use App\Http\Controllers\DivisionHeadTravelOrderController;
+use App\Http\Controllers\DivisionHeadOwnTravelOrderController;
 use App\Http\Controllers\VpTravelOrderController;
+use App\Http\Controllers\VpOwnTravelOrderController;
+use App\Http\Controllers\PresidentTravelOrderController;
 use App\Http\Controllers\MotorpoolAdminController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
@@ -98,15 +103,52 @@ Route::middleware('auth')->group(function () {
     Route::put('/travel-orders/{travelOrder}', [RegularEmployeeTravelOrderController::class, 'update'])->name('travel-orders.update');
     Route::delete('/travel-orders/{travelOrder}', [RegularEmployeeTravelOrderController::class, 'destroy'])->name('travel-orders.destroy');
     
+    // Travel Order Routes for Heads (own travel orders)
+    Route::get('/head/travel-orders', [HeadOwnTravelOrderController::class, 'index'])->name('head.travel-orders.index');
+    Route::get('/head/travel-orders/create', [HeadOwnTravelOrderController::class, 'create'])->name('head.travel-orders.create');
+    Route::post('/head/travel-orders', [HeadOwnTravelOrderController::class, 'store'])->name('head.travel-orders.store');
+    Route::get('/head/travel-orders/{travelOrder}', [HeadOwnTravelOrderController::class, 'show'])->name('head.travel-orders.show');
+    Route::get('/head/travel-orders/{travelOrder}/edit', [HeadOwnTravelOrderController::class, 'edit'])->name('head.travel-orders.edit');
+    Route::put('/head/travel-orders/{travelOrder}', [HeadOwnTravelOrderController::class, 'update'])->name('head.travel-orders.update');
+    Route::delete('/head/travel-orders/{travelOrder}', [HeadOwnTravelOrderController::class, 'destroy'])->name('head.travel-orders.destroy');
+    
     // Travel Order Approval Routes for Heads
     Route::get('/travel-orders/approvals/head', [HeadTravelOrderController::class, 'index'])->name('travel-orders.approvals.head');
     Route::put('/travel-orders/{travelOrder}/approve/head', [HeadTravelOrderController::class, 'approve'])->name('travel-orders.approve.head');
     Route::put('/travel-orders/{travelOrder}/reject/head', [HeadTravelOrderController::class, 'reject'])->name('travel-orders.reject.head');
     
+    // Travel Order Routes for Division Heads (own travel orders)
+    Route::get('/divisionhead/travel-orders', [DivisionHeadOwnTravelOrderController::class, 'index'])->name('divisionhead.travel-orders.index');
+    Route::get('/divisionhead/travel-orders/create', [DivisionHeadOwnTravelOrderController::class, 'create'])->name('divisionhead.travel-orders.create');
+    Route::post('/divisionhead/travel-orders', [DivisionHeadOwnTravelOrderController::class, 'store'])->name('divisionhead.travel-orders.store');
+    Route::get('/divisionhead/travel-orders/{travelOrder}', [DivisionHeadOwnTravelOrderController::class, 'show'])->name('divisionhead.travel-orders.show');
+    Route::get('/divisionhead/travel-orders/{travelOrder}/edit', [DivisionHeadOwnTravelOrderController::class, 'edit'])->name('divisionhead.travel-orders.edit');
+    Route::put('/divisionhead/travel-orders/{travelOrder}', [DivisionHeadOwnTravelOrderController::class, 'update'])->name('divisionhead.travel-orders.update');
+    Route::delete('/divisionhead/travel-orders/{travelOrder}', [DivisionHeadOwnTravelOrderController::class, 'destroy'])->name('divisionhead.travel-orders.destroy');
+    
+    // Travel Order Approval Routes for Division Heads
+    Route::get('/travel-orders/approvals/divisionhead', [DivisionHeadTravelOrderController::class, 'index'])->name('travel-orders.approvals.divisionhead');
+    Route::put('/travel-orders/{travelOrder}/approve/divisionhead', [DivisionHeadTravelOrderController::class, 'approve'])->name('travel-orders.approve.divisionhead');
+    Route::put('/travel-orders/{travelOrder}/reject/divisionhead', [DivisionHeadTravelOrderController::class, 'reject'])->name('travel-orders.reject.divisionhead');
+    
+    // Travel Order Routes for VPs (own travel orders)
+    Route::get('/vp/travel-orders', [VpOwnTravelOrderController::class, 'index'])->name('vp.travel-orders.index');
+    Route::get('/vp/travel-orders/create', [VpOwnTravelOrderController::class, 'create'])->name('vp.travel-orders.create');
+    Route::post('/vp/travel-orders', [VpOwnTravelOrderController::class, 'store'])->name('vp.travel-orders.store');
+    Route::get('/vp/travel-orders/{travelOrder}', [VpOwnTravelOrderController::class, 'show'])->name('vp.travel-orders.show');
+    Route::get('/vp/travel-orders/{travelOrder}/edit', [VpOwnTravelOrderController::class, 'edit'])->name('vp.travel-orders.edit');
+    Route::put('/vp/travel-orders/{travelOrder}', [VpOwnTravelOrderController::class, 'update'])->name('vp.travel-orders.update');
+    Route::delete('/vp/travel-orders/{travelOrder}', [VpOwnTravelOrderController::class, 'destroy'])->name('vp.travel-orders.destroy');
+    
     // Travel Order Approval Routes for VPs
     Route::get('/travel-orders/approvals/vp', [VpTravelOrderController::class, 'index'])->name('travel-orders.approvals.vp');
     Route::put('/travel-orders/{travelOrder}/approve/vp', [VpTravelOrderController::class, 'approve'])->name('travel-orders.approve.vp');
     Route::put('/travel-orders/{travelOrder}/reject/vp', [VpTravelOrderController::class, 'reject'])->name('travel-orders.reject.vp');
+    
+    // Travel Order Approval Routes for Presidents
+    Route::get('/travel-orders/approvals/president', [PresidentTravelOrderController::class, 'index'])->name('travel-orders.approvals.president');
+    Route::put('/travel-orders/{travelOrder}/approve/president', [PresidentTravelOrderController::class, 'approve'])->name('travel-orders.approve.president');
+    Route::put('/travel-orders/{travelOrder}/reject/president', [PresidentTravelOrderController::class, 'reject'])->name('travel-orders.reject.president');
     
     // Approved Travel Orders for Motorpool Admin
     Route::get('/approved-travel-orders', [MotorpoolAdminController::class, 'approvedTravelOrders'])->name('approved-travel-orders.index');

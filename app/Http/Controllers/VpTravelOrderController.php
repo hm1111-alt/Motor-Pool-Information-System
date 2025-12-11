@@ -30,7 +30,25 @@ class VpTravelOrderController extends Controller
                                 ->orWhereNull('is_president');
                       });
             })
-            ->where('head_approved', true);
+            ->where(function ($query) {
+                // For regular employees: head_approved must be true
+                $query->whereHas('employee', function ($subQuery) {
+                    $subQuery->where('is_head', 0)
+                              ->where('is_divisionhead', 0)
+                              ->orWhereNull('is_head')
+                              ->orWhereNull('is_divisionhead');
+                })->where('head_approved', true)
+                // For heads: divisionhead_approved must be true
+                ->orWhereHas('employee', function ($subQuery) {
+                    $subQuery->where('is_head', 1)
+                              ->where('is_divisionhead', 0)
+                              ->orWhereNull('is_divisionhead');
+                })->where('divisionhead_approved', true)
+                // For division heads: direct approval (no prior approval needed)
+                ->orWhereHas('employee', function ($subQuery) {
+                    $subQuery->where('is_divisionhead', 1);
+                });
+            });
         
         switch ($tab) {
             case 'approved':
@@ -45,7 +63,7 @@ class VpTravelOrderController extends Controller
                 break;
         }
         
-        $travelOrders = $query->orderBy('head_approved_at', 'desc')->get();
+        $travelOrders = $query->orderByRaw('(CASE WHEN travel_orders.employee_id IN (SELECT id FROM employees WHERE is_head = 1) THEN divisionhead_approved_at ELSE head_approved_at END) DESC')->get();
         
         return view('travel-orders.approvals.vp-index', compact('travelOrders', 'tab'));
     }
@@ -63,10 +81,22 @@ class VpTravelOrderController extends Controller
             abort(403);
         }
         
-        // Ensure the travel order has been approved by head
-        if (!$travelOrder->head_approved) {
-            abort(403);
+        // Ensure the travel order has been approved by the appropriate authority
+        // For regular employees: head_approved must be true
+        // For heads: divisionhead_approved must be true
+        // For division heads: no prior approval needed
+        if ($travelOrder->employee->is_head && !$travelOrder->employee->is_divisionhead) {
+            // This is a head's travel order, check division head approval
+            if (!$travelOrder->divisionhead_approved) {
+                abort(403);
+            }
+        } else if (!$travelOrder->employee->is_head && !$travelOrder->employee->is_divisionhead) {
+            // This is a regular employee's travel order, check head approval
+            if (!$travelOrder->head_approved) {
+                abort(403);
+            }
         }
+        // For division heads, no prior approval check needed
         
         // Ensure the travel order hasn't already been approved by VP
         if ($travelOrder->vp_approved) {
@@ -97,10 +127,22 @@ class VpTravelOrderController extends Controller
             abort(403);
         }
         
-        // Ensure the travel order has been approved by head
-        if (!$travelOrder->head_approved) {
-            abort(403);
+        // Ensure the travel order has been approved by the appropriate authority
+        // For regular employees: head_approved must be true
+        // For heads: divisionhead_approved must be true
+        // For division heads: no prior approval needed
+        if ($travelOrder->employee->is_head && !$travelOrder->employee->is_divisionhead) {
+            // This is a head's travel order, check division head approval
+            if (!$travelOrder->divisionhead_approved) {
+                abort(403);
+            }
+        } else if (!$travelOrder->employee->is_head && !$travelOrder->employee->is_divisionhead) {
+            // This is a regular employee's travel order, check head approval
+            if (!$travelOrder->head_approved) {
+                abort(403);
+            }
         }
+        // For division heads, no prior approval check needed
         
         // Ensure the travel order hasn't already been approved by VP
         if ($travelOrder->vp_approved) {

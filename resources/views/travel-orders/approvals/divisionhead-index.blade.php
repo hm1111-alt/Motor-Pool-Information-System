@@ -2,7 +2,7 @@
 
 @section('header')
     <h2 class="font-semibold text-lg text-gray-800 leading-tight">
-        {{ __('VP Travel Order Approvals') }}
+        {{ __('Approve Travel Orders') }}
     </h2>
 @endsection
 
@@ -13,21 +13,21 @@
                 <div class="p-4">
                     <div class="mb-4 pb-2 border-b border-gray-200">
                         <h1 class="text-lg font-bold text-gray-800">Travel Orders for Approval</h1>
-                        <p class="text-gray-600 text-sm mt-1">Review and approve travel requests that have been approved by unit heads.</p>
+                        <p class="text-gray-600 text-sm mt-1">Review and approve travel requests from Heads in your division.</p>
                     </div>
                     
                     <!-- Tabs -->
                     <div class="mb-4 border-b border-gray-200">
                         <nav class="flex space-x-8" aria-label="Tabs">
-                            <a href="{{ route('travel-orders.approvals.vp', ['tab' => 'pending']) }}" 
+                            <a href="{{ route('travel-orders.approvals.divisionhead', ['tab' => 'pending']) }}" 
                                class="{{ (isset($tab) && $tab == 'pending') || !isset($tab) ? 'border-[#1e6031] text-[#1e6031]' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' }} whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm">
                                 Pending
                             </a>
-                            <a href="{{ route('travel-orders.approvals.vp', ['tab' => 'approved']) }}" 
+                            <a href="{{ route('travel-orders.approvals.divisionhead', ['tab' => 'approved']) }}" 
                                class="{{ isset($tab) && $tab == 'approved' ? 'border-[#1e6031] text-[#1e6031]' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' }} whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm">
                                 Approved
                             </a>
-                            <a href="{{ route('travel-orders.approvals.vp', ['tab' => 'cancelled']) }}" 
+                            <a href="{{ route('travel-orders.approvals.divisionhead', ['tab' => 'cancelled']) }}" 
                                class="{{ isset($tab) && $tab == 'cancelled' ? 'border-[#1e6031] text-[#1e6031]' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' }} whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm">
                                 Cancelled
                             </a>
@@ -56,13 +56,14 @@
                             <thead class="bg-gray-50">
                                 <tr>
                                     <th scope="col" class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Employee</th>
-                                    <th scope="col" class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Unit</th>
                                     <th scope="col" class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Destination</th>
                                     <th scope="col" class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date Range</th>
                                     <th scope="col" class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Purpose</th>
-                                    <th scope="col" class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Approved At</th>
                                     <th scope="col" class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Remarks</th>
-                                    <th scope="col" class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                                    <th scope="col" class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Submitted</th>
+                                    @if((isset($tab) && $tab == 'pending') || !isset($tab))
+                                        <th scope="col" class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                                    @endif
                                 </tr>
                             </thead>
                             <tbody class="bg-white divide-y divide-gray-200">
@@ -71,37 +72,28 @@
                                         <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-900">
                                             {{ $travelOrder->employee->first_name }} {{ $travelOrder->employee->last_name }}
                                         </td>
-                                        <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-900">
-                                            {{ $travelOrder->employee->unit->name ?? 'N/A' }}
-                                        </td>
                                         <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-900">{{ $travelOrder->destination }}</td>
                                         <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-900">
                                             {{ $travelOrder->date_from->format('M d, Y') }} - {{ $travelOrder->date_to->format('M d, Y') }}
                                         </td>
                                         <td class="px-4 py-2 text-sm text-gray-900 max-w-xs truncate">{{ $travelOrder->purpose }}</td>
                                         <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-900">
-                                            @if($travelOrder->employee->is_head && !$travelOrder->employee->is_divisionhead)
-                                                {{ $travelOrder->divisionhead_approved_at ? $travelOrder->divisionhead_approved_at->format('M d, Y g:i A') : 'N/A' }}
-                                            @elseif(!$travelOrder->employee->is_head && !$travelOrder->employee->is_divisionhead)
-                                                {{ $travelOrder->head_approved_at ? $travelOrder->head_approved_at->format('M d, Y g:i A') : 'N/A' }}
-                                            @else
-                                                {{ 'N/A' }}
-                                            @endif
+                                            {{ $travelOrder->remarks }}
                                         </td>
                                         <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-900">
-                                            {{ $travelOrder->remarks }}
+                                            {{ $travelOrder->created_at->format('M d, Y') }}
                                         </td>
                                         @if((isset($tab) && $tab == 'pending') || !isset($tab))
                                             <td class="px-4 py-2 whitespace-nowrap text-sm font-medium">
                                                 <a href="{{ route('travel-orders.show', $travelOrder) }}" class="text-indigo-600 hover:text-indigo-900 mr-2">View</a>
                                                 
-                                                <form action="{{ route('travel-orders.approve.vp', $travelOrder) }}" method="POST" class="inline-block mr-2">
+                                                <form action="{{ route('travel-orders.approve.divisionhead', $travelOrder) }}" method="POST" class="inline-block mr-2">
                                                     @csrf
                                                     @method('PUT')
                                                     <button type="submit" class="text-green-600 hover:text-green-900" onclick="return confirm('Are you sure you want to approve this travel order?')">Approve</button>
                                                 </form>
                                                 
-                                                <form action="{{ route('travel-orders.reject.vp', $travelOrder) }}" method="POST" class="inline-block">
+                                                <form action="{{ route('travel-orders.reject.divisionhead', $travelOrder) }}" method="POST" class="inline-block">
                                                     @csrf
                                                     @method('PUT')
                                                     <button type="submit" class="text-red-600 hover:text-red-900" onclick="return confirm('Are you sure you want to reject this travel order?')">Reject</button>
