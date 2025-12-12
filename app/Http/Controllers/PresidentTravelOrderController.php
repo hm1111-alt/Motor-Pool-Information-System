@@ -23,11 +23,19 @@ class PresidentTravelOrderController extends Controller
         $tab = $request->get('tab', 'pending');
         
         // Get travel orders that need presidential approval
-        // These are travel orders from division heads that have been approved by VP
-        $query = TravelOrder::whereHas('employee', function ($subQuery) {
-                    $subQuery->where('is_divisionhead', 1);
+        // These are:
+        // 1. Travel orders from division heads that have been approved by VP
+        // 2. Travel orders from VPs (no prior approval needed)
+        $query = TravelOrder::where(function ($q) {
+                    // Division head travel orders approved by VP
+                    $q->whereHas('employee', function ($subQuery) {
+                        $subQuery->where('is_divisionhead', 1);
+                    })->where('vp_approved', true)
+                    // VP travel orders (no prior approval needed)
+                    ->orWhereHas('employee', function ($subQuery) {
+                        $subQuery->where('is_vp', 1);
+                    });
                 })
-                ->where('vp_approved', true)
                 ->where('president_approved', null);
         
         switch ($tab) {
@@ -43,7 +51,7 @@ class PresidentTravelOrderController extends Controller
                 break;
         }
         
-        $travelOrders = $query->orderBy('vp_approved_at', 'desc')->get();
+        $travelOrders = $query->orderByRaw('(CASE WHEN travel_orders.employee_id IN (SELECT id FROM employees WHERE is_vp = 1) THEN created_at ELSE vp_approved_at END) DESC')->get();
         
         return view('travel-orders.approvals.president-index', compact('travelOrders', 'tab'));
     }
@@ -56,11 +64,10 @@ class PresidentTravelOrderController extends Controller
         $user = Auth::user();
         $employee = $user->employee;
         
-        // No office restriction for presidents - they can approve any division head travel order
-        // that has been approved by a VP
+        // No office restriction for presidents - they can approve any division head or VP travel order
         
-        // Ensure the travel order has been approved by VP
-        if (!$travelOrder->vp_approved) {
+        // Ensure the travel order has been approved by VP (for division heads) or is from a VP
+        if (!$travelOrder->employee->is_vp && !$travelOrder->vp_approved) {
             abort(403);
         }
         
@@ -88,11 +95,10 @@ class PresidentTravelOrderController extends Controller
         $user = Auth::user();
         $employee = $user->employee;
         
-        // No office restriction for presidents - they can reject any division head travel order
-        // that has been approved by a VP
+        // No office restriction for presidents - they can reject any division head or VP travel order
         
-        // Ensure the travel order has been approved by VP
-        if (!$travelOrder->vp_approved) {
+        // Ensure the travel order has been approved by VP (for division heads) or is from a VP
+        if (!$travelOrder->employee->is_vp && !$travelOrder->vp_approved) {
             abort(403);
         }
         

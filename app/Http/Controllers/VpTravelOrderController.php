@@ -103,11 +103,19 @@ class VpTravelOrderController extends Controller
             abort(403);
         }
         
+        // Determine the status based on employee type
+        // For division heads, status remains pending until president approval
+        // For others, status becomes approved
+        $status = 'pending';
+        if (!$travelOrder->employee->is_divisionhead) {
+            $status = 'approved';
+        }
+        
         // Approve the travel order
         $travelOrder->update([
             'vp_approved' => true,
             'vp_approved_at' => now(),
-            'status' => 'approved',
+            'status' => $status,
         ]);
 
         return redirect()->back()

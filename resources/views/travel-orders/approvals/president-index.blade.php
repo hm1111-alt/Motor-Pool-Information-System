@@ -2,7 +2,7 @@
 
 @section('header')
     <h2 class="font-semibold text-lg text-gray-800 leading-tight">
-        {{ __('Division Head Travel Order Approvals') }}
+        {{ __('Travel Order Approvals') }}
     </h2>
 @endsection
 
@@ -12,8 +12,8 @@
             <div class="bg-white overflow-hidden shadow rounded border border-gray-100">
                 <div class="p-4">
                     <div class="mb-4 pb-2 border-b border-gray-200">
-                        <h1 class="text-lg font-bold text-gray-800">Division Head Travel Orders for Approval</h1>
-                        <p class="text-gray-600 text-sm mt-1">Review and approve travel requests from division heads that have been approved by VPs.</p>
+                        <h1 class="text-lg font-bold text-gray-800">Travel Orders for Approval</h1>
+                        <p class="text-gray-600 text-sm mt-1">Review and approve travel requests from division heads (approved by VPs) and VPs (self-service).</p>
                     </div>
                     
                     <!-- Tabs -->
@@ -80,7 +80,11 @@
                                         </td>
                                         <td class="px-4 py-2 text-sm text-gray-900 max-w-xs truncate">{{ $travelOrder->purpose }}</td>
                                         <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-900">
-                                            {{ $travelOrder->vp_approved_at ? $travelOrder->vp_approved_at->format('M d, Y g:i A') : 'N/A' }}
+                                            @if($travelOrder->employee->is_vp)
+                                                {{ 'N/A (VP self-service request)' }}
+                                            @else
+                                                {{ $travelOrder->vp_approved_at ? $travelOrder->vp_approved_at->format('M d, Y g:i A') : 'N/A' }}
+                                            @endif
                                         </td>
                                         <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-900">
                                             {{ $travelOrder->remarks }}

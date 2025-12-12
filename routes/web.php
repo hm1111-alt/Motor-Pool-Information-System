@@ -18,6 +18,7 @@ use App\Http\Controllers\DivisionHeadOwnTravelOrderController;
 use App\Http\Controllers\VpTravelOrderController;
 use App\Http\Controllers\VpOwnTravelOrderController;
 use App\Http\Controllers\PresidentTravelOrderController;
+use App\Http\Controllers\PresidentOwnTravelOrderController;
 use App\Http\Controllers\MotorpoolAdminController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
@@ -144,6 +145,15 @@ Route::middleware('auth')->group(function () {
     Route::get('/travel-orders/approvals/vp', [VpTravelOrderController::class, 'index'])->name('travel-orders.approvals.vp');
     Route::put('/travel-orders/{travelOrder}/approve/vp', [VpTravelOrderController::class, 'approve'])->name('travel-orders.approve.vp');
     Route::put('/travel-orders/{travelOrder}/reject/vp', [VpTravelOrderController::class, 'reject'])->name('travel-orders.reject.vp');
+    
+    // Travel Order Routes for Presidents (own travel orders)
+    Route::get('/president/travel-orders', [PresidentOwnTravelOrderController::class, 'index'])->name('president.travel-orders.index');
+    Route::get('/president/travel-orders/create', [PresidentOwnTravelOrderController::class, 'create'])->name('president.travel-orders.create');
+    Route::post('/president/travel-orders', [PresidentOwnTravelOrderController::class, 'store'])->name('president.travel-orders.store');
+    Route::get('/president/travel-orders/{travelOrder}', [PresidentOwnTravelOrderController::class, 'show'])->name('president.travel-orders.show');
+    Route::get('/president/travel-orders/{travelOrder}/edit', [PresidentOwnTravelOrderController::class, 'edit'])->name('president.travel-orders.edit');
+    Route::put('/president/travel-orders/{travelOrder}', [PresidentOwnTravelOrderController::class, 'update'])->name('president.travel-orders.update');
+    Route::delete('/president/travel-orders/{travelOrder}', [PresidentOwnTravelOrderController::class, 'destroy'])->name('president.travel-orders.destroy');
     
     // Travel Order Approval Routes for Presidents
     Route::get('/travel-orders/approvals/president', [PresidentTravelOrderController::class, 'index'])->name('travel-orders.approvals.president');

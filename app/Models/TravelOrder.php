@@ -61,6 +61,16 @@ class TravelOrder extends Model
      */
     public function getRemarksAttribute(): string
     {
+        // For presidents, if president_approved = 1, remarks = Approved (automatically)
+        if ($this->employee->is_president && $this->president_approved) {
+            return 'Approved';
+        }
+        
+        // For presidents, if status = approved, remarks = Approved (automatically)
+        if ($this->employee->is_president && $this->status === 'approved') {
+            return 'Approved';
+        }
+        
         // if president_approved = 1, remarks = Approved
         if ($this->president_approved) {
             return 'Approved';
@@ -68,6 +78,11 @@ class TravelOrder extends Model
         
         // if vp_approved = 1 (for VP's own requests), remarks = For President approval
         if ($this->vp_approved && $this->employee->is_vp) {
+            return 'For President approval';
+        }
+        
+        // if vp_approved = 1 (for division head requests), remarks = For President approval
+        if ($this->vp_approved && $this->employee->is_divisionhead) {
             return 'For President approval';
         }
         

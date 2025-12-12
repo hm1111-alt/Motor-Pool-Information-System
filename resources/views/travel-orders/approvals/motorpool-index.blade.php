@@ -13,7 +13,7 @@
                 <div class="p-4">
                     <div class="mb-4 pb-2 border-b border-gray-200">
                         <h1 class="text-lg font-bold text-gray-800">Approved Travel Orders</h1>
-                        <p class="text-gray-600 text-sm mt-1">List of travel orders approved by VPs (for regular employees and heads) or Presidents (for division heads).</p>
+                        <p class="text-gray-600 text-sm mt-1">List of travel orders approved by VPs (for regular employees and heads), Presidents (for division heads), or Presidents (for VPs).</p>
                     </div>
                     
                     @if(session('success'))
@@ -42,7 +42,7 @@
                                     <th scope="col" class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Destination</th>
                                     <th scope="col" class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date Range</th>
                                     <th scope="col" class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Purpose</th>
-                                    <th scope="col" class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Approved At</th>
+                                    <th scope="col" class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Final Approval</th>
                                 </tr>
                             </thead>
                             <tbody class="bg-white divide-y divide-gray-200">
@@ -61,6 +61,8 @@
                                         <td class="px-4 py-2 text-sm text-gray-900 max-w-xs truncate">{{ $travelOrder->purpose }}</td>
                                         <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-900">
                                             @if($travelOrder->employee->is_divisionhead)
+                                                {{ $travelOrder->president_approved_at ? $travelOrder->president_approved_at->format('M d, Y g:i A') : 'N/A' }}
+                                            @elseif($travelOrder->employee->is_vp)
                                                 {{ $travelOrder->president_approved_at ? $travelOrder->president_approved_at->format('M d, Y g:i A') : 'N/A' }}
                                             @else
                                                 {{ $travelOrder->vp_approved_at ? $travelOrder->vp_approved_at->format('M d, Y g:i A') : 'N/A' }}

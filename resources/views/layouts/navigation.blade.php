@@ -15,6 +15,12 @@
                     <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                         {{ __('Dashboard') }}
                     </x-nav-link>
+                    
+                    @if(auth()->user()->employee && auth()->user()->employee->is_president)
+                        <x-nav-link :href="route('president.travel-orders.index')" :active="request()->routeIs('president.travel-orders.*')">
+                            {{ __('My Travel Requests') }}
+                        </x-nav-link>
+                    @endif
                 </div>
             </div>
 
@@ -70,6 +76,12 @@
             <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                 {{ __('Dashboard') }}
             </x-responsive-nav-link>
+            
+            @if(auth()->user()->employee && auth()->user()->employee->is_president)
+                <x-responsive-nav-link :href="route('president.travel-orders.index')" :active="request()->routeIs('president.travel-orders.*')">
+                    {{ __('My Travel Requests') }}
+                </x-responsive-nav-link>
+            @endif
         </div>
 
         <!-- Responsive Settings Options -->

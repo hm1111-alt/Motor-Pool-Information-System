@@ -13,27 +13,9 @@
                 <div class="p-4">
                     <div class="flex justify-between items-center mb-4 pb-2 border-b border-gray-200">
                         <h1 class="text-lg font-bold text-gray-800">My Travel Requests</h1>
-                        <a href="{{ route('travel-orders.create') }}" class="inline-flex items-center px-3 py-1.5 bg-[#1e6031] border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-[#164f2a] focus:bg-[#164f2a] active:bg-[#1e6031] focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150">
+                        <a href="{{ route('president.travel-orders.create') }}" class="inline-flex items-center px-3 py-1.5 bg-[#1e6031] border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-[#164f2a] focus:bg-[#164f2a] active:bg-[#1e6031] focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150">
                             Create New Request
                         </a>
-                    </div>
-                    
-                    <!-- Tabs -->
-                    <div class="mb-4 border-b border-gray-200">
-                        <nav class="flex space-x-8" aria-label="Tabs">
-                            <a href="{{ route('travel-orders.index', ['tab' => 'pending']) }}" 
-                               class="{{ (isset($tab) && $tab == 'pending') || !isset($tab) ? 'border-[#1e6031] text-[#1e6031]' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' }} whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm">
-                                Pending
-                            </a>
-                            <a href="{{ route('travel-orders.index', ['tab' => 'approved']) }}" 
-                               class="{{ isset($tab) && $tab == 'approved' ? 'border-[#1e6031] text-[#1e6031]' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' }} whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm">
-                                Approved
-                            </a>
-                            <a href="{{ route('travel-orders.index', ['tab' => 'cancelled']) }}" 
-                               class="{{ isset($tab) && $tab == 'cancelled' ? 'border-[#1e6031] text-[#1e6031]' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' }} whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm">
-                                Cancelled
-                            </a>
-                        </nav>
                     </div>
                     
                     @if(session('success'))
@@ -63,9 +45,7 @@
                                     <th scope="col" class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Purpose</th>
                                     <th scope="col" class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                                     <th scope="col" class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Remarks</th>
-                                    @if((isset($tab) && $tab == 'pending') || !isset($tab))
-                                        <th scope="col" class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                                    @endif
+                                    <th scope="col" class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                                 </tr>
                             </thead>
                             <tbody class="bg-white divide-y divide-gray-200">
@@ -94,40 +74,22 @@
                                         <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-900">
                                             {{ $travelOrder->remarks }}
                                         </td>
-                                        @if((isset($tab) && $tab == 'pending') || !isset($tab))
-                                            <td class="px-4 py-2 whitespace-nowrap text-sm font-medium">
-                                                <a href="{{ route('travel-orders.show', $travelOrder) }}" class="text-indigo-600 hover:text-indigo-900 mr-2">View</a>
-                                                @if((!$travelOrder->head_approved && !$travelOrder->vp_approved) || $travelOrder->employee->is_president)
-                                                    <a href="{{ route('travel-orders.edit', $travelOrder) }}" class="text-blue-600 hover:text-blue-900 mr-2">Edit</a>
-                                                    <form action="{{ route('travel-orders.destroy', $travelOrder) }}" method="POST" class="inline">
-                                                        @csrf
-                                                        @method('DELETE')
-                                                        <button type="submit" class="text-red-600 hover:text-red-900" onclick="return confirm('Are you sure you want to delete this travel order?')">Delete</button>
-                                                    </form>
-                                                @endif
-                                            </td>
-                                        @endif
+                                        <td class="px-4 py-2 whitespace-nowrap text-sm font-medium">
+                                            <a href="{{ route('president.travel-orders.show', $travelOrder) }}" class="text-indigo-600 hover:text-indigo-900 mr-2">View</a>
+                                            @if($travelOrder->status === 'pending')
+                                                <a href="{{ route('president.travel-orders.edit', $travelOrder) }}" class="text-blue-600 hover:text-blue-900 mr-2">Edit</a>
+                                                <form action="{{ route('president.travel-orders.destroy', $travelOrder) }}" method="POST" class="inline">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" class="text-red-600 hover:text-red-900" onclick="return confirm('Are you sure you want to delete this travel order?')">Delete</button>
+                                                </form>
+                                            @endif
+                                        </td>
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="{{ (isset($tab) && $tab == 'pending') || !isset($tab) ? '7' : '6' }}" class="px-4 py-4 text-center text-sm text-gray-500">
-                                            @if(isset($tab))
-                                                @switch($tab)
-                                                    @case('pending')
-                                                        No pending travel requests found.
-                                                        @break
-                                                    @case('approved')
-                                                        No approved travel requests found.
-                                                        @break
-                                                    @case('cancelled')
-                                                        No cancelled travel requests found.
-                                                        @break
-                                                    @default
-                                                        No travel requests found.
-                                                @endswitch
-                                            @else
-                                                No pending travel requests found.
-                                            @endif
+                                        <td colspan="7" class="px-4 py-4 text-center text-sm text-gray-500">
+                                            No travel requests found.
                                         </td>
                                     </tr>
                                 @endforelse
