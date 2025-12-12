@@ -66,7 +66,7 @@
                         </a>
                         
                         <!-- Trip Tickets -->
-                        <a href="#" class="flex items-center px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors duration-200 mb-1">
+                        <a href="{{ route('trip-tickets.index') }}" class="flex items-center px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors duration-200 mb-1">
                             <div class="rounded-lg bg-[#1e6031] p-2 mr-3 flex-shrink-0">
                                 <svg class="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
@@ -74,9 +74,9 @@
                             </div>
                             <span :class="sidebarOpen ? 'block' : 'hidden'" class="font-medium truncate">Trip Tickets</span>
                         </a>
-                        
+
                         <!-- Vehicles -->
-                        <a href="#" class="flex items-center px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors duration-200 mb-1">
+                        <a href="{{ route('vehicles.index') }}" class="flex items-center px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors duration-200 mb-1">
                             <div class="rounded-lg bg-[#1e6031] p-2 mr-3 flex-shrink-0">
                                 <svg class="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
@@ -85,14 +85,34 @@
                             <span :class="sidebarOpen ? 'block' : 'hidden'" class="font-medium truncate">Vehicles</span>
                         </a>
                         
+                        <!-- Add Vehicle - Placed under Vehicles -->
+                        <a href="{{ route('vehicles.create') }}" class="flex items-center px-4 py-2 bg-green-600 text-white hover:bg-green-700 rounded-lg transition-colors duration-200 mb-1 ml-4">
+                            <div class="rounded-lg bg-white p-1 mr-2 flex-shrink-0">
+                                <svg class="h-4 w-4 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                                </svg>
+                            </div>
+                            <span :class="sidebarOpen ? 'block' : 'hidden'" class="font-medium truncate text-sm">Add Vehicle</span>
+                        </a>
+
                         <!-- Drivers -->
-                        <a href="#" class="flex items-center px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors duration-200 mb-1">
+                        <a href="{{ route('drivers.index') }}" class="flex items-center px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors duration-200 mb-1">
                             <div class="rounded-lg bg-[#1e6031] p-2 mr-3 flex-shrink-0">
                                 <svg class="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                                 </svg>
                             </div>
                             <span :class="sidebarOpen ? 'block' : 'hidden'" class="font-medium truncate">Drivers</span>
+                        </a>
+                        
+                        <!-- Add Driver - Placed under Drivers -->
+                        <a href="{{ route('drivers.create') }}" class="flex items-center px-4 py-2 bg-blue-600 text-white hover:bg-blue-700 rounded-lg transition-colors duration-200 mb-1 ml-4">
+                            <div class="rounded-lg bg-white p-1 mr-2 flex-shrink-0">
+                                <svg class="h-4 w-4 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                                </svg>
+                            </div>
+                            <span :class="sidebarOpen ? 'block' : 'hidden'" class="font-medium truncate text-sm">Add Driver</span>
                         </a>
                     </nav>
                     <!-- Logout Section -->

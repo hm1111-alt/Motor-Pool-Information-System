@@ -20,6 +20,7 @@ use App\Http\Controllers\VpOwnTravelOrderController;
 use App\Http\Controllers\PresidentTravelOrderController;
 use App\Http\Controllers\PresidentOwnTravelOrderController;
 use App\Http\Controllers\MotorpoolAdminController;
+use App\Http\Controllers\VehicleController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use Illuminate\Support\Facades\Auth;
@@ -27,6 +28,39 @@ use Illuminate\Support\Facades\Auth;
 Route::get('/', function () {
     return view('welcome');
 });
+
+// Test route for vehicle add button
+Route::get('/vehicles/test-add-button', function () {
+    return view('vehicles.test-add-button');
+})->name('vehicles.test-add-button');
+
+// Simple vehicle index route
+Route::get('/vehicles/simple-index', [VehicleController::class, 'simpleIndex'])->name('vehicles.simple-index');
+
+// Direct test route for add vehicle button
+Route::get('/test/add-vehicle-button', function () {
+    return '
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>Add Vehicle Test</title>
+        <style>
+            body { font-family: Arial, sans-serif; padding: 20px; background-color: #f5f5f5; }
+            .container { max-width: 600px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+            .btn { display: inline-block; padding: 12px 24px; background-color: #28a745; color: white; text-decoration: none; border-radius: 4px; font-weight: bold; }
+            .btn:hover { background-color: #218838; }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h1>Vehicle Management Test</h1>
+            <p>Click the button below to add a new vehicle:</p>
+            <a href="' . route('vehicles.create') . '" class="btn">+ Add New Vehicle</a>
+            <p style="margin-top: 20px;"><a href="' . url('/') . '">← Back to Home</a></p>
+        </div>
+    </body>
+    </html>';
+})->name('test.add-vehicle-button');
 
 Route::get('/dashboard', [DashboardController::class, 'index'])
     ->middleware(['auth', 'verified'])
@@ -162,6 +196,15 @@ Route::middleware('auth')->group(function () {
     
     // Approved Travel Orders for Motorpool Admin
     Route::get('/approved-travel-orders', [MotorpoolAdminController::class, 'approvedTravelOrders'])->name('approved-travel-orders.index');
+    
+    // Vehicle Management Routes for Motorpool Admin
+    Route::resource('vehicles', App\Http\Controllers\VehicleController::class);
+    
+    // Driver Management Routes for Motorpool Admin
+    Route::resource('drivers', App\Http\Controllers\DriverController::class);
+    
+    // Trip Ticket Management Routes for Motorpool Admin
+    Route::resource('trip-tickets', App\Http\Controllers\TripTicketController::class);
     
     // Test route for travel order creation
     Route::get('/test-create-travel-order', function () {

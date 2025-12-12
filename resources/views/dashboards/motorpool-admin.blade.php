@@ -37,7 +37,7 @@
                                 </div>
                             </div>
                             <div class="mt-4">
-                                <a href="#" class="text-[#1e6031] hover:text-[#1e6031] font-medium">View Details →</a>
+                                <a href="{{ route('vehicles.index') }}" class="text-[#1e6031] hover:text-[#1e6031] font-medium">View Details →</a>
                             </div>
                         </div>
 
