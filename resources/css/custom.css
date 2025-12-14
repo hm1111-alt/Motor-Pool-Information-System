@@ -4,7 +4,7 @@
 :root {
   --clsu-green: #1e6031;
   --clsu-yellow: #ffd700;
-  --clsu-dark-green: #1e6031;
+  --clsu-dark-green: #164f2a;
   --clsu-gold: #e0a70d;
 }
 
@@ -143,4 +143,21 @@
 
 .logo-animation:hover {
   transform: scale(1.05);
+}
+
+/* Dashboard enhancements */
+.dashboard-card {
+  transition: all 0.2s ease-in-out;
+}
+
+.dashboard-card:hover {
+  transform: translateY(-2px);
+}
+
+.stat-card {
+  transition: all 0.2s ease-in-out;
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
 }

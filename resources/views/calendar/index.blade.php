@@ -1,102 +1,114 @@
 @extends('layouts.employee')
 
 @section('header')
-    <h2 class="font-semibold text-lg text-gray-800 leading-tight">
+    <h2 class="font-semibold text-xl text-gray-800 leading-tight">
         {{ __('Calendar') }}
     </h2>
 @endsection
 
 @section('content')
-    <div class="py-2">
-        <div class="max-w-lg mx-auto px-3 sm:px-4">
-            <div class="bg-white overflow-hidden shadow rounded border border-gray-100">
-                <div class="p-2">
+    <div class="py-6">
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="bg-white overflow-hidden shadow-sm rounded-lg">
+                <div class="p-6">
                     <!-- Page Title -->
-                    <div class="mb-2 pb-1.5 border-b border-gray-200">
-                        <h1 class="text-base font-bold text-gray-800">Calendar</h1>
-                        <p class="text-gray-600 text-xs mt-0.5">View vehicle schedules</p>
+                    <div class="mb-6 pb-4 border-b border-gray-200">
+                        <h1 class="text-2xl font-bold text-gray-800">Vehicle Schedule Calendar</h1>
+                        <p class="text-gray-600 mt-1">View upcoming vehicle assignments and travel schedules</p>
                     </div>
                     
-                    <!-- Month and Year Selection -->
-                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-2 gap-2 bg-green-50 p-2 rounded-lg">
-                        <div class="flex items-center gap-1">
-                            <svg class="h-3 w-3 text-[#1e6031]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                            </svg>
-                            <h2 class="text-sm font-semibold text-gray-800">Calendar</h2>
+                    <!-- Controls Section -->
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4 bg-gradient-to-r from-green-50 to-green-100 p-4 rounded-lg border border-green-200">
+                        <div class="flex items-center gap-2">
+                            <div class="rounded-lg bg-[#1e6031] p-2">
+                                <svg class="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                </svg>
+                            </div>
+                            <h2 class="text-lg font-semibold text-gray-800">Calendar Navigation</h2>
                         </div>
                         
-                        <div class="flex flex-col sm:flex-row items-start sm:items-center gap-1 w-full md:w-auto">
-                            <div class="flex flex-col sm:flex-row items-start sm:items-center gap-1 w-full">
-                                <label for="month-select" class="text-gray-700 font-medium text-xs whitespace-nowrap">Month:</label>
-                                <div class="relative w-full sm:w-auto min-w-[80px]">
-                                    <select id="month-select" class="border border-green-200 rounded pl-1.5 pr-4 py-0.5 text-gray-700 focus:outline-none focus:ring-1 focus:ring-[#1e6031] focus:border-transparent bg-white shadow-sm w-full transition duration-200 text-xs">
-                                        <option value="0">Jan</option>
-                                        <option value="1">Feb</option>
-                                        <option value="2">Mar</option>
-                                        <option value="3">Apr</option>
-                                        <option value="4">May</option>
-                                        <option value="5">Jun</option>
-                                        <option value="6">Jul</option>
-                                        <option value="7">Aug</option>
-                                        <option value="8">Sep</option>
-                                        <option value="9">Oct</option>
-                                        <option value="10">Nov</option>
-                                        <option value="11">Dec</option>
-                                    </select>
+                        <div class="flex flex-col sm:flex-row items-start sm:items-center gap-3 w-full md:w-auto">
+                            <div class="flex flex-col sm:flex-row items-start sm:items-center gap-3 w-full">
+                                <div class="flex items-center gap-2">
+                                    <label for="month-select" class="text-gray-700 font-medium text-sm whitespace-nowrap">Month:</label>
+                                    <div class="relative">
+                                        <select id="month-select" class="border border-green-300 rounded-lg pl-3 pr-8 py-2 text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#1e6031] focus:border-transparent bg-white shadow-sm w-full transition duration-200 text-sm">
+                                            <option value="0">January</option>
+                                            <option value="1">February</option>
+                                            <option value="2">March</option>
+                                            <option value="3">April</option>
+                                            <option value="4">May</option>
+                                            <option value="5">June</option>
+                                            <option value="6">July</option>
+                                            <option value="7">August</option>
+                                            <option value="8">September</option>
+                                            <option value="9">October</option>
+                                            <option value="10">November</option>
+                                            <option value="11">December</option>
+                                        </select>
+                                    </div>
                                 </div>
-                            </div>
-                            
-                            <div class="flex flex-col sm:flex-row items-start sm:items-center gap-1 w-full">
-                                <label for="year-select" class="text-gray-700 font-medium text-xs whitespace-nowrap">Year:</label>
-                                <div class="relative w-full sm:w-auto min-w-[70px]">
-                                    <select id="year-select" class="border border-green-200 rounded pl-1.5 pr-4 py-0.5 text-gray-700 focus:outline-none focus:ring-1 focus:ring-[#1e6031] focus:border-transparent bg-white shadow-sm w-full transition duration-200 text-xs">
-                                        <!-- Options will be populated by JavaScript -->
-                                    </select>
+                                
+                                <div class="flex items-center gap-2">
+                                    <label for="year-select" class="text-gray-700 font-medium text-sm whitespace-nowrap">Year:</label>
+                                    <div class="relative">
+                                        <select id="year-select" class="border border-green-300 rounded-lg pl-3 pr-8 py-2 text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#1e6031] focus:border-transparent bg-white shadow-sm w-full transition duration-200 text-sm">
+                                            <!-- Options will be populated by JavaScript -->
+                                        </select>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
                     
                     <!-- FullCalendar Container -->
-                    <div id='calendar' class="bg-white rounded-lg shadow-sm border border-gray-100 p-0.5 overflow-hidden"></div>
+                    <div id='calendar' class="bg-white rounded-xl shadow-sm border border-gray-200 p-2"></div>
                 </div>
             </div>
         </div>
     </div>
     
     <!-- Modal for showing vehicle schedule details -->
-    <div id="event-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50 p-1.5 overflow-y-auto">
-        <div class="bg-white rounded-lg p-2 max-w-xs w-full my-4 shadow-xl transition duration-300 transform scale-95 opacity-0 modal-show">
-            <div class="flex justify-between items-center mb-2 pb-1 border-b border-gray-200">
-                <h3 id="modal-title" class="text-sm font-semibold text-gray-800"></h3>
-                <button id="close-modal" class="text-gray-500 hover:text-gray-700 rounded-full p-0.5 hover:bg-gray-100 transition duration-200">
-                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+    <div id="event-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50 p-4 overflow-y-auto">
+        <div class="bg-white rounded-xl p-6 max-w-md w-full my-8 shadow-xl transition duration-300 transform scale-95 opacity-0 modal-show">
+            <div class="flex justify-between items-center mb-4 pb-2 border-b border-gray-200">
+                <h3 id="modal-title" class="text-lg font-semibold text-gray-800"></h3>
+                <button id="close-modal" class="text-gray-500 hover:text-gray-700 rounded-full p-1 hover:bg-gray-100 transition duration-200">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                     </svg>
                 </button>
             </div>
-            <div id="modal-content" class="max-h-32 overflow-y-auto py-0.5">
-                <div class="flex items-start mb-1">
-                    <svg class="h-3 w-3 text-[#1e6031] mr-1 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <div id="modal-content" class="max-h-60 overflow-y-auto py-2">
+                <div class="flex items-start mb-3">
+                    <svg class="h-5 w-5 text-[#1e6031] mr-2 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                     </svg>
-                    <p id="modal-destination" class="text-gray-700 font-medium text-xs"></p>
+                    <div>
+                        <p class="text-gray-700 font-medium text-sm">Destination</p>
+                        <p id="modal-destination" class="text-gray-900 font-medium"></p>
+                    </div>
                 </div>
-                <div class="flex items-start mb-1.5">
-                    <svg class="h-3 w-3 text-[#1e6031] mr-1 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <div class="flex items-start mb-3">
+                    <svg class="h-5 w-5 text-[#1e6031] mr-2 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                     </svg>
-                    <p id="modal-date" class="text-gray-700 text-xs"></p>
+                    <div>
+                        <p class="text-gray-700 font-medium text-sm">Date</p>
+                        <p id="modal-date" class="text-gray-900"></p>
+                    </div>
                 </div>
-                <div class="mb-1.5">
-                    <h4 class="text-xs font-semibold text-gray-700 mb-0.5">Details:</h4>
-                    <div id="modal-description" class="text-gray-600 text-xs"></div>
+                <div class="mb-4">
+                    <h4 class="text-sm font-semibold text-gray-700 mb-2">Details</h4>
+                    <div id="modal-description" class="text-gray-600 text-sm bg-gray-50 p-3 rounded-lg"></div>
                 </div>
             </div>
-            <div class="mt-2 flex justify-end">
-                <button id="modal-close-btn" class="px-2 py-0.5 bg-[#1e6031] hover:bg-[#164f2a] text-white rounded text-xs focus:outline-none focus:ring-1 focus:ring-[#1e6031] focus:ring-offset-1 transition duration-300 shadow-sm hover:shadow">Close</button>
+            <div class="mt-4 flex justify-end">
+                <button id="modal-close-btn" class="px-4 py-2 bg-[#1e6031] hover:bg-[#164f2a] text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1e6031] focus:ring-offset-2 transition duration-300 shadow-sm hover:shadow">
+                    Close
+                </button>
             </div>
         </div>
     </div>
@@ -124,81 +136,51 @@
         }
         
         .fc .fc-toolbar-title {
-            font-size: 0.75rem;
+            font-size: 1rem;
             font-weight: 600;
             color: #1e6031;
         }
         
-        @media (min-width: 768px) {
-            .fc .fc-toolbar-title {
-                font-size: 0.875rem;
-            }
-        }
-        
         .fc .fc-button {
-            padding: 0.2rem 0.4rem;
-            border-radius: 0.25rem;
+            padding: 0.4rem 0.8rem;
+            border-radius: 0.5rem;
             font-weight: 500;
             transition: all 0.2s;
-            font-size: 0.65rem;
+            font-size: 0.875rem;
             border: 1px solid var(--fc-button-border-color);
         }
         
-        @media (min-width: 768px) {
-            .fc .fc-button {
-                font-size: 0.7rem;
-            }
-        }
-        
         .fc .fc-event {
-            border-radius: 0.25rem;
-            padding: 1px 2px;
-            font-size: 0.55rem;
-            line-height: 1.2;
+            border-radius: 0.375rem;
+            padding: 2px 4px;
+            font-size: 0.75rem;
+            line-height: 1.25;
             font-weight: 500;
         }
         
-        @media (min-width: 768px) {
-            .fc .fc-event {
-                font-size: 0.6rem;
-            }
-        }
-        
         .fc .fc-daygrid-event {
-            margin-bottom: 1px;
+            margin-bottom: 2px;
         }
         
         .fc .fc-daygrid-day-frame {
-            min-height: 25px;
-        }
-        
-        @media (min-width: 768px) {
-            .fc .fc-daygrid-day-frame {
-                min-height: 35px;
-            }
+            min-height: 30px;
         }
         
         .fc .fc-col-header-cell {
-            padding: 0.25rem 0;
+            padding: 0.5rem 0;
             background-color: #f0f9f2;
         }
         
         .fc .fc-col-header-cell-cushion {
             font-weight: 600;
             color: #1e6031;
-            font-size: 0.65rem;
-        }
-        
-        @media (min-width: 768px) {
-            .fc .fc-col-header-cell-cushion {
-                font-size: 0.7rem;
-            }
+            font-size: 0.875rem;
         }
         
         .fc .fc-daygrid-day-number {
             font-weight: 500;
-            font-size: 0.65rem;
-            padding: 2px;
+            font-size: 0.875rem;
+            padding: 4px;
             color: #334155;
         }
         
@@ -210,31 +192,19 @@
             background-color: #1e6031;
             color: white;
             border-radius: 9999px;
-            width: 18px;
-            height: 18px;
+            width: 24px;
+            height: 24px;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin: 1px;
-        }
-        
-        @media (min-width: 768px) {
-            .fc .fc-daygrid-day-number {
-                font-size: 0.7rem;
-            }
+            margin: 2px;
         }
         
         /* Responsive adjustments */
         .fc .fc-toolbar.fc-header-toolbar {
-            flex-direction: column;
-            gap: 0.2rem;
-        }
-        
-        @media (min-width: 768px) {
-            .fc .fc-toolbar.fc-header-toolbar {
-                flex-direction: row;
-                gap: 0.4rem;
-            }
+            flex-direction: row;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
         }
         
         /* Modal transition styles */
@@ -254,52 +224,23 @@
             appearance: none;
             background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231e6031' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpath d='M6 9l6 6 6-6'/%3e%3c/svg%3e");
             background-repeat: no-repeat;
-            background-position: right 0.25rem center;
-            background-size: 0.6rem;
+            background-position: right 0.75rem center;
+            background-size: 1rem;
         }
         
-        /* Responsive adjustments for small screens */
-        @media (max-width: 480px) {
-            .fc .fc-toolbar-title {
-                font-size: 0.7rem;
-            }
-            
-            .fc .fc-button {
-                padding: 0.15rem 0.3rem;
-                font-size: 0.55rem;
-            }
-            
-            .fc .fc-daygrid-day-number {
-                font-size: 0.55rem;
-            }
-            
-            .fc .fc-col-header-cell-cushion {
-                font-size: 0.55rem;
-            }
-            
-            .fc .fc-event {
-                font-size: 0.45rem;
-                padding: 0.5px 0.5px;
-            }
-        }
-        
-        /* Desktop-specific adjustments to make calendar compact */
+        /* Desktop-specific adjustments */
         @media (min-width: 1024px) {
             .fc {
                 max-width: 100%;
             }
             
-            .fc .fc-toolbar-title {
-                font-size: 0.75rem;
-            }
-            
             .fc .fc-daygrid-day-frame {
-                min-height: 30px;
+                min-height: 40px;
             }
             
             .fc .fc-event {
-                font-size: 0.55rem;
-                padding: 0.5px 0.5px;
+                font-size: 0.8rem;
+                padding: 2px 4px;
             }
         }
     </style>
@@ -329,9 +270,9 @@
             
             var calendar = new FullCalendar.Calendar(calendarEl, {
                 headerToolbar: {
-                    left: 'prev,next',
+                    left: 'prev,next today',
                     center: 'title',
-                    right: ''
+                    right: 'dayGridMonth'
                 },
                 initialView: 'dayGridMonth',
                 events: '{{ route('vehicle-calendar.events') }}',
@@ -339,8 +280,13 @@
                     // Show event details in modal
                     document.getElementById('modal-title').textContent = info.event.title;
                     document.getElementById('modal-destination').textContent = info.event.extendedProps.destination;
-                    document.getElementById('modal-date').textContent = info.event.start.toLocaleDateString();
-                    document.getElementById('modal-description').textContent = info.event.extendedProps.description || 'No description provided.';
+                    document.getElementById('modal-date').textContent = info.event.start.toLocaleDateString('en-US', { 
+                        weekday: 'long', 
+                        year: 'numeric', 
+                        month: 'long', 
+                        day: 'numeric' 
+                    });
+                    document.getElementById('modal-description').textContent = info.event.extendedProps.description || 'No additional details provided.';
                     modal.classList.remove('hidden');
                     modal.classList.add('flex');
                     
@@ -352,7 +298,7 @@
                 eventDisplay: 'block',
                 themeSystem: 'bootstrap',
                 height: 'auto',
-                aspectRatio: 3.5, // Make calendar even taller and narrower
+                aspectRatio: 2.2,
                 windowResize: function(arg) {
                     // Adjust calendar view based on screen size
                     if (arg.view.el.offsetWidth < 768) {

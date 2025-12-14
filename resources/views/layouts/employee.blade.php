@@ -75,6 +75,122 @@
                             <span :class="sidebarOpen ? 'block' : 'hidden'" class="font-medium truncate">Calendar</span>
                         </a>
                         
+                        <!-- My Travel Requests (Regular Employees) -->
+                        @if(auth()->user()->employee && !auth()->user()->employee->is_president && !auth()->user()->employee->is_vp && !auth()->user()->employee->is_head && !auth()->user()->employee->is_divisionhead)
+                            <a href="{{ route('travel-orders.index') }}" class="flex items-center px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors duration-200 mb-1">
+                                <div class="rounded-lg bg-[#1e6031] p-2 mr-3 flex-shrink-0">
+                                    <svg class="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                                    </svg>
+                                </div>
+                                <span :class="sidebarOpen ? 'block' : 'hidden'" class="font-medium truncate">My Travel Requests</span>
+                            </a>
+                            
+                            <!-- Create Travel Order -->
+                            <a href="{{ route('travel-orders.create') }}" class="flex items-center px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors duration-200 mb-1">
+                                <div class="rounded-lg bg-[#1e6031] p-2 mr-3 flex-shrink-0">
+                                    <svg class="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                                    </svg>
+                                </div>
+                                <span :class="sidebarOpen ? 'block' : 'hidden'" class="font-medium truncate">Create Travel Order</span>
+                            </a>
+                            
+                            <!-- Travel History -->
+                            <a href="{{ route('travel-orders.index', ['tab' => 'approved']) }}" class="flex items-center px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors duration-200 mb-1">
+                                <div class="rounded-lg bg-[#1e6031] p-2 mr-3 flex-shrink-0">
+                                    <svg class="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                </div>
+                                <span :class="sidebarOpen ? 'block' : 'hidden'" class="font-medium truncate">Travel History</span>
+                            </a>
+                        @endif
+                        
+                        <!-- Division Head Travel Orders -->
+                        @if(auth()->user()->employee && auth()->user()->employee->is_divisionhead)
+                            <a href="{{ route('divisionhead.travel-orders.index') }}" class="flex items-center px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors duration-200 mb-1">
+                                <div class="rounded-lg bg-[#1e6031] p-2 mr-3 flex-shrink-0">
+                                    <svg class="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                                    </svg>
+                                </div>
+                                <span :class="sidebarOpen ? 'block' : 'hidden'" class="font-medium truncate">My Travel Requests</span>
+                            </a>
+                            
+                            <!-- Create Travel Order -->
+                            <a href="{{ route('divisionhead.travel-orders.create') }}" class="flex items-center px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors duration-200 mb-1">
+                                <div class="rounded-lg bg-[#1e6031] p-2 mr-3 flex-shrink-0">
+                                    <svg class="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                                    </svg>
+                                </div>
+                                <span :class="sidebarOpen ? 'block' : 'hidden'" class="font-medium truncate">Create Travel Order</span>
+                            </a>
+                            
+                            <!-- Travel History -->
+                            <a href="{{ route('divisionhead.travel-orders.index', ['tab' => 'approved']) }}" class="flex items-center px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors duration-200 mb-1">
+                                <div class="rounded-lg bg-[#1e6031] p-2 mr-3 flex-shrink-0">
+                                    <svg class="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                </div>
+                                <span :class="sidebarOpen ? 'block' : 'hidden'" class="font-medium truncate">Travel History</span>
+                            </a>
+                            
+                            <!-- Travel Order Approvals -->
+                            <a href="{{ route('travel-orders.approvals.divisionhead') }}" class="flex items-center px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors duration-200 mb-1">
+                                <div class="rounded-lg bg-[#1e6031] p-2 mr-3 flex-shrink-0">
+                                    <svg class="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                </div>
+                                <span :class="sidebarOpen ? 'block' : 'hidden'" class="font-medium truncate">Travel Order Approvals</span>
+                            </a>
+                        @endif
+                        
+                        <!-- Head Travel Orders -->
+                        @if(auth()->user()->employee && auth()->user()->employee->is_head && !auth()->user()->employee->is_divisionhead && !auth()->user()->employee->is_vp && !auth()->user()->employee->is_president)
+                            <a href="{{ route('head.travel-orders.index') }}" class="flex items-center px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors duration-200 mb-1">
+                                <div class="rounded-lg bg-[#1e6031] p-2 mr-3 flex-shrink-0">
+                                    <svg class="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                                    </svg>
+                                </div>
+                                <span :class="sidebarOpen ? 'block' : 'hidden'" class="font-medium truncate">My Travel Requests</span>
+                            </a>
+                            
+                            <!-- Create Travel Order -->
+                            <a href="{{ route('head.travel-orders.create') }}" class="flex items-center px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors duration-200 mb-1">
+                                <div class="rounded-lg bg-[#1e6031] p-2 mr-3 flex-shrink-0">
+                                    <svg class="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                                    </svg>
+                                </div>
+                                <span :class="sidebarOpen ? 'block' : 'hidden'" class="font-medium truncate">Create Travel Order</span>
+                            </a>
+                            
+                            <!-- Travel History -->
+                            <a href="{{ route('head.travel-orders.index', ['tab' => 'approved']) }}" class="flex items-center px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors duration-200 mb-1">
+                                <div class="rounded-lg bg-[#1e6031] p-2 mr-3 flex-shrink-0">
+                                    <svg class="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                </div>
+                                <span :class="sidebarOpen ? 'block' : 'hidden'" class="font-medium truncate">Travel History</span>
+                            </a>
+                            
+                            <!-- Travel Order Approvals -->
+                            <a href="{{ route('travel-orders.approvals.head') }}" class="flex items-center px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors duration-200 mb-1">
+                                <div class="rounded-lg bg-[#1e6031] p-2 mr-3 flex-shrink-0">
+                                    <svg class="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                </div>
+                                <span :class="sidebarOpen ? 'block' : 'hidden'" class="font-medium truncate">Travel Order Approvals</span>
+                            </a>
+                        @endif
+                        
                         <!-- President's Travel Orders -->
                         @if(auth()->user()->employee && auth()->user()->employee->is_president)
                             <a href="{{ route('president.travel-orders.index') }}" class="flex items-center px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors duration-200 mb-1">
@@ -85,9 +201,79 @@
                                 </div>
                                 <span :class="sidebarOpen ? 'block' : 'hidden'" class="font-medium truncate">My Travel Requests</span>
                             </a>
+                            
+                            <!-- Create Travel Order -->
+                            <a href="{{ route('president.travel-orders.create') }}" class="flex items-center px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors duration-200 mb-1">
+                                <div class="rounded-lg bg-[#1e6031] p-2 mr-3 flex-shrink-0">
+                                    <svg class="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                                    </svg>
+                                </div>
+                                <span :class="sidebarOpen ? 'block' : 'hidden'" class="font-medium truncate">Create Travel Order</span>
+                            </a>
+                            
+                            <!-- Travel History -->
+                            <a href="{{ route('president.travel-orders.index', ['tab' => 'approved']) }}" class="flex items-center px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors duration-200 mb-1">
+                                <div class="rounded-lg bg-[#1e6031] p-2 mr-3 flex-shrink-0">
+                                    <svg class="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                </div>
+                                <span :class="sidebarOpen ? 'block' : 'hidden'" class="font-medium truncate">Travel History</span>
+                            </a>
+                            
+                            <!-- Travel Order Approvals -->
+                            <a href="{{ route('travel-orders.approvals.president') }}" class="flex items-center px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors duration-200 mb-1">
+                                <div class="rounded-lg bg-[#1e6031] p-2 mr-3 flex-shrink-0">
+                                    <svg class="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                </div>
+                                <span :class="sidebarOpen ? 'block' : 'hidden'" class="font-medium truncate">Travel Order Approvals</span>
+                            </a>
                         @endif
                         
-
+                        <!-- VP Travel Orders -->
+                        @if(auth()->user()->employee && auth()->user()->employee->is_vp)
+                            <a href="{{ route('vp.travel-orders.index') }}" class="flex items-center px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors duration-200 mb-1">
+                                <div class="rounded-lg bg-[#1e6031] p-2 mr-3 flex-shrink-0">
+                                    <svg class="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                                    </svg>
+                                </div>
+                                <span :class="sidebarOpen ? 'block' : 'hidden'" class="font-medium truncate">My Travel Requests</span>
+                            </a>
+                            
+                            <!-- Create Travel Order -->
+                            <a href="{{ route('vp.travel-orders.create') }}" class="flex items-center px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors duration-200 mb-1">
+                                <div class="rounded-lg bg-[#1e6031] p-2 mr-3 flex-shrink-0">
+                                    <svg class="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                                    </svg>
+                                </div>
+                                <span :class="sidebarOpen ? 'block' : 'hidden'" class="font-medium truncate">Create Travel Order</span>
+                            </a>
+                            
+                            <!-- Travel History -->
+                            <a href="{{ route('vp.travel-orders.index', ['tab' => 'approved']) }}" class="flex items-center px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors duration-200 mb-1">
+                                <div class="rounded-lg bg-[#1e6031] p-2 mr-3 flex-shrink-0">
+                                    <svg class="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                </div>
+                                <span :class="sidebarOpen ? 'block' : 'hidden'" class="font-medium truncate">Travel History</span>
+                            </a>
+                            
+                            <!-- Travel Order Approvals -->
+                            <a href="{{ route('travel-orders.approvals.vp') }}" class="flex items-center px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors duration-200 mb-1">
+                                <div class="rounded-lg bg-[#1e6031] p-2 mr-3 flex-shrink-0">
+                                    <svg class="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                </div>
+                                <span :class="sidebarOpen ? 'block' : 'hidden'" class="font-medium truncate">Travel Order Approvals</span>
+                            </a>
+                        @endif
 
                     </nav>
                     <!-- Logout Section -->
