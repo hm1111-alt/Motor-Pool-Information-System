@@ -6,44 +6,42 @@ use Illuminate\Http\Request;
 use Illuminate\View\View;
 use Illuminate\Support\Facades\Auth;
 use App\Models\TravelOrder;
+use App\Models\Employee;
 
 class MotorpoolAdminController extends Controller
 {
     /**
-     * Display a listing of approved travel orders.
+     * Display approved travel orders for the motorpool.
      */
-    public function approvedTravelOrders(): View
+    public function approvedTravelOrders(Request $request): View
     {
-        // Get all approved travel orders (either VP approved for regular employees/heads, President approved for division heads, President approved for VPs, or President self-created)
-        $travelOrders = TravelOrder::where(function ($query) {
-                // Regular employees and heads approved by VP
-                $query->whereHas('employee', function ($subQuery) {
-                    $subQuery->where('is_divisionhead', 0)
-                              ->where('is_vp', 0)
-                              ->where('is_president', 0)
-                              ->orWhereNull('is_divisionhead')
-                              ->orWhereNull('is_vp')
-                              ->orWhereNull('is_president');
-                })->where('vp_approved', true)
-                // Division heads approved by President
-                ->orWhereHas('employee', function ($subQuery) {
-                    $subQuery->where('is_divisionhead', 1)
-                              ->where('is_vp', 0)
-                              ->where('is_president', 0);
-                })->where('president_approved', true)
-                // VPs approved by President
-                ->orWhereHas('employee', function ($subQuery) {
-                    $subQuery->where('is_vp', 1)
-                              ->where('is_president', 0);
-                })->where('president_approved', true)
-                // Presidents self-created (automatically approved)
-                ->orWhereHas('employee', function ($subQuery) {
-                    $subQuery->where('is_president', 1);
-                })->where('president_approved', true);
-            })
-            ->orderBy('updated_at', 'desc')
-            ->get();
+        // Get search term if provided
+        $search = $request->get('search', '');
         
-        return view('travel-orders.approvals.motorpool-index', compact('travelOrders'));
+        // Get travel orders that are approved and ready for motorpool processing
+        $query = TravelOrder::where('status', 'approved')
+            ->with('employee'); // Eager load employee relationship
+        
+        // Apply search filter if provided
+        if (!empty($search)) {
+            $query->where(function($q) use ($search) {
+                $q->where('destination', 'LIKE', "%{$search}%")
+                  ->orWhere('purpose', 'LIKE', "%{$search}%")
+                  ->orWhereHas('employee', function($q) use ($search) {
+                      $q->where('first_name', 'LIKE', "%{$search}%")
+                        ->orWhere('last_name', 'LIKE', "%{$search}%");
+                  });
+            });
+        }
+        
+        // Check if this is an AJAX request for partial updates
+        if ($request->ajax() || $request->get('ajax')) {
+            $travelOrders = $query->orderBy('created_at', 'desc')->get();
+            return view('travel-orders.approvals.partials.motorpool-table-rows', compact('travelOrders'))->render();
+        }
+        
+        $travelOrders = $query->orderBy('created_at', 'desc')->paginate(10);
+        
+        return view('travel-orders.approvals.motorpool-index', compact('travelOrders', 'search'));
     }
 }

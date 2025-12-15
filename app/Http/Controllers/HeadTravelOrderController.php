@@ -22,6 +22,9 @@ class HeadTravelOrderController extends Controller
         // Get the tab parameter, default to 'pending'
         $tab = $request->get('tab', 'pending');
         
+        // Get search term if provided
+        $search = $request->get('search', '');
+        
         // Build the query based on the selected tab
         $query = TravelOrder::whereHas('employee', function ($query) use ($employee) {
                 $query->where('unit_id', $employee->unit_id)
@@ -43,6 +46,19 @@ class HeadTravelOrderController extends Controller
                       });
             });
         
+        // Apply search filter if provided
+        if (!empty($search)) {
+            $query->where(function($q) use ($search) {
+                $q->where('destination', 'LIKE', "%{$search}%")
+                  ->orWhere('purpose', 'LIKE', "%{$search}%")
+                  ->orWhere('remarks', 'LIKE', "%{$search}%")
+                  ->orWhereHas('employee', function($q) use ($search) {
+                      $q->where('first_name', 'LIKE', "%{$search}%")
+                        ->orWhere('last_name', 'LIKE', "%{$search}%");
+                  });
+            });
+        }
+        
         switch ($tab) {
             case 'approved':
                 $query->where('head_approved', true);
@@ -56,9 +72,16 @@ class HeadTravelOrderController extends Controller
                 break;
         }
         
-        $travelOrders = $query->orderBy('created_at', 'desc')->get();
+        // Check if this is an AJAX request for partial updates
+        if ($request->ajax() || $request->get('ajax')) {
+            $travelOrders = $query->orderBy('created_at', 'desc')->get();
+            return view('travel-orders.approvals.partials.table-rows', compact('travelOrders', 'tab'))->render();
+        }
         
-        return view('travel-orders.approvals.head-index', compact('travelOrders', 'tab'));
+        // Paginate results
+        $travelOrders = $query->orderBy('created_at', 'desc')->paginate(10);
+        
+        return view('travel-orders.approvals.head-index', compact('travelOrders', 'tab', 'search'));
     }
 
     /**

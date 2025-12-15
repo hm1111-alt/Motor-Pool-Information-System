@@ -12,7 +12,7 @@ use App\Models\Employee;
 class DivisionHeadTravelOrderController extends Controller
 {
     /**
-     * Display a listing of travel orders for division head approval.
+     * Display a listing of travel orders for division head approval with tab support.
      */
     public function index(Request $request): View
     {
@@ -22,29 +22,68 @@ class DivisionHeadTravelOrderController extends Controller
         // Get the tab parameter, default to 'pending'
         $tab = $request->get('tab', 'pending');
         
-        // Build the query for heads' travel orders within this division
+        // Get search term if provided
+        $search = $request->get('search', '');
+        
+        // Build the query based on the selected tab
         $query = TravelOrder::whereHas('employee', function ($query) use ($employee) {
                 $query->where('division_id', $employee->division_id)
-                      ->where('is_head', 1); // Only heads' travel orders
+                      ->where('is_head', 1) // Only heads
+                      ->where(function ($query) {
+                          $query->where('is_divisionhead', 0)
+                                ->orWhereNull('is_divisionhead');
+                      })
+                      ->where(function ($query) {
+                          $query->where('is_vp', 0)
+                                ->orWhereNull('is_vp');
+                      })
+                      ->where(function ($query) {
+                          $query->where('is_president', 0)
+                                ->orWhereNull('is_president');
+                      });
             });
         
-        // Apply filters based on tab
+        // Apply search filter if provided
+        if (!empty($search)) {
+            $query->where(function($q) use ($search) {
+                $q->where('destination', 'LIKE', "%{$search}%")
+                  ->orWhere('purpose', 'LIKE', "%{$search}%")
+                  ->orWhere('remarks', 'LIKE', "%{$search}%")
+                  ->orWhereHas('employee', function($q) use ($search) {
+                      $q->where('first_name', 'LIKE', "%{$search}%")
+                        ->orWhere('last_name', 'LIKE', "%{$search}%");
+                  });
+            });
+        }
+        
         switch ($tab) {
             case 'approved':
-                $query->where('divisionhead_approved', true);
+                $query->where('head_approved', true)
+                      ->where('vp_approved', true);
                 break;
             case 'cancelled':
-                $query->where('divisionhead_approved', false);
+                $query->where(function($q) {
+                    $q->where('head_approved', false)
+                      ->orWhere('vp_approved', false);
+                });
                 break;
             case 'pending':
             default:
-                $query->where('divisionhead_approved', null);
+                $query->where('head_approved', true)
+                      ->where('vp_approved', null);
                 break;
         }
         
-        $travelOrders = $query->orderBy('created_at', 'desc')->get();
+        // Check if this is an AJAX request for partial updates
+        if ($request->ajax() || $request->get('ajax')) {
+            $travelOrders = $query->orderBy('created_at', 'desc')->get();
+            return view('travel-orders.approvals.partials.table-rows', compact('travelOrders', 'tab'))->render();
+        }
         
-        return view('travel-orders.approvals.divisionhead-index', compact('travelOrders', 'tab'));
+        // Paginate results
+        $travelOrders = $query->orderBy('created_at', 'desc')->paginate(10);
+        
+        return view('travel-orders.approvals.divisionhead-index', compact('travelOrders', 'tab', 'search'));
     }
 
     /**
@@ -65,21 +104,21 @@ class DivisionHeadTravelOrderController extends Controller
             abort(403);
         }
         
-        // Ensure the division head cannot approve their own travel order
-        if ($travelOrder->employee_id === $employee->id) {
+        // Ensure the head has already approved this travel order
+        if (!$travelOrder->head_approved) {
             abort(403);
         }
         
-        // Ensure the travel order hasn't already been approved or rejected
-        if (!is_null($travelOrder->divisionhead_approved)) {
+        // Ensure the travel order hasn't already been approved by division head
+        if (!is_null($travelOrder->vp_approved)) {
             abort(403);
         }
         
         // Approve the travel order
         $travelOrder->update([
-            'divisionhead_approved' => true,
-            'divisionhead_approved_at' => now(),
-            'status' => 'pending', // Still pending VP approval
+            'vp_approved' => true,
+            'vp_approved_at' => now(),
+            'status' => 'pending', // Still pending president approval
         ]);
 
         return redirect()->back()
@@ -104,20 +143,20 @@ class DivisionHeadTravelOrderController extends Controller
             abort(403);
         }
         
-        // Ensure the division head cannot reject their own travel order
-        if ($travelOrder->employee_id === $employee->id) {
+        // Ensure the head has already approved this travel order
+        if (!$travelOrder->head_approved) {
             abort(403);
         }
         
-        // Ensure the travel order hasn't already been approved or rejected
-        if (!is_null($travelOrder->divisionhead_approved)) {
+        // Ensure the travel order hasn't already been approved by division head
+        if (!is_null($travelOrder->vp_approved)) {
             abort(403);
         }
         
         // Reject the travel order
         $travelOrder->update([
-            'divisionhead_approved' => false,
-            'divisionhead_approved_at' => now(),
+            'vp_approved' => false,
+            'vp_approved_at' => now(),
             'status' => 'cancelled',
         ]);
 

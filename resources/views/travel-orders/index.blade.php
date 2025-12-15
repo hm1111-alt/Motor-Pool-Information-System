@@ -27,19 +27,24 @@
                         </div>
                     </div>
                     
+
+                    
                     <!-- Tabs -->
                     <div class="mb-6 border-b border-gray-200">
                         <nav class="flex space-x-6" aria-label="Tabs">
                             <a href="{{ route('travel-orders.index', ['tab' => 'pending']) }}" 
-                               class="{{ (isset($tab) && $tab == 'pending') || !isset($tab) ? 'border-[#1e6031] text-[#1e6031] font-semibold' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' }} whitespace-nowrap py-3 px-1 border-b-2 text-sm transition-colors duration-200">
+                               class="{{ (isset($tab) && $tab == 'pending') || !isset($tab) ? 'border-[#1e6031] text-[#1e6031] font-semibold' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' }} whitespace-nowrap py-3 px-1 border-b-2 text-sm transition-colors duration-200"
+                               data-tab-switch="pending">
                                 Pending
                             </a>
                             <a href="{{ route('travel-orders.index', ['tab' => 'approved']) }}" 
-                               class="{{ isset($tab) && $tab == 'approved' ? 'border-[#1e6031] text-[#1e6031] font-semibold' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' }} whitespace-nowrap py-3 px-1 border-b-2 text-sm transition-colors duration-200">
+                               class="{{ isset($tab) && $tab == 'approved' ? 'border-[#1e6031] text-[#1e6031] font-semibold' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' }} whitespace-nowrap py-3 px-1 border-b-2 text-sm transition-colors duration-200"
+                               data-tab-switch="approved">
                                 Approved
                             </a>
                             <a href="{{ route('travel-orders.index', ['tab' => 'cancelled']) }}" 
-                               class="{{ isset($tab) && $tab == 'cancelled' ? 'border-[#1e6031] text-[#1e6031] font-semibold' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' }} whitespace-nowrap py-3 px-1 border-b-2 text-sm transition-colors duration-200">
+                               class="{{ isset($tab) && $tab == 'cancelled' ? 'border-[#1e6031] text-[#1e6031] font-semibold' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' }} whitespace-nowrap py-3 px-1 border-b-2 text-sm transition-colors duration-200"
+                               data-tab-switch="cancelled">
                                 Cancelled
                             </a>
                         </nav>
@@ -62,10 +67,37 @@
                         </div>
                     @endif
                     
+                    <!-- Search Bar -->
+                    <div class="mb-4">
+                        <div class="relative rounded-md shadow-sm">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <svg class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                </svg>
+                            </div>
+                            <input type="text" 
+                                   id="search-input" 
+                                   class="table-search-input focus:ring-[#1e6031] focus:border-[#1e6031] block w-full pl-10 pr-12 py-2 sm:text-sm border-gray-300 rounded-lg"
+                                   placeholder="Search destination or purpose..."
+                                   data-table-id="travel-orders-table"
+                                   data-url="{{ route('travel-orders.index') }}"
+                                   value="{{ $search ?? '' }}">
+                            <div class="absolute inset-y-0 right-0 flex items-center pr-3">
+                                @if(!empty($search))
+                                    <button type="button" class="clear-search text-gray-400 hover:text-gray-600">
+                                        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                        </svg>
+                                    </button>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+                    
                     <!-- Travel Orders Table -->
                     <div class="overflow-hidden shadow ring-1 ring-black ring-opacity-5 rounded-lg">
                         <div class="overflow-x-auto">
-                            <table class="min-w-full divide-y divide-gray-300">
+                            <table id="travel-orders-table" class="min-w-full divide-y divide-gray-300">
                                 <thead class="bg-gray-50">
                                     <tr>
                                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Destination</th>
@@ -80,86 +112,23 @@
                                     </tr>
                                 </thead>
                                 <tbody class="bg-white divide-y divide-gray-200">
-                                    @forelse($travelOrders as $travelOrder)
-                                        <tr class="hover:bg-gray-50 transition-colors duration-150">
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ $travelOrder->destination }}</td>
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                                {{ $travelOrder->date_from->format('M d, Y') }} - {{ $travelOrder->date_to->format('M d, Y') }}
-                                            </td>
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                                @if($travelOrder->departure_time)
-                                                    {{ date('g:i A', strtotime($travelOrder->departure_time)) }}
-                                                @else
-                                                    <span class="text-gray-400">N/A</span>
-                                                @endif
-                                            </td>
-                                            <td class="px-6 py-4 text-sm text-gray-900 max-w-xs truncate">{{ $travelOrder->purpose }}</td>
-                                            <td class="px-6 py-4 whitespace-nowrap">
-                                                <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full 
-                                                    @if($travelOrder->status === 'approved') bg-green-100 text-green-800
-                                                    @elseif($travelOrder->status === 'pending') bg-yellow-100 text-yellow-800
-                                                    @else bg-red-100 text-red-800 @endif">
-                                                    {{ ucfirst($travelOrder->status) }}
-                                                </span>
-                                            </td>
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                                {{ $travelOrder->remarks }}
-                                            </td>
-                                            @if((isset($tab) && $tab == 'pending') || !isset($tab))
-                                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                                    <a href="{{ route('travel-orders.show', $travelOrder) }}" class="text-[#1e6031] hover:text-[#164f2a] mr-3">View</a>
-                                                    @if((!$travelOrder->head_approved && !$travelOrder->vp_approved) || $travelOrder->employee->is_president)
-                                                        <a href="{{ route('travel-orders.edit', $travelOrder) }}" class="text-blue-600 hover:text-blue-900 mr-3">Edit</a>
-                                                        <form action="{{ route('travel-orders.destroy', $travelOrder) }}" method="POST" class="inline">
-                                                            @csrf
-                                                            @method('DELETE')
-                                                            <button type="submit" class="text-red-600 hover:text-red-900" onclick="return confirm('Are you sure you want to delete this travel order?')">Delete</button>
-                                                        </form>
-                                                    @endif
-                                                </td>
-                                            @endif
-                                        </tr>
-                                    @empty
-                                        <tr>
-                                            <td colspan="{{ (isset($tab) && $tab == 'pending') || !isset($tab) ? '7' : '6' }}" class="px-6 py-8 text-center text-sm text-gray-500">
-                                                <div class="flex flex-col items-center justify-center">
-                                                    <svg class="h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                                                    </svg>
-                                                    <div class="mt-2">
-                                                        @if(isset($tab))
-                                                            @switch($tab)
-                                                                @case('pending')
-                                                                    <h3 class="text-lg font-medium text-gray-900">No pending travel requests</h3>
-                                                                    <p class="mt-1">You don't have any pending travel requests at the moment.</p>
-                                                                    @break
-                                                                @case('approved')
-                                                                    <h3 class="text-lg font-medium text-gray-900">No approved travel requests</h3>
-                                                                    <p class="mt-1">You don't have any approved travel requests yet.</p>
-                                                                    @break
-                                                                @case('cancelled')
-                                                                    <h3 class="text-lg font-medium text-gray-900">No cancelled travel requests</h3>
-                                                                    <p class="mt-1">You don't have any cancelled travel requests.</p>
-                                                                    @break
-                                                                @default
-                                                                    <h3 class="text-lg font-medium text-gray-900">No travel requests found</h3>
-                                                                    <p class="mt-1">There are no travel requests matching your criteria.</p>
-                                                            @endswitch
-                                                        @else
-                                                            <h3 class="text-lg font-medium text-gray-900">No pending travel requests</h3>
-                                                            <p class="mt-1">You don't have any pending travel requests at the moment.</p>
-                                                        @endif
-                                                    </div>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    @endforelse
+                                    @include('travel-orders.partials.table-rows', ['travelOrders' => $travelOrders, 'tab' => $tab ?? 'pending'])
                                 </tbody>
                             </table>
                         </div>
                     </div>
+                    
+                    <!-- Pagination -->
+                    @if($travelOrders->hasPages())
+                        <div class="mt-4">
+                            {{ $travelOrders->withQueryString()->links() }}
+                        </div>
+                    @endif
                 </div>
             </div>
         </div>
     </div>
+    
+    <!-- Include the table search JavaScript -->
+    <script src="{{ asset('js/table-search.js') }}"></script>
 @endsection

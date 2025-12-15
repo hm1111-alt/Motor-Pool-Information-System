@@ -74,12 +74,27 @@ class HeadOwnTravelOrderController extends Controller
             'destination' => 'required|string|max:255',
             'date_from' => 'required|date|before_or_equal:date_to',
             'date_to' => 'required|date|after_or_equal:date_from',
-            'departure_time' => 'nullable|date_format:H:i',
+            'departure_time' => 'nullable|string|max:20', // Increased max length to accommodate any format
             'purpose' => 'required|string|max:500',
         ]);
 
         $user = Auth::user();
         $employee = $user->employee;
+
+        // Process departure_time to ensure it's in the correct format or null
+        $departureTime = null;
+        if (!empty($request->departure_time)) {
+            // Trim whitespace and normalize the value
+            $cleanTime = trim($request->departure_time);
+            
+            // Try to extract time in H:i format using regex
+            if (preg_match('/([01]?[0-9]|2[0-3]):([0-5][0-9])/', $cleanTime, $matches)) {
+                $departureTime = $matches[1] . ':' . $matches[2];
+            } elseif (preg_match('/([01]?[0-9]|2[0-3])[.:]?([0-5][0-9])/', $cleanTime, $matches)) {
+                // Handle cases where it might be formatted differently
+                $departureTime = sprintf('%02d:%02d', $matches[1], $matches[2]);
+            }
+        }
 
         // Create the travel order
         $travelOrder = TravelOrder::create([
@@ -87,7 +102,7 @@ class HeadOwnTravelOrderController extends Controller
             'destination' => $request->destination,
             'date_from' => $request->date_from,
             'date_to' => $request->date_to,
-            'departure_time' => $request->departure_time,
+            'departure_time' => $departureTime,
             'purpose' => $request->purpose,
             'status' => 'pending',
         ]);
@@ -155,15 +170,30 @@ class HeadOwnTravelOrderController extends Controller
             'destination' => 'required|string|max:255',
             'date_from' => 'required|date|before_or_equal:date_to',
             'date_to' => 'required|date|after_or_equal:date_from',
-            'departure_time' => 'nullable|date_format:H:i',
+            'departure_time' => 'nullable|string|max:20', // Increased max length to accommodate any format
             'purpose' => 'required|string|max:500',
         ]);
+
+        // Process departure_time to ensure it's in the correct format or null
+        $departureTime = null;
+        if (!empty($request->departure_time)) {
+            // Trim whitespace and normalize the value
+            $cleanTime = trim($request->departure_time);
+            
+            // Try to extract time in H:i format using regex
+            if (preg_match('/([01]?[0-9]|2[0-3]):([0-5][0-9])/', $cleanTime, $matches)) {
+                $departureTime = $matches[1] . ':' . $matches[2];
+            } elseif (preg_match('/([01]?[0-9]|2[0-3])[.:]?([0-5][0-9])/', $cleanTime, $matches)) {
+                // Handle cases where it might be formatted differently
+                $departureTime = sprintf('%02d:%02d', $matches[1], $matches[2]);
+            }
+        }
 
         $travelOrder->update([
             'destination' => $request->destination,
             'date_from' => $request->date_from,
             'date_to' => $request->date_to,
-            'departure_time' => $request->departure_time,
+            'departure_time' => $departureTime,
             'purpose' => $request->purpose,
         ]);
 

@@ -55,19 +55,19 @@
                             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                                 <div>
                                     <label for="date_from" class="block text-sm font-medium text-gray-700 mb-1">From Date</label>
-                                    <input type="date" name="date_from" id="date_from" value="{{ old('date_from', $travelOrder->date_from->format('Y-m-d')) }}" required
+                                    <input type="date" name="date_from" id="date_from" value="{{ old('date_from', $travelOrder->date_from instanceof \Illuminate\Support\Carbon ? $travelOrder->date_from->format('Y-m-d') : $travelOrder->date_from) }}" required
                                         class="block w-full border border-gray-300 rounded-lg shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-[#1e6031] focus:border-[#1e6031] sm:text-sm transition duration-200">
                                 </div>
                                 
                                 <div>
                                     <label for="date_to" class="block text-sm font-medium text-gray-700 mb-1">To Date</label>
-                                    <input type="date" name="date_to" id="date_to" value="{{ old('date_to', $travelOrder->date_to->format('Y-m-d')) }}" required
+                                    <input type="date" name="date_to" id="date_to" value="{{ old('date_to', $travelOrder->date_to instanceof \Illuminate\Support\Carbon ? $travelOrder->date_to->format('Y-m-d') : $travelOrder->date_to) }}" required
                                         class="block w-full border border-gray-300 rounded-lg shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-[#1e6031] focus:border-[#1e6031] sm:text-sm transition duration-200">
                                 </div>
                                 
                                 <div>
                                     <label for="departure_time" class="block text-sm font-medium text-gray-700 mb-1">Departure Time</label>
-                                    <input type="time" name="departure_time" id="departure_time" value="{{ old('departure_time', $travelOrder->departure_time ? $travelOrder->departure_time->format('H:i') : '') }}"
+                                    <input type="time" name="departure_time" id="departure_time" value="{{ old('departure_time', $travelOrder->departure_time ? (is_string($travelOrder->departure_time) ? $travelOrder->departure_time : $travelOrder->departure_time->format('H:i')) : '') }}"
                                         class="block w-full border border-gray-300 rounded-lg shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-[#1e6031] focus:border-[#1e6031] sm:text-sm transition duration-200">
                                 </div>
                             </div>

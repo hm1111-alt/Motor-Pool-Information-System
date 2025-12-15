@@ -12,7 +12,7 @@ use App\Models\Employee;
 class PresidentTravelOrderController extends Controller
 {
     /**
-     * Display a listing of travel orders for presidential approval.
+     * Display a listing of travel orders for president approval with tab support.
      */
     public function index(Request $request): View
     {
@@ -22,38 +22,53 @@ class PresidentTravelOrderController extends Controller
         // Get the tab parameter, default to 'pending'
         $tab = $request->get('tab', 'pending');
         
-        // Get travel orders that need presidential approval
-        // These are:
-        // 1. Travel orders from division heads that have been approved by VP
-        // 2. Travel orders from VPs (no prior approval needed)
-        $query = TravelOrder::where(function ($q) {
-                    // Division head travel orders approved by VP
-                    $q->whereHas('employee', function ($subQuery) {
-                        $subQuery->where('is_divisionhead', 1);
-                    })->where('vp_approved', true)
-                    // VP travel orders (no prior approval needed)
-                    ->orWhereHas('employee', function ($subQuery) {
-                        $subQuery->where('is_vp', 1);
-                    });
-                })
-                ->where('president_approved', null);
+        // Get search term if provided
+        $search = $request->get('search', '');
+        
+        // Build the query based on the selected tab
+        $query = TravelOrder::whereHas('employee', function ($query) {
+                $query->where('is_vp', 1); // Only VPs
+            })
+            ->where('head_approved', true)
+            ->where('vp_approved', true)
+            ->where('president_approved', true); // Already approved by VP
+        
+        // Apply search filter if provided
+        if (!empty($search)) {
+            $query->where(function($q) use ($search) {
+                $q->where('destination', 'LIKE', "%{$search}%")
+                  ->orWhere('purpose', 'LIKE', "%{$search}%")
+                  ->orWhere('remarks', 'LIKE', "%{$search}%")
+                  ->orWhereHas('employee', function($q) use ($search) {
+                      $q->where('first_name', 'LIKE', "%{$search}%")
+                        ->orWhere('last_name', 'LIKE', "%{$search}%");
+                  });
+            });
+        }
         
         switch ($tab) {
             case 'approved':
-                $query->where('president_approved', true);
+                $query->where('status', 'approved');
                 break;
             case 'cancelled':
-                $query->where('president_approved', false);
+                $query->where('status', 'cancelled');
                 break;
             case 'pending':
             default:
-                $query->where('president_approved', null);
+                $query->where('status', 'pending');
                 break;
         }
         
-        $travelOrders = $query->orderByRaw('(CASE WHEN travel_orders.employee_id IN (SELECT id FROM employees WHERE is_vp = 1) THEN created_at ELSE vp_approved_at END) DESC')->get();
+        // Check if this is an AJAX request for partial updates
+        if ($request->ajax() || $request->get('ajax')) {
+            $travelOrders = $query->orderBy('created_at', 'desc')->get();
+            return view('travel-orders.approvals.partials.table-rows', compact('travelOrders', 'tab'))->render();
+        }
         
-        return view('travel-orders.approvals.president-index', compact('travelOrders', 'tab'));
+        // Paginate results
+        $travelOrders = $query->orderBy('created_at', 'desc')->paginate(10);
+        
+        return view('travel-orders.approvals.president-index', compact('travelOrders', 'tab', 'search'));
     }
 
     /**
@@ -64,22 +79,23 @@ class PresidentTravelOrderController extends Controller
         $user = Auth::user();
         $employee = $user->employee;
         
-        // No office restriction for presidents - they can approve any division head or VP travel order
-        
-        // Ensure the travel order has been approved by VP (for division heads) or is from a VP
-        if (!$travelOrder->employee->is_vp && !$travelOrder->vp_approved) {
+        // Ensure the travel order is from a VP
+        if (!$travelOrder->employee->is_vp) {
             abort(403);
         }
         
-        // Ensure the travel order hasn't already been approved by president
-        if (!is_null($travelOrder->president_approved)) {
+        // Ensure all prior approvals are in place
+        if (!$travelOrder->head_approved || !$travelOrder->vp_approved || !$travelOrder->president_approved) {
+            abort(403);
+        }
+        
+        // Ensure the travel order hasn't already been finalized
+        if ($travelOrder->status !== 'pending') {
             abort(403);
         }
         
         // Approve the travel order
         $travelOrder->update([
-            'president_approved' => true,
-            'president_approved_at' => now(),
             'status' => 'approved',
         ]);
 
@@ -95,22 +111,23 @@ class PresidentTravelOrderController extends Controller
         $user = Auth::user();
         $employee = $user->employee;
         
-        // No office restriction for presidents - they can reject any division head or VP travel order
-        
-        // Ensure the travel order has been approved by VP (for division heads) or is from a VP
-        if (!$travelOrder->employee->is_vp && !$travelOrder->vp_approved) {
+        // Ensure the travel order is from a VP
+        if (!$travelOrder->employee->is_vp) {
             abort(403);
         }
         
-        // Ensure the travel order hasn't already been approved by president
-        if (!is_null($travelOrder->president_approved)) {
+        // Ensure all prior approvals are in place
+        if (!$travelOrder->head_approved || !$travelOrder->vp_approved || !$travelOrder->president_approved) {
+            abort(403);
+        }
+        
+        // Ensure the travel order hasn't already been finalized
+        if ($travelOrder->status !== 'pending') {
             abort(403);
         }
         
         // Reject the travel order
         $travelOrder->update([
-            'president_approved' => false,
-            'president_approved_at' => now(),
             'status' => 'cancelled',
         ]);
 
