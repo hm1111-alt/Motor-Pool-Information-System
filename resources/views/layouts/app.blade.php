@@ -14,6 +14,47 @@
         <!-- Scripts -->
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Show success message if exists
+            @if(session('success'))
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Success!',
+                    text: '{{ session('success') }}',
+                    toast: false,
+                    position: 'center',
+                    showConfirmButton: true,
+                    confirmButtonText: 'OK',
+                    timer: 5000,
+                    timerProgressBar: true,
+                    didOpen: (toast) => {
+                        toast.addEventListener('mouseenter', Swal.stopTimer)
+                        toast.addEventListener('mouseleave', Swal.resumeTimer)
+                    }
+                });
+            @endif
+            
+            // Show error message if exists
+            @if(session('error'))
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error!',
+                    text: '{{ session('error') }}',
+                    toast: false,
+                    position: 'center',
+                    showConfirmButton: true,
+                    confirmButtonText: 'OK',
+                    timer: 7000,
+                    timerProgressBar: true,
+                    didOpen: (toast) => {
+                        toast.addEventListener('mouseenter', Swal.stopTimer)
+                        toast.addEventListener('mouseleave', Swal.resumeTimer)
+                    }
+                });
+            @endif
+        });
+    </script>
     <body class="font-libre-franklin antialiased">
         <div class="min-h-screen bg-gray-100">
             <!-- Page Heading -->

@@ -16,8 +16,6 @@
                         <p class="text-gray-600 text-sm mt-1">Review and approve travel requests from Division Heads in your office.</p>
                     </div>
                     
-
-                    
                     <!-- Tabs -->
                     <div class="mb-4 border-b border-gray-200">
                         <nav class="flex space-x-8" aria-label="Tabs">
@@ -38,23 +36,6 @@
                             </a>
                         </nav>
                     </div>
-                    
-                    @if(session('success'))
-                        <div class="mb-4 rounded-md bg-green-50 p-3 border border-green-200">
-                            <div class="flex">
-                                <div class="flex-shrink-0">
-                                    <svg class="h-5 w-5 text-green-400" viewBox="0 0 20 20" fill="currentColor">
-                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
-                                    </svg>
-                                </div>
-                                <div class="ml-3">
-                                    <p class="text-sm font-medium text-green-800">
-                                        {{ session('success') }}
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-                    @endif
                     
                     <!-- Search Bar -->
                     <div class="mb-4">
@@ -97,16 +78,19 @@
                                     @endif
                                 </tr>
                             </thead>
-                            <tbody class="bg-white divide-y divide-gray-200">
+                            <tbody class="bg-white divide-y divide-gray-200" id="approval-table-body">
                                 @include('travel-orders.approvals.partials.table-rows', ['travelOrders' => $travelOrders, 'tab' => $tab ?? 'pending'])
                             </tbody>
                         </table>
+                    </div>
                     <!-- Pagination -->
-                    @if($travelOrders->hasPages())
-                        <div class="mt-4">
-                            {{ $travelOrders->withQueryString()->links() }}
-                        </div>
-                    @endif
+                    <div id="approval-pagination-section">
+                        @if($travelOrders->hasPages())
+                            <div class="mt-4">
+                                {{ $travelOrders->withQueryString()->links() }}
+                            </div>
+                        @endif
+                    </div>
                 </div>
             </div>
         </div>

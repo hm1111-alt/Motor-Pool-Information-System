@@ -52,7 +52,7 @@ class HeadOwnTravelOrderController extends Controller
                 break;
         }
         
-        $travelOrders = $query->orderBy('created_at', 'desc')->get();
+        $travelOrders = $query->orderBy('created_at', 'desc')->paginate(10);
         
         return view('travel-orders.index', compact('travelOrders', 'tab'));
     }

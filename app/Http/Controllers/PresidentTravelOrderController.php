@@ -8,13 +8,14 @@ use Illuminate\View\View;
 use Illuminate\Support\Facades\Auth;
 use App\Models\TravelOrder;
 use App\Models\Employee;
+use Illuminate\Http\JsonResponse;
 
 class PresidentTravelOrderController extends Controller
 {
     /**
      * Display a listing of travel orders for president approval with tab support.
      */
-    public function index(Request $request): View
+    public function index(Request $request)
     {
         $user = Auth::user();
         $employee = $user->employee;
@@ -30,8 +31,7 @@ class PresidentTravelOrderController extends Controller
                 $query->where('is_vp', 1); // Only VPs
             })
             ->where('head_approved', true)
-            ->where('vp_approved', true)
-            ->where('president_approved', true); // Already approved by VP
+            ->where('vp_approved', true); // Already approved by head and VP
         
         // Apply search filter if provided
         if (!empty($search)) {
@@ -55,18 +55,23 @@ class PresidentTravelOrderController extends Controller
                 break;
             case 'pending':
             default:
-                $query->where('status', 'pending');
+                $query->where(function($q) {
+                    $q->where('status', 'pending_president_approval')
+                      ->orWhere('status', 'pending');
+                });
                 break;
         }
         
+        // Get paginated results
+        $travelOrders = $query->orderBy('created_at', 'desc')->paginate(10)->appends($request->except('page'));
+        
         // Check if this is an AJAX request for partial updates
         if ($request->ajax() || $request->get('ajax')) {
-            $travelOrders = $query->orderBy('created_at', 'desc')->get();
-            return view('travel-orders.approvals.partials.table-rows', compact('travelOrders', 'tab'))->render();
+            return response()->json([
+                'table_body' => view('travel-orders.approvals.partials.table-rows', compact('travelOrders', 'tab'))->render(),
+                'pagination' => (string) $travelOrders->withQueryString()->links()
+            ]);
         }
-        
-        // Paginate results
-        $travelOrders = $query->orderBy('created_at', 'desc')->paginate(10);
         
         return view('travel-orders.approvals.president-index', compact('travelOrders', 'tab', 'search'));
     }
@@ -85,17 +90,19 @@ class PresidentTravelOrderController extends Controller
         }
         
         // Ensure all prior approvals are in place
-        if (!$travelOrder->head_approved || !$travelOrder->vp_approved || !$travelOrder->president_approved) {
+        if (!$travelOrder->head_approved || !$travelOrder->vp_approved) {
             abort(403);
         }
         
-        // Ensure the travel order hasn't already been finalized
-        if ($travelOrder->status !== 'pending') {
+        // Ensure the travel order hasn't already been approved by president
+        if (!is_null($travelOrder->president_approved)) {
             abort(403);
         }
         
         // Approve the travel order
         $travelOrder->update([
+            'president_approved' => true,
+            'president_approved_at' => now(),
             'status' => 'approved',
         ]);
 
@@ -117,17 +124,19 @@ class PresidentTravelOrderController extends Controller
         }
         
         // Ensure all prior approvals are in place
-        if (!$travelOrder->head_approved || !$travelOrder->vp_approved || !$travelOrder->president_approved) {
+        if (!$travelOrder->head_approved || !$travelOrder->vp_approved) {
             abort(403);
         }
         
-        // Ensure the travel order hasn't already been finalized
-        if ($travelOrder->status !== 'pending') {
+        // Ensure the travel order hasn't already been approved by president
+        if (!is_null($travelOrder->president_approved)) {
             abort(403);
         }
         
         // Reject the travel order
         $travelOrder->update([
+            'president_approved' => false,
+            'president_approved_at' => now(),
             'status' => 'cancelled',
         ]);
 

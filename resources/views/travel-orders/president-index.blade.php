@@ -18,22 +18,7 @@
                         </a>
                     </div>
                     
-                    @if(session('success'))
-                        <div class="mb-4 rounded-md bg-green-50 p-3 border border-green-200">
-                            <div class="flex">
-                                <div class="flex-shrink-0">
-                                    <svg class="h-5 w-5 text-green-400" viewBox="0 0 20 20" fill="currentColor">
-                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
-                                    </svg>
-                                </div>
-                                <div class="ml-3">
-                                    <p class="text-sm font-medium text-green-800">
-                                        {{ session('success') }}
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-                    @endif
+
                     
                     <div class="overflow-x-auto">
                         <table class="min-w-full divide-y divide-gray-200">
@@ -78,10 +63,10 @@
                                             <a href="{{ route('president.travel-orders.show', $travelOrder) }}" class="text-indigo-600 hover:text-indigo-900 mr-2">View</a>
                                             @if($travelOrder->status === 'pending')
                                                 <a href="{{ route('president.travel-orders.edit', $travelOrder) }}" class="text-blue-600 hover:text-blue-900 mr-2">Edit</a>
-                                                <form action="{{ route('president.travel-orders.destroy', $travelOrder) }}" method="POST" class="inline">
+                                                <form action="{{ route('president.travel-orders.destroy', $travelOrder) }}" method="POST" class="inline delete-form">
                                                     @csrf
                                                     @method('DELETE')
-                                                    <button type="submit" class="text-red-600 hover:text-red-900" onclick="return confirm('Are you sure you want to delete this travel order?')">Delete</button>
+                                                    <button type="button" class="delete-btn text-red-600 hover:text-red-900">Delete</button>
                                                 </form>
                                             @endif
                                         </td>
@@ -96,8 +81,40 @@
                             </tbody>
                         </table>
                     </div>
+                    
+                    <!-- Pagination -->
+                    @if($travelOrders->hasPages())
+                        <div class="mt-4">
+                            {{ $travelOrders->links() }}
+                        </div>
+                    @endif
                 </div>
             </div>
         </div>
     </div>
+    
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Handle delete button clicks for travel orders in president index
+        document.querySelectorAll('.delete-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                const form = this.closest('.delete-form');
+                Swal.fire({
+                    title: 'Are you sure?',
+                    text: 'Are you sure you want to delete this travel order? This action cannot be undone.',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d33',
+                    cancelButtonColor: '#6c757d',
+                    confirmButtonText: 'Yes, delete it!',
+                    cancelButtonText: 'Cancel'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        form.submit();
+                    }
+                });
+            });
+        });
+    });
+    </script>
 @endsection

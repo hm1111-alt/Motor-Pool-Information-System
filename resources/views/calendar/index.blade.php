@@ -270,9 +270,9 @@
             
             var calendar = new FullCalendar.Calendar(calendarEl, {
                 headerToolbar: {
-                    left: 'prev,next today',
+                    left: 'prev,next',
                     center: 'title',
-                    right: 'dayGridMonth'
+                    right: ''
                 },
                 initialView: 'dayGridMonth',
                 events: '{{ route('vehicle-calendar.events') }}',

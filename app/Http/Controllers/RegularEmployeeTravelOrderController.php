@@ -8,16 +8,23 @@ use Illuminate\View\View;
 use Illuminate\Support\Facades\Auth;
 use App\Models\TravelOrder;
 use App\Models\Employee;
+use Illuminate\Http\JsonResponse;
 
 class RegularEmployeeTravelOrderController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index(Request $request): View
+    public function index(Request $request)
     {
         $user = Auth::user();
         $employee = $user->employee;
+        
+        // Check if employee exists
+        if (!$employee) {
+            return redirect()->route('dashboard')
+                ->with('error', 'You do not have an employee record. Please contact your administrator to set up your employee profile.');
+        }
         
         // Get the tab parameter, default to 'pending'
         $tab = $request->get('tab', 'pending');
@@ -51,14 +58,16 @@ class RegularEmployeeTravelOrderController extends Controller
                 break;
         }
         
+        // Get paginated results
+        $travelOrders = $query->orderBy('created_at', 'desc')->paginate(10)->appends($request->except('page'));
+        
         // Check if this is an AJAX request for partial updates
         if ($request->ajax() || $request->get('ajax')) {
-            $travelOrders = $query->orderBy('created_at', 'desc')->get();
-            return view('travel-orders.partials.table-rows', compact('travelOrders', 'tab'))->render();
+            return response()->json([
+                'table_body' => view('travel-orders.partials.table-rows', compact('travelOrders', 'tab'))->render(),
+                'pagination' => (string) $travelOrders->withQueryString()->links()
+            ]);
         }
-        
-        // Paginate results
-        $travelOrders = $query->orderBy('created_at', 'desc')->paginate(10);
         
         return view('travel-orders.index', compact('travelOrders', 'tab', 'search'));
     }
@@ -86,6 +95,12 @@ class RegularEmployeeTravelOrderController extends Controller
 
         $user = Auth::user();
         $employee = $user->employee;
+        
+        // Check if employee exists
+        if (!$employee) {
+            return redirect()->route('dashboard')
+                ->with('error', 'You do not have an employee record. Please contact your administrator to set up your employee profile.');
+        }
 
         // Process departure_time to ensure it's in the correct format or null
         $departureTime = null;
@@ -126,6 +141,12 @@ class RegularEmployeeTravelOrderController extends Controller
         $user = Auth::user();
         $employee = $user->employee;
         
+        // Check if employee exists
+        if (!$employee) {
+            return redirect()->route('dashboard')
+                ->with('error', 'You do not have an employee record. Please contact your administrator to set up your employee profile.');
+        }
+        
         if ($travelOrder->employee_id !== $employee->id) {
             abort(403);
         }
@@ -141,6 +162,12 @@ class RegularEmployeeTravelOrderController extends Controller
         // Ensure the employee can only edit their own pending travel orders
         $user = Auth::user();
         $employee = $user->employee;
+        
+        // Check if employee exists
+        if (!$employee) {
+            return redirect()->route('dashboard')
+                ->with('error', 'You do not have an employee record. Please contact your administrator to set up your employee profile.');
+        }
         
         if ($travelOrder->employee_id !== $employee->id) {
             abort(403);
@@ -162,6 +189,12 @@ class RegularEmployeeTravelOrderController extends Controller
         // Ensure the employee can only update their own pending travel orders
         $user = Auth::user();
         $employee = $user->employee;
+        
+        // Check if employee exists
+        if (!$employee) {
+            return redirect()->route('dashboard')
+                ->with('error', 'You do not have an employee record. Please contact your administrator to set up your employee profile.');
+        }
         
         if ($travelOrder->employee_id !== $employee->id) {
             abort(403);
@@ -215,6 +248,12 @@ class RegularEmployeeTravelOrderController extends Controller
         // Ensure the employee can only delete their own pending travel orders
         $user = Auth::user();
         $employee = $user->employee;
+        
+        // Check if employee exists
+        if (!$employee) {
+            return redirect()->route('dashboard')
+                ->with('error', 'You do not have an employee record. Please contact your administrator to set up your employee profile.');
+        }
         
         if ($travelOrder->employee_id !== $employee->id) {
             abort(403);

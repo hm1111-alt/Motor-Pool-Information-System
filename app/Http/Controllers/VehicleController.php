@@ -8,23 +8,33 @@ use Illuminate\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
+use Illuminate\Http\JsonResponse;
 
 class VehicleController extends Controller
 {
     /**
      * Display a listing of the vehicles.
      */
-    public function index(Request $request): View
+    public function index(Request $request): View|JsonResponse
     {
         $search = $request->get('search');
         
-        $vehicles = Vehicle::when($search, function ($query, $search) {
+        $query = Vehicle::when($search, function ($query, $search) {
                 return $query->where('plate_number', 'LIKE', "%{$search}%")
                             ->orWhere('model', 'LIKE', "%{$search}%")
                             ->orWhere('type', 'LIKE', "%{$search}%");
             })
-            ->orderBy('created_at', 'desc')
-            ->paginate(10);
+            ->orderBy('created_at', 'desc');
+        
+        $vehicles = $query->paginate(10)->appends($request->except('page'));
+        
+        // Check if this is an AJAX request for partial updates
+        if ($request->ajax() || $request->get('ajax')) {
+            return response()->json([
+                'table_body' => view('vehicles.partials.table-rows', compact('vehicles'))->render(),
+                'pagination' => (string) $vehicles->withQueryString()->links()
+            ]);
+        }
 
         return view('vehicles.index', compact('vehicles', 'search'));
     }
@@ -61,7 +71,7 @@ class VehicleController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $request->validate([
-            'picture' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'picture' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
             'plate_number' => 'required|string|max:50|unique:vehicle,plate_number',
             'model' => 'required|string|max:255',
             'type' => 'required|string|max:255',
@@ -113,7 +123,7 @@ class VehicleController extends Controller
         \Log::info('Current vehicle plate number: ' . $vehicle->plate_number);
         
         $request->validate([
-            'picture' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'picture' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
             'plate_number' => [
                 'required',
                 'string',

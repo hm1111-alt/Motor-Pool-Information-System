@@ -8,13 +8,14 @@ use Illuminate\View\View;
 use Illuminate\Support\Facades\Auth;
 use App\Models\TravelOrder;
 use App\Models\Employee;
+use Illuminate\Http\JsonResponse;
 
 class HeadTravelOrderController extends Controller
 {
     /**
      * Display a listing of travel orders for head approval with tab support.
      */
-    public function index(Request $request): View
+    public function index(Request $request)
     {
         $user = Auth::user();
         $employee = $user->employee;
@@ -72,14 +73,16 @@ class HeadTravelOrderController extends Controller
                 break;
         }
         
+        // Get paginated results
+        $travelOrders = $query->orderBy('created_at', 'desc')->paginate(10)->appends($request->except('page'));
+        
         // Check if this is an AJAX request for partial updates
         if ($request->ajax() || $request->get('ajax')) {
-            $travelOrders = $query->orderBy('created_at', 'desc')->get();
-            return view('travel-orders.approvals.partials.table-rows', compact('travelOrders', 'tab'))->render();
+            return response()->json([
+                'table_body' => view('travel-orders.approvals.partials.table-rows', compact('travelOrders', 'tab'))->render(),
+                'pagination' => (string) $travelOrders->withQueryString()->links()
+            ]);
         }
-        
-        // Paginate results
-        $travelOrders = $query->orderBy('created_at', 'desc')->paginate(10);
         
         return view('travel-orders.approvals.head-index', compact('travelOrders', 'tab', 'search'));
     }

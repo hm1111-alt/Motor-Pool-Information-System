@@ -27,8 +27,6 @@
                         </div>
                     </div>
                     
-
-                    
                     <!-- Tabs -->
                     <div class="mb-6 border-b border-gray-200">
                         <nav class="flex space-x-6" aria-label="Tabs">
@@ -49,23 +47,6 @@
                             </a>
                         </nav>
                     </div>
-                    
-                    @if(session('success'))
-                        <div class="mb-6 rounded-lg bg-green-50 p-4 border border-green-200">
-                            <div class="flex">
-                                <div class="flex-shrink-0">
-                                    <svg class="h-5 w-5 text-green-400" viewBox="0 0 20 20" fill="currentColor">
-                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
-                                    </svg>
-                                </div>
-                                <div class="ml-3">
-                                    <p class="text-sm font-medium text-green-800">
-                                        {{ session('success') }}
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-                    @endif
                     
                     <!-- Search Bar -->
                     <div class="mb-4">
@@ -95,7 +76,7 @@
                     </div>
                     
                     <!-- Travel Orders Table -->
-                    <div class="overflow-hidden shadow ring-1 ring-black ring-opacity-5 rounded-lg">
+                    <div class="overflow-hidden shadow ring-1 ring-black ring-opacity-5 rounded-lg" data-table="travel-orders-table">
                         <div class="overflow-x-auto">
                             <table id="travel-orders-table" class="min-w-full divide-y divide-gray-300">
                                 <thead class="bg-gray-50">
@@ -111,7 +92,7 @@
                                         @endif
                                     </tr>
                                 </thead>
-                                <tbody class="bg-white divide-y divide-gray-200">
+                                <tbody class="bg-white divide-y divide-gray-200" id="travel-orders-table-body">
                                     @include('travel-orders.partials.table-rows', ['travelOrders' => $travelOrders, 'tab' => $tab ?? 'pending'])
                                 </tbody>
                             </table>
@@ -119,11 +100,13 @@
                     </div>
                     
                     <!-- Pagination -->
-                    @if($travelOrders->hasPages())
-                        <div class="mt-4">
-                            {{ $travelOrders->withQueryString()->links() }}
-                        </div>
-                    @endif
+                    <div id="travel-orders-pagination-section">
+                        @if($travelOrders->hasPages())
+                            <div class="mt-4">
+                                {{ $travelOrders->withQueryString()->links() }}
+                            </div>
+                        @endif
+                    </div>
                 </div>
             </div>
         </div>

@@ -24,7 +24,7 @@ class PresidentOwnTravelOrderController extends Controller
         $travelOrders = TravelOrder::with('employee') // Eager load employee relationship
             ->where('employee_id', $employee->id)
             ->orderBy('created_at', 'desc')
-            ->get();
+            ->paginate(10);
         
         return view('travel-orders.president-index', compact('travelOrders'));
     }

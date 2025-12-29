@@ -6,23 +6,33 @@ use App\Models\Driver;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\JsonResponse;
 
 class DriverController extends Controller
 {
     /**
      * Display a listing of the drivers.
      */
-    public function index(Request $request): View
+    public function index(Request $request): View|JsonResponse
     {
         $search = $request->get('search');
         
-        $drivers = Driver::when($search, function ($query, $search) {
+        $query = Driver::when($search, function ($query, $search) {
                 return $query->where('first_name', 'LIKE', "%{$search}%")
                             ->orWhere('last_name', 'LIKE', "%{$search}%")
                             ->orWhere('position', 'LIKE', "%{$search}%");
             })
-            ->orderBy('created_at', 'desc')
-            ->paginate(10);
+            ->orderBy('created_at', 'desc');
+        
+        $drivers = $query->paginate(10)->appends($request->except('page'));
+        
+        // Check if this is an AJAX request for partial updates
+        if ($request->ajax() || $request->get('ajax')) {
+            return response()->json([
+                'table_body' => view('drivers.partials.table-rows', compact('drivers'))->render(),
+                'pagination' => (string) $drivers->withQueryString()->links()
+            ]);
+        }
 
         return view('drivers.index', compact('drivers', 'search'));
     }

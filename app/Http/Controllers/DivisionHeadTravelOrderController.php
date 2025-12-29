@@ -8,13 +8,14 @@ use Illuminate\View\View;
 use Illuminate\Support\Facades\Auth;
 use App\Models\TravelOrder;
 use App\Models\Employee;
+use Illuminate\Http\JsonResponse;
 
 class DivisionHeadTravelOrderController extends Controller
 {
     /**
      * Display a listing of travel orders for division head approval with tab support.
      */
-    public function index(Request $request): View
+    public function index(Request $request)
     {
         $user = Auth::user();
         $employee = $user->employee;
@@ -41,7 +42,8 @@ class DivisionHeadTravelOrderController extends Controller
                           $query->where('is_president', 0)
                                 ->orWhereNull('is_president');
                       });
-            });
+            })
+            ->where('head_approved', true); // Already approved by head
         
         // Apply search filter if provided
         if (!empty($search)) {
@@ -58,30 +60,27 @@ class DivisionHeadTravelOrderController extends Controller
         
         switch ($tab) {
             case 'approved':
-                $query->where('head_approved', true)
-                      ->where('vp_approved', true);
+                $query->where('vp_approved', true);
                 break;
             case 'cancelled':
-                $query->where(function($q) {
-                    $q->where('head_approved', false)
-                      ->orWhere('vp_approved', false);
-                });
+                $query->where('vp_approved', false);
                 break;
             case 'pending':
             default:
-                $query->where('head_approved', true)
-                      ->where('vp_approved', null);
+                $query->where('vp_approved', null);
                 break;
         }
         
+        // Get paginated results
+        $travelOrders = $query->orderBy('created_at', 'desc')->paginate(10)->appends($request->except('page'));
+        
         // Check if this is an AJAX request for partial updates
         if ($request->ajax() || $request->get('ajax')) {
-            $travelOrders = $query->orderBy('created_at', 'desc')->get();
-            return view('travel-orders.approvals.partials.table-rows', compact('travelOrders', 'tab'))->render();
+            return response()->json([
+                'table_body' => view('travel-orders.approvals.partials.table-rows', compact('travelOrders', 'tab'))->render(),
+                'pagination' => (string) $travelOrders->withQueryString()->links()
+            ]);
         }
-        
-        // Paginate results
-        $travelOrders = $query->orderBy('created_at', 'desc')->paginate(10);
         
         return view('travel-orders.approvals.divisionhead-index', compact('travelOrders', 'tab', 'search'));
     }
@@ -109,7 +108,7 @@ class DivisionHeadTravelOrderController extends Controller
             abort(403);
         }
         
-        // Ensure the travel order hasn't already been approved by division head
+        // Ensure the travel order hasn't already been approved by VP
         if (!is_null($travelOrder->vp_approved)) {
             abort(403);
         }
@@ -118,7 +117,7 @@ class DivisionHeadTravelOrderController extends Controller
         $travelOrder->update([
             'vp_approved' => true,
             'vp_approved_at' => now(),
-            'status' => 'pending', // Still pending president approval
+            'status' => 'pending_president_approval', // Pending president approval
         ]);
 
         return redirect()->back()
@@ -148,7 +147,7 @@ class DivisionHeadTravelOrderController extends Controller
             abort(403);
         }
         
-        // Ensure the travel order hasn't already been approved by division head
+        // Ensure the travel order hasn't already been approved by VP
         if (!is_null($travelOrder->vp_approved)) {
             abort(403);
         }

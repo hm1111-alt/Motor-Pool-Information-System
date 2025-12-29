@@ -19,11 +19,7 @@
         <div class="bg-white rounded-lg shadow-md p-6">
             <h2 class="text-xl font-semibold mb-4">Vehicles List</h2>
             
-            @if(session('success'))
-                <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
-                    {{ session('success') }}
-                </div>
-            @endif
+
             
             <div class="overflow-x-auto">
                 <table class="min-w-full bg-white">
@@ -57,10 +53,10 @@
                                     <div class="flex item-center justify-end">
                                         <a href="{{ route('vehicles.show', $vehicle) }}" class="text-indigo-600 hover:text-indigo-900 mr-3">View</a>
                                         <a href="{{ route('vehicles.edit', $vehicle) }}" class="text-blue-600 hover:text-blue-900 mr-3">Edit</a>
-                                        <form action="{{ route('vehicles.destroy', $vehicle) }}" method="POST" class="inline">
+                                        <form action="{{ route('vehicles.destroy', $vehicle) }}" method="POST" class="inline delete-form">
                                             @csrf
                                             @method('DELETE')
-                                            <button type="submit" class="text-red-600 hover:text-red-900" onclick="return confirm('Are you sure?')">Delete</button>
+                                            <button type="button" class="delete-btn text-red-600 hover:text-red-900">Delete</button>
                                         </form>
                                     </div>
                                 </td>
@@ -82,7 +78,32 @@
                 </div>
             @endif
         </div>
-        
+
+        <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Handle delete button clicks for vehicles in simple index
+            document.querySelectorAll('.delete-btn').forEach(button => {
+                button.addEventListener('click', function() {
+                    const form = this.closest('.delete-form');
+                    Swal.fire({
+                        title: 'Are you sure?',
+                        text: 'Are you sure you want to delete this vehicle? This action cannot be undone.',
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#d33',
+                        cancelButtonColor: '#6c757d',
+                        confirmButtonText: 'Yes, delete it!',
+                        cancelButtonText: 'Cancel'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            form.submit();
+                        }
+                    });
+                });
+            });
+        });
+        </script>
+
         <div class="mt-6">
             <a href="{{ url('/') }}" class="text-indigo-600 hover:text-indigo-900">← Back to Home</a>
         </div>

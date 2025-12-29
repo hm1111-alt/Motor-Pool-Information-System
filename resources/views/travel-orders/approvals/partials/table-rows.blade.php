@@ -24,10 +24,10 @@
                     View
                 </a>
                 
-                <form action="{{ route('travel-orders.approve.head', $travelOrder) }}" method="POST" class="inline-block mr-2">
+                <form action="{{ route('travel-orders.approve.head', $travelOrder) }}" method="POST" class="inline-block mr-2 approve-form">
                     @csrf
                     @method('PUT')
-                    <button type="submit" class="inline-flex items-center text-green-600 hover:text-green-900" onclick="return confirm('Are you sure you want to approve this travel order?')">
+                    <button type="button" class="approve-btn inline-flex items-center text-green-600 hover:text-green-900">
                         <svg class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
@@ -35,10 +35,10 @@
                     </button>
                 </form>
                 
-                <form action="{{ route('travel-orders.reject.head', $travelOrder) }}" method="POST" class="inline-block">
+                <form action="{{ route('travel-orders.reject.head', $travelOrder) }}" method="POST" class="inline-block reject-form">
                     @csrf
                     @method('PUT')
-                    <button type="submit" class="inline-flex items-center text-red-600 hover:text-red-900" onclick="return confirm('Are you sure you want to reject this travel order?')">
+                    <button type="button" class="reject-btn inline-flex items-center text-red-600 hover:text-red-900">
                         <svg class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
@@ -71,3 +71,49 @@
         </td>
     </tr>
 @endforelse
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Handle approve button clicks
+    document.querySelectorAll('.approve-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            const form = this.closest('.approve-form');
+            Swal.fire({
+                title: 'Are you sure?',
+                text: 'Are you sure you want to approve this travel order?',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#1e6031',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Yes, approve it!',
+                cancelButtonText: 'Cancel'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    form.submit();
+                }
+            });
+        });
+    });
+
+    // Handle reject button clicks
+    document.querySelectorAll('.reject-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            const form = this.closest('.reject-form');
+            Swal.fire({
+                title: 'Are you sure?',
+                text: 'Are you sure you want to reject this travel order?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Yes, reject it!',
+                cancelButtonText: 'Cancel'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    form.submit();
+                }
+            });
+        });
+    });
+});
+</script>
