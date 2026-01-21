@@ -2,6 +2,15 @@
     <tr class="hover:bg-gray-50 transition-colors duration-150">
         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ $travelOrder->destination }}</td>
         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+            @if($travelOrder->position)
+                {{ $travelOrder->position->position_name }}
+                @if($travelOrder->position->office) - {{ $travelOrder->position->office->office_name }} @endif
+                @if($travelOrder->position->is_unit_head) (Unit Head) @elseif($travelOrder->position->is_division_head) (Division Head) @elseif($travelOrder->position->is_vp) (VP) @elseif($travelOrder->position->is_president) (President) @endif
+            @else
+                <span class="text-gray-400">N/A</span>
+            @endif
+        </td>
+        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
             {{ $travelOrder->date_from->format('M d, Y') }} - {{ $travelOrder->date_to->format('M d, Y') }}
         </td>
         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
@@ -55,7 +64,7 @@
     </tr>
 @empty
     <tr>
-        <td colspan="{{ (isset($tab) && $tab == 'pending') || !isset($tab) ? '7' : '6' }}" class="px-6 py-8 text-center text-sm text-gray-500">
+        <td colspan="{{ (isset($tab) && $tab == 'pending') || !isset($tab) ? '8' : '7' }}" class="px-6 py-8 text-center text-sm text-gray-500">
             <div class="flex flex-col items-center justify-center">
                 <svg class="h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />

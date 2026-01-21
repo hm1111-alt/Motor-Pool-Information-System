@@ -79,7 +79,7 @@
                                 </tr>
                             </thead>
                             <tbody class="bg-white divide-y divide-gray-200" id="approval-table-body">
-                                @include('travel-orders.approvals.partials.table-rows', ['travelOrders' => $travelOrders, 'tab' => $tab ?? 'pending'])
+                                @include('travel-orders.approvals.partials.table-rows', ['travelOrders' => $travelOrders, 'tab' => $tab ?? 'pending', 'approvalShowRoute' => 'travel-orders.approval-show.vp'])
                             </tbody>
                         </table>
                     </div>

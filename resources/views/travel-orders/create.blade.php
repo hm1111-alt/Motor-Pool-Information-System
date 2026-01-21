@@ -46,9 +46,30 @@
                         
                         <div class="space-y-6">
                             <div>
+                                <label for="position_id" class="block text-sm font-medium text-gray-700 mb-1">Position</label>
+                                <select name="position_id" id="position_id" required
+                                    class="block w-full border border-gray-300 rounded-lg shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-[#1e6031] focus:border-[#1e6031] sm:text-sm transition duration-200">
+                                    <option value="">Select a position</option>
+                                    @foreach($positions as $position)
+                                        <option value="{{ $position->id }}" {{ old('position_id') == $position->id ? 'selected' : '' }}>
+                                            {{ $position->position_name }}
+                                            @if($position->office) - {{ $position->office->office_name }} @endif
+                                            @if($position->is_unit_head) (Unit Head) @elseif($position->is_division_head) (Division Head) @elseif($position->is_vp) (VP) @elseif($position->is_president) (President) @endif
+                                        </option>
+                                    @endforeach
+                                </select>
+                                @error('position_id')
+                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                @enderror
+                            </div>
+                            
+                            <div>
                                 <label for="destination" class="block text-sm font-medium text-gray-700 mb-1">Destination</label>
                                 <input type="text" name="destination" id="destination" value="{{ old('destination') }}" required
                                     class="block w-full border border-gray-300 rounded-lg shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-[#1e6031] focus:border-[#1e6031] sm:text-sm transition duration-200">
+                                @error('destination')
+                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                @enderror
                             </div>
                             
                             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">

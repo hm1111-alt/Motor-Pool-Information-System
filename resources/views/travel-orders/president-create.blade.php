@@ -45,9 +45,30 @@
                         
                         <div class="grid grid-cols-1 gap-4">
                             <div>
+                                <label for="position_id" class="block text-sm font-medium text-gray-700">Position</label>
+                                <select name="position_id" id="position_id" required
+                                    class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                                    <option value="">Select a position</option>
+                                    @foreach($positions as $position)
+                                        <option value="{{ $position->id }}" {{ old('position_id') == $position->id ? 'selected' : '' }}>
+                                            {{ $position->position_name }}
+                                            @if($position->office) - {{ $position->office->office_name }} @endif
+                                            @if($position->is_unit_head) (Unit Head) @elseif($position->is_division_head) (Division Head) @elseif($position->is_vp) (VP) @elseif($position->is_president) (President) @endif
+                                        </option>
+                                    @endforeach
+                                </select>
+                                @error('position_id')
+                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                @enderror
+                            </div>
+                            
+                            <div>
                                 <label for="destination" class="block text-sm font-medium text-gray-700">Destination</label>
                                 <input type="text" name="destination" id="destination" value="{{ old('destination') }}" required
                                     class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                                @error('destination')
+                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                @enderror
                             </div>
                             
                             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">

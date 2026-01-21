@@ -80,7 +80,7 @@ class EmployeeSeeder extends Seeder
             
             // If the employee user exists and doesn't already have an employee record
             if ($employeeUser && !$employeeUser->employee) {
-                Employee::create([
+                $employee = Employee::create([
                     'user_id' => $employeeUser->id,
                     'first_name' => $employeeData['first_name'],
                     'last_name' => $employeeData['last_name'],
@@ -97,8 +97,6 @@ class EmployeeSeeder extends Seeder
                     'division_id' => null,
                     'unit_id' => null,
                     'subunit_id' => null,
-                    'is_divisionhead' => false,
-                    'is_vp' => false,
                 ]);
             }
         }

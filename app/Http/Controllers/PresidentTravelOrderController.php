@@ -28,7 +28,9 @@ class PresidentTravelOrderController extends Controller
         
         // Build the query based on the selected tab
         $query = TravelOrder::whereHas('employee', function ($query) {
-                $query->where('is_vp', 1); // Only VPs
+                $query->whereHas('officer', function ($officerQuery) {
+                    $officerQuery->where('vp', true);
+                });
             })
             ->where('head_approved', true)
             ->where('vp_approved', true); // Already approved by head and VP
@@ -62,13 +64,13 @@ class PresidentTravelOrderController extends Controller
                 break;
         }
         
-        // Get paginated results
-        $travelOrders = $query->orderBy('created_at', 'desc')->paginate(10)->appends($request->except('page'));
+        // Get paginated results with position information
+        $travelOrders = $query->with('position', 'employee')->orderBy('created_at', 'desc')->paginate(10)->appends($request->except('page'));
         
         // Check if this is an AJAX request for partial updates
         if ($request->ajax() || $request->get('ajax')) {
             return response()->json([
-                'table_body' => view('travel-orders.approvals.partials.table-rows', compact('travelOrders', 'tab'))->render(),
+                'table_body' => view('travel-orders.approvals.partials.table-rows', compact('travelOrders', 'tab'))->with('travelOrders', $travelOrders->load('position', 'employee'))->render(),
                 'pagination' => (string) $travelOrders->withQueryString()->links()
             ]);
         }
@@ -76,6 +78,40 @@ class PresidentTravelOrderController extends Controller
         return view('travel-orders.approvals.president-index', compact('travelOrders', 'tab', 'search'));
     }
 
+    /**
+     * Display the specified resource for approval.
+     */
+    public function show(TravelOrder $travelOrder): View
+    {
+        $user = Auth::user();
+        $employee = $user->employee;
+        
+        // Check if employee exists
+        if (!$employee) {
+            return redirect()->route('dashboard')
+                ->with('error', 'You do not have an employee record. Please contact your administrator to set up your employee profile.');
+        }
+        
+        // Check if the user is a president
+        if (!$employee->is_president) {
+            abort(403);
+        }
+        
+        // Also allow if it's the president's own travel order
+        $isOwn = $travelOrder->employee_id === $employee->id;
+        
+        // For presidents, allow viewing any travel order that requires presidential approval
+        // This includes VP travel orders that need president approval
+        $travelOrderPosition = $travelOrder->position;
+        $requiresPresApproval = $travelOrderPosition && $travelOrderPosition->is_vp;
+        
+        if (!$requiresPresApproval && !$isOwn) {
+            abort(403);
+        }
+        
+        return view('travel-orders.show', compact('travelOrder'));
+    }
+    
     /**
      * Approve a travel order.
      */
@@ -85,7 +121,9 @@ class PresidentTravelOrderController extends Controller
         $employee = $user->employee;
         
         // Ensure the travel order is from a VP
-        if (!$travelOrder->employee->is_vp) {
+        // Check if the position used for this travel order has VP role
+        $travelOrderPosition = $travelOrder->position;
+        if (!$travelOrderPosition || !$travelOrderPosition->is_vp) {
             abort(403);
         }
         
@@ -119,7 +157,9 @@ class PresidentTravelOrderController extends Controller
         $employee = $user->employee;
         
         // Ensure the travel order is from a VP
-        if (!$travelOrder->employee->is_vp) {
+        // Check if the position used for this travel order has VP role
+        $travelOrderPosition = $travelOrder->position;
+        if (!$travelOrderPosition || !$travelOrderPosition->is_vp) {
             abort(403);
         }
         

@@ -21,7 +21,7 @@ class PresidentOwnTravelOrderController extends Controller
         
         // Get all travel orders for this president
         // President travel orders are automatically approved and sent to motorpool
-        $travelOrders = TravelOrder::with('employee') // Eager load employee relationship
+        $travelOrders = TravelOrder::with('employee', 'position') // Eager load employee and position relationships
             ->where('employee_id', $employee->id)
             ->orderBy('created_at', 'desc')
             ->paginate(10);
@@ -34,7 +34,17 @@ class PresidentOwnTravelOrderController extends Controller
      */
     public function create(): View
     {
-        return view('travel-orders.president-create');
+        $user = Auth::user();
+        $employee = $user->employee;
+        
+        if (!$employee) {
+            abort(403, 'You do not have an employee record.');
+        }
+        
+        // Get all positions for the employee
+        $positions = $employee->positions()->with(['office', 'division', 'unit', 'subunit', 'class'])->get();
+        
+        return view('travel-orders.president-create', compact('positions'));
     }
 
     /**
@@ -48,10 +58,25 @@ class PresidentOwnTravelOrderController extends Controller
             'date_to' => 'required|date|after_or_equal:date_from',
             'departure_time' => 'nullable|string|max:20', // Increased max length to accommodate any format
             'purpose' => 'required|string|max:500',
+            'position_id' => 'required|exists:emp_positions,id', // Add validation for position selection
         ]);
 
         $user = Auth::user();
         $employee = $user->employee;
+        
+        // Check if employee exists
+        if (!$employee) {
+            return redirect()->route('dashboard')
+                ->with('error', 'You do not have an employee record. Please contact your administrator to set up your employee profile.');
+        }
+
+        // Verify that the selected position belongs to the employee
+        $position = $employee->positions()->where('id', $request->position_id)->first();
+        if (!$position) {
+            return redirect()->back()
+                ->with('error', 'Invalid position selected.')
+                ->withInput();
+        }
 
         // Process departure_time to ensure it's in the correct format or null
         $departureTime = null;
@@ -71,6 +96,7 @@ class PresidentOwnTravelOrderController extends Controller
         // Create the travel order
         $travelOrder = TravelOrder::create([
             'employee_id' => $employee->id,
+            'emp_position_id' => $request->position_id, // Associate with the selected position
             'destination' => $request->destination,
             'date_from' => $request->date_from,
             'date_to' => $request->date_to,

@@ -12,6 +12,7 @@ class TravelOrder extends Model
 
     protected $fillable = [
         'employee_id',
+        'emp_position_id',
         'destination',
         'date_from',
         'date_to',
@@ -55,6 +56,14 @@ class TravelOrder extends Model
     {
         return $this->belongsTo(Employee::class);
     }
+    
+    /**
+     * Get the position associated with the travel order.
+     */
+    public function position(): BelongsTo
+    {
+        return $this->belongsTo(EmpPosition::class, 'emp_position_id');
+    }
 
     /**
      * Get remarks based on approval status (not stored in database)
@@ -91,19 +100,30 @@ class TravelOrder extends Model
             return 'Approved';
         }
         
-        // if divisionhead_approved = 1, remarks = For VP approval
+        // if divisionhead_approved = 1, remarks = For VP approval (for unit head requests) or Approved (for regular employee requests)
         if ($this->divisionhead_approved) {
-            return 'For VP approval';
+            // For regular employees, if division head approved, it's fully approved
+            if (!$this->employee->is_head && !$this->employee->is_divisionhead && !$this->employee->is_vp && !$this->employee->is_president) {
+                return 'Approved';
+            } else {
+                // For unit heads, if division head approved, it's for VP approval
+                return 'For VP approval';
+            }
         }
         
-        // if head_approved = 1 (for regular employee requests), remarks = For VP approval
-        if ($this->head_approved && !$this->employee->is_head) {
-            return 'For VP approval';
+        // if head_approved = 1 but divisionhead_approved is null (for regular employee requests), remarks = For Division Head approval
+        if ($this->head_approved && !$this->employee->is_head && is_null($this->divisionhead_approved)) {
+            return 'For Division Head approval';
         }
         
-        // if divisionhead_approved is null (not yet processed by division head), remarks = Pending
+        // if divisionhead_approved is null (not yet processed by division head for head's requests), remarks = Pending
         if (is_null($this->divisionhead_approved) && $this->employee->is_head && !$this->employee->is_divisionhead) {
             return 'Pending';
+        }
+        
+        // if divisionhead_approved is null (not yet processed by division head for regular employee's requests), remarks = For Division Head approval
+        if (is_null($this->divisionhead_approved) && !$this->employee->is_head && $this->head_approved) {
+            return 'For Division Head approval';
         }
         
         // if head_approved is null (not yet processed by head), remarks = Pending

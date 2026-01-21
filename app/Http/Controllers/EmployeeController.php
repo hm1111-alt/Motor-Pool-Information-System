@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Models\Employee;
+use App\Models\Officer;
 use App\Models\Office;
 use App\Models\Division;
 use App\Models\Unit;
@@ -22,7 +23,7 @@ class EmployeeController extends Controller
      */
     public function index(Request $request): View|JsonResponse
     {
-        $query = Employee::with(['office', 'division', 'unit', 'subunit', 'class', 'user']); // Load user relationship
+        $query = Employee::with(['position', 'position.office', 'position.division', 'position.unit', 'position.subunit', 'position.class', 'user']); // Load user and position relationships
         
         // Apply search filter
         if ($request->filled('search')) {
@@ -30,7 +31,9 @@ class EmployeeController extends Controller
             $query->where(function ($q) use ($search) {
                 $q->where('first_name', 'like', "%{$search}%")
                   ->orWhere('last_name', 'like', "%{$search}%")
-                  ->orWhere('position_name', 'like', "%{$search}%")
+                  ->orWhereHas('position', function ($positionQuery) use ($search) {
+                      $positionQuery->where('position_name', 'like', "%{$search}%");
+                  })
                   ->orWhereHas('user', function ($userQuery) use ($search) {
                       $userQuery->where('email', 'like', "%{$search}%");
                   });
@@ -39,27 +42,37 @@ class EmployeeController extends Controller
         
         // Apply office filter
         if ($request->filled('office') && $request->office !== 'all') {
-            $query->where('office_id', $request->office);
+            $query->whereHas('position', function ($q) use ($request) {
+                $q->where('office_id', $request->office);
+            });
         }
         
         // Apply division filter
         if ($request->filled('division') && $request->division !== 'all') {
-            $query->where('division_id', $request->division);
+            $query->whereHas('position', function ($q) use ($request) {
+                $q->where('division_id', $request->division);
+            });
         }
         
         // Apply unit filter
         if ($request->filled('unit') && $request->unit !== 'all') {
-            $query->where('unit_id', $request->unit);
+            $query->whereHas('position', function ($q) use ($request) {
+                $q->where('unit_id', $request->unit);
+            });
         }
         
         // Apply subunit filter
         if ($request->filled('subunit') && $request->subunit !== 'all') {
-            $query->where('subunit_id', $request->subunit);
+            $query->whereHas('position', function ($q) use ($request) {
+                $q->where('subunit_id', $request->subunit);
+            });
         }
         
         // Apply class filter
         if ($request->filled('class') && $request->class !== 'all') {
-            $query->where('class_id', $request->class);
+            $query->whereHas('position', function ($q) use ($request) {
+                $q->where('class_id', $request->class);
+            });
         }
         
         // Apply status filter
@@ -89,8 +102,19 @@ class EmployeeController extends Controller
     {
         $offices = Office::all();
         $classes = ClassModel::all();
+        $divisions = Division::all();
+        $units = Unit::all();
+        $subunits = Subunit::all();
+        // Define available roles - these are for officer positions
+        $roles = collect([
+            (object)['id' => 0, 'name' => 'none'],
+            (object)['id' => 1, 'name' => 'unit_head'],
+            (object)['id' => 2, 'name' => 'division_head'],
+            (object)['id' => 3, 'name' => 'vp'],
+            (object)['id' => 4, 'name' => 'president'],
+        ]);
         
-        return view('admin.employees.create', compact('offices', 'classes'));
+        return view('admin.employees.create', compact('offices', 'classes', 'divisions', 'units', 'subunits', 'roles'));
     }
 
     /**
@@ -113,19 +137,20 @@ class EmployeeController extends Controller
             'unit_id' => 'nullable|exists:units,id',
             'subunit_id' => 'nullable|exists:subunits,id',
             'class_id' => 'nullable|exists:class,id',
-            'emp_status' => 'required|boolean',
-            'is_head' => 'boolean',
-            'is_divisionhead' => 'boolean',
-            'is_vp' => 'boolean',
-            'is_president' => 'boolean',
+            'position_role' => 'nullable|in:none,unit_head,division_head,vp,president',
+            'additional_positions' => 'nullable|array',
+            'additional_positions.*.position_name' => 'nullable|string|max:255',
+            'additional_positions.*.office_id' => 'nullable|exists:offices,id',
+            'additional_positions.*.division_id' => 'nullable|exists:divisions,id',
+            'additional_positions.*.unit_id' => 'nullable|exists:units,id',
+            'additional_positions.*.subunit_id' => 'nullable|exists:subunits,id',
+            'additional_positions.*.class_id' => 'nullable|exists:class,id',
+            'additional_positions.*.position_role' => 'nullable|in:none,unit_head,division_head,vp,president',
         ]);
 
-        // Handle checkbox values properly
-        $isActive = $request->has('emp_status') && $request->emp_status == '1' ? 1 : 0;
-        $isHead = $request->has('is_head') && $request->is_head == '1' ? 1 : 0;
-        $isDivisionHead = $request->has('is_divisionhead') && $request->is_divisionhead == '1' ? 1 : 0;
-        $isVP = $request->has('is_vp') && $request->is_vp == '1' ? 1 : 0;
-        $isPresident = $request->has('is_president') && $request->is_president == '1' ? 1 : 0;
+        // Handle checkbox values properly - always set emp_status to active (1)
+        $isActive = 1; // Default to active
+        $selectedRole = $request->input('position_role', ''); // Default to no role for primary position
 
         // Create the user first
         $user = User::create([
@@ -146,18 +171,68 @@ class EmployeeController extends Controller
             'full_name2' => $request->last_name . ', ' . $request->first_name,
             'sex' => $request->sex,
             'prefix' => $request->prefix,
+            'emp_status' => $isActive,
+        ]);
+        
+        // Create the primary position record with role
+        \App\Models\EmpPosition::create([
+            'employee_id' => $employee->id,
             'position_name' => $request->position_name,
             'office_id' => $request->office_id,
             'division_id' => $request->division_id,
             'unit_id' => $request->unit_id,
             'subunit_id' => $request->subunit_id,
             'class_id' => $request->class_id,
-            'emp_status' => $isActive,
-            'is_head' => $isHead,
-            'is_divisionhead' => $isDivisionHead,
-            'is_vp' => $isVP,
-            'is_president' => $isPresident,
+            'is_primary' => true,
+            'is_unit_head' => $selectedRole === 'unit_head',
+            'is_division_head' => $selectedRole === 'division_head',
+            'is_vp' => $selectedRole === 'vp',
+            'is_president' => $selectedRole === 'president',
         ]);
+        
+        // Process additional positions if provided
+        if ($request->has('additional_positions')) {
+            foreach ($request->additional_positions as $position) {
+                if (!empty($position['position_name'])) {
+                    $positionRole = $position['position_role'] ?? 'none';
+                    \App\Models\EmpPosition::create([
+                        'employee_id' => $employee->id,
+                        'position_name' => $position['position_name'],
+                        'office_id' => $position['office_id'] ?? null,
+                        'division_id' => $position['division_id'] ?? null,
+                        'unit_id' => $position['unit_id'] ?? null,
+                        'subunit_id' => $position['subunit_id'] ?? null,
+                        'class_id' => $position['class_id'] ?? null,
+                        'is_primary' => false,
+                        'is_unit_head' => $positionRole === 'unit_head',
+                        'is_division_head' => $positionRole === 'division_head',
+                        'is_vp' => $positionRole === 'vp',
+                        'is_president' => $positionRole === 'president',
+                    ]);
+                }
+            }
+        }
+
+        // Create officer record if any position has a leadership role
+        $hasLeadershipRole = $employee->positions()->where(function($query) {
+            $query->where('is_unit_head', true)
+                  ->orWhere('is_division_head', true)
+                  ->orWhere('is_vp', true)
+                  ->orWhere('is_president', true);
+        })->exists();
+
+        if ($hasLeadershipRole) {
+            $primaryPosition = $employee->positions()->where('is_primary', true)->first();
+            $officerData = [
+                'employee_id' => $employee->id,
+                'unit_head' => $primaryPosition && $primaryPosition->is_unit_head,
+                'division_head' => $primaryPosition && $primaryPosition->is_division_head,
+                'vp' => $primaryPosition && $primaryPosition->is_vp,
+                'president' => $primaryPosition && $primaryPosition->is_president,
+            ];
+            
+            Officer::create($officerData);
+        }
 
         if ($request->wantsJson()) {
             return response()->json([
@@ -176,12 +251,20 @@ class EmployeeController extends Controller
      */
     public function edit(Employee $employee): View
     {
-        $employee->load('user'); // Load the user relationship
+        $employee->load(['user', 'positions']); // Load the user and all position relationships
         
         $offices = Office::all();
-        $divisions = Division::where('office_id', $employee->office_id)->get();
-        $units = Unit::where('division_id', $employee->division_id)->get();
-        $subunits = Subunit::where('unit_id', $employee->unit_id)->get();
+        
+        // Get related divisions, units, and subunits based on primary position
+        $primaryPosition = $employee->positions()->where('is_primary', true)->first();
+        $officeId = $primaryPosition ? $primaryPosition->office_id : null;
+        $divisionId = $primaryPosition ? $primaryPosition->division_id : null;
+        $unitId = $primaryPosition ? $primaryPosition->unit_id : null;
+        
+        $divisions = $officeId ? Division::where('office_id', $officeId)->get() : collect();
+        $units = $divisionId ? Unit::where('division_id', $divisionId)->get() : collect();
+        $subunits = $unitId ? Subunit::where('unit_id', $unitId)->get() : collect();
+        
         $classes = ClassModel::all();
         
         return view('admin.employees.edit', compact('employee', 'offices', 'divisions', 'units', 'subunits', 'classes'));
@@ -207,19 +290,20 @@ class EmployeeController extends Controller
             'unit_id' => 'nullable|exists:units,id',
             'subunit_id' => 'nullable|exists:subunits,id',
             'class_id' => 'nullable|exists:class,id',
-            'emp_status' => 'required|boolean',
-            'is_head' => 'boolean',
-            'is_divisionhead' => 'boolean',
-            'is_vp' => 'boolean',
-            'is_president' => 'boolean',
+            'position_role' => 'nullable|in:none,unit_head,division_head,vp,president',
+            'additional_positions' => 'nullable|array',
+            'additional_positions.*.position_name' => 'nullable|string|max:255',
+            'additional_positions.*.office_id' => 'nullable|exists:offices,id',
+            'additional_positions.*.division_id' => 'nullable|exists:divisions,id',
+            'additional_positions.*.unit_id' => 'nullable|exists:units,id',
+            'additional_positions.*.subunit_id' => 'nullable|exists:subunits,id',
+            'additional_positions.*.class_id' => 'nullable|exists:class,id',
+            'additional_positions.*.position_role' => 'nullable|in:none,unit_head,division_head,vp,president',
         ]);
 
-        // Handle checkbox values properly
-        $isActive = $request->has('emp_status') && $request->emp_status == '1' ? 1 : 0;
-        $isHead = $request->has('is_head') && $request->is_head == '1' ? 1 : 0;
-        $isDivisionHead = $request->has('is_divisionhead') && $request->is_divisionhead == '1' ? 1 : 0;
-        $isVP = $request->has('is_vp') && $request->is_vp == '1' ? 1 : 0;
-        $isPresident = $request->has('is_president') && $request->is_president == '1' ? 1 : 0;
+        // Handle checkbox values properly - always set emp_status to active (1)
+        $isActive = 1; // Default to active
+        $selectedRole = $request->input('position_role', ''); // Default to no role for primary position
 
         // Update the user if it exists
         if ($employee->user) {
@@ -256,18 +340,105 @@ class EmployeeController extends Controller
             'full_name2' => $request->last_name . ', ' . $request->first_name,
             'sex' => $request->sex,
             'prefix' => $request->prefix,
-            'position_name' => $request->position_name,
-            'office_id' => $request->office_id,
-            'division_id' => $request->division_id,
-            'unit_id' => $request->unit_id,
-            'subunit_id' => $request->subunit_id,
-            'class_id' => $request->class_id,
             'emp_status' => $isActive,
-            'is_head' => $isHead,
-            'is_divisionhead' => $isDivisionHead,
-            'is_vp' => $isVP,
-            'is_president' => $isPresident,
         ]);
+        
+        // Update or create the primary position record
+        $primaryPosition = $employee->positions()->where('is_primary', true)->first();
+        if ($primaryPosition) {
+            $primaryPosition->update([
+                'position_name' => $request->position_name,
+                'office_id' => $request->office_id,
+                'division_id' => $request->division_id,
+                'unit_id' => $request->unit_id,
+                'subunit_id' => $request->subunit_id,
+                'class_id' => $request->class_id,
+                'is_unit_head' => $selectedRole === 'unit_head',
+                'is_division_head' => $selectedRole === 'division_head',
+                'is_vp' => $selectedRole === 'vp',
+                'is_president' => $selectedRole === 'president',
+            ]);
+        } else {
+            \App\Models\EmpPosition::create([
+                'employee_id' => $employee->id,
+                'position_name' => $request->position_name,
+                'office_id' => $request->office_id,
+                'division_id' => $request->division_id,
+                'unit_id' => $request->unit_id,
+                'subunit_id' => $request->subunit_id,
+                'class_id' => $request->class_id,
+                'is_primary' => true,
+                'is_unit_head' => $selectedRole === 'unit_head',
+                'is_division_head' => $selectedRole === 'division_head',
+                'is_vp' => $selectedRole === 'vp',
+                'is_president' => $selectedRole === 'president',
+            ]);
+        }
+        
+        // Handle additional positions if provided
+        if ($request->has('additional_positions')) {
+            // First, remove existing additional positions
+            $employee->positions()->where('is_primary', false)->delete();
+            
+            // Add new additional positions
+            foreach ($request->additional_positions as $position) {
+                if (!empty($position['position_name'])) {
+                    $positionRole = $position['position_role'] ?? 'none';
+                    \App\Models\EmpPosition::create([
+                        'employee_id' => $employee->id,
+                        'position_name' => $position['position_name'],
+                        'office_id' => $position['office_id'] ?? null,
+                        'division_id' => $position['division_id'] ?? null,
+                        'unit_id' => $position['unit_id'] ?? null,
+                        'subunit_id' => $position['subunit_id'] ?? null,
+                        'class_id' => $position['class_id'] ?? null,
+                        'is_primary' => false,
+                        'is_unit_head' => $positionRole === 'unit_head',
+                        'is_division_head' => $positionRole === 'division_head',
+                        'is_vp' => $positionRole === 'vp',
+                        'is_president' => $positionRole === 'president',
+                    ]);
+                }
+            }
+        }
+
+        // Update or create officer record based on selected role
+        $hasLeadershipRole = $employee->positions()->where(function($query) {
+            $query->where('is_unit_head', true)
+                  ->orWhere('is_division_head', true)
+                  ->orWhere('is_vp', true)
+                  ->orWhere('is_president', true);
+        })->exists();
+
+        if ($employee->officer) {
+            if ($hasLeadershipRole) {
+                $primaryPosition = $employee->positions()->where('is_primary', true)->first();
+                $officerData = [
+                    'unit_head' => $primaryPosition && $primaryPosition->is_unit_head,
+                    'division_head' => $primaryPosition && $primaryPosition->is_division_head,
+                    'vp' => $primaryPosition && $primaryPosition->is_vp,
+                    'president' => $primaryPosition && $primaryPosition->is_president,
+                ];
+                // Update existing officer record
+                $employee->officer->update($officerData);
+            } else {
+                // Delete officer record if no role is assigned
+                $employee->officer->delete();
+            }
+        } else {
+            // Create new officer record if a role is assigned
+            if ($hasLeadershipRole) {
+                $primaryPosition = $employee->positions()->where('is_primary', true)->first();
+                $officerData = [
+                    'employee_id' => $employee->id,
+                    'unit_head' => $primaryPosition && $primaryPosition->is_unit_head,
+                    'division_head' => $primaryPosition && $primaryPosition->is_division_head,
+                    'vp' => $primaryPosition && $primaryPosition->is_vp,
+                    'president' => $primaryPosition && $primaryPosition->is_president,
+                ];
+                Officer::create($officerData);
+            }
+        }
 
         if ($request->wantsJson()) {
             return response()->json([

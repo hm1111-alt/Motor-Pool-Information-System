@@ -26,16 +26,6 @@ class Employee extends Model
         'sex',
         'prefix',
         'emp_status',
-        'class_id',
-        'position_name',
-        'office_id',
-        'division_id',
-        'unit_id',
-        'subunit_id',
-        'is_head',
-        'is_divisionhead',
-        'is_vp',
-        'is_president',
     ];
 
     /**
@@ -44,16 +34,7 @@ class Employee extends Model
      * @var array<string, string>
      */
     protected $casts = [
-        'is_head' => 'boolean',
-        'is_divisionhead' => 'boolean',
-        'is_vp' => 'boolean',
-        'is_president' => 'boolean',
         'emp_status' => 'integer',
-        'class_id' => 'integer',
-        'office_id' => 'integer',
-        'division_id' => 'integer',
-        'unit_id' => 'integer',
-        'subunit_id' => 'integer',
     ];
 
     /**
@@ -65,11 +46,73 @@ class Employee extends Model
     }
 
     /**
-     * Get the class associated with the employee.
+     * Get all positions for this employee.
      */
-    public function class()
+    public function positions()
     {
-        return $this->belongsTo(ClassModel::class, 'class_id');
+        return $this->hasMany(EmpPosition::class, 'employee_id');
+    }
+
+    /**
+     * Get the primary position information for this employee.
+     */
+    public function position()
+    {
+        return $this->hasOne(EmpPosition::class, 'employee_id')->where('is_primary', true);
+    }
+
+    /**
+     * Get the class associated with the employee through primary position.
+     */
+    public function getClassIdAttribute()
+    {
+        $primaryPosition = $this->positions()->where('is_primary', true)->first();
+        return $primaryPosition ? $primaryPosition->class_id : null;
+    }
+
+    /**
+     * Get the position name associated with the employee through primary position.
+     */
+    public function getPositionNameAttribute()
+    {
+        $primaryPosition = $this->positions()->where('is_primary', true)->first();
+        return $primaryPosition ? $primaryPosition->position_name : null;
+    }
+
+    /**
+     * Get the office associated with the employee through primary position.
+     */
+    public function getOfficeIdAttribute()
+    {
+        $primaryPosition = $this->positions()->where('is_primary', true)->first();
+        return $primaryPosition ? $primaryPosition->office_id : null;
+    }
+
+    /**
+     * Get the division associated with the employee through primary position.
+     */
+    public function getDivisionIdAttribute()
+    {
+        $primaryPosition = $this->positions()->where('is_primary', true)->first();
+        return $primaryPosition ? $primaryPosition->division_id : null;
+    }
+
+    /**
+     * Get the unit associated with the employee through primary position.
+     */
+    public function getUnitIdAttribute()
+    {
+        $primaryPosition = $this->positions()->where('is_primary', true)->first();
+        return $primaryPosition ? $primaryPosition->unit_id : null;
+    }
+
+    /**
+     * Get the subunit associated with the employee through primary position.
+     */
+    public function getSubunitIdAttribute()
+    {
+        $primaryPosition = $this->positions()->where('is_primary', true)->first();
+        return $primaryPosition ? $primaryPosition->subunit_id : null;
     }
 
     /**
@@ -77,7 +120,7 @@ class Employee extends Model
      */
     public function office()
     {
-        return $this->belongsTo(Office::class);
+        return $this->hasOneThrough(Office::class, EmpPosition::class, 'employee_id', 'id', 'id', 'office_id');
     }
 
     /**
@@ -85,7 +128,7 @@ class Employee extends Model
      */
     public function division()
     {
-        return $this->belongsTo(Division::class);
+        return $this->hasOneThrough(Division::class, EmpPosition::class, 'employee_id', 'id', 'id', 'division_id');
     }
 
     /**
@@ -93,7 +136,7 @@ class Employee extends Model
      */
     public function unit()
     {
-        return $this->belongsTo(Unit::class);
+        return $this->hasOneThrough(Unit::class, EmpPosition::class, 'employee_id', 'id', 'id', 'unit_id');
     }
 
     /**
@@ -101,7 +144,79 @@ class Employee extends Model
      */
     public function subunit()
     {
-        return $this->belongsTo(Subunit::class);
+        return $this->hasOneThrough(Subunit::class, EmpPosition::class, 'employee_id', 'id', 'id', 'subunit_id');
+    }
+
+    /**
+     * Get the class associated with the employee.
+     */
+    public function class()
+    {
+        return $this->hasOneThrough(ClassModel::class, EmpPosition::class, 'employee_id', 'id', 'id', 'class_id');
+    }
+
+    /**
+     * Get the officer record for this employee.
+     */
+    public function officer()
+    {
+        return $this->hasOne(Officer::class, 'employee_id');
+    }
+
+    /**
+     * Check if employee is a unit head (using new role-per-position system with fallback)
+     */
+    public function getIsHeadAttribute()
+    {
+        // First check the new role-per-position system
+        $primaryPosition = $this->positions()->where('is_primary', true)->first();
+        if ($primaryPosition && $primaryPosition->is_unit_head) {
+            return true;
+        }
+        // Fallback to old system for compatibility
+        return $this->officer ? $this->officer->unit_head : false;
+    }
+
+    /**
+     * Check if employee is a division head (using new role-per-position system with fallback)
+     */
+    public function getIsDivisionheadAttribute()
+    {
+        // First check the new role-per-position system
+        $primaryPosition = $this->positions()->where('is_primary', true)->first();
+        if ($primaryPosition && $primaryPosition->is_division_head) {
+            return true;
+        }
+        // Fallback to old system for compatibility
+        return $this->officer ? $this->officer->division_head : false;
+    }
+
+    /**
+     * Check if employee is a VP (using new role-per-position system with fallback)
+     */
+    public function getIsVpAttribute()
+    {
+        // First check the new role-per-position system
+        $primaryPosition = $this->positions()->where('is_primary', true)->first();
+        if ($primaryPosition && $primaryPosition->is_vp) {
+            return true;
+        }
+        // Fallback to old system for compatibility
+        return $this->officer ? $this->officer->vp : false;
+    }
+
+    /**
+     * Check if employee is a President (using new role-per-position system with fallback)
+     */
+    public function getIsPresidentAttribute()
+    {
+        // First check the new role-per-position system
+        $primaryPosition = $this->positions()->where('is_primary', true)->first();
+        if ($primaryPosition && $primaryPosition->is_president) {
+            return true;
+        }
+        // Fallback to old system for compatibility
+        return $this->officer ? $this->officer->president : false;
     }
 
     /**

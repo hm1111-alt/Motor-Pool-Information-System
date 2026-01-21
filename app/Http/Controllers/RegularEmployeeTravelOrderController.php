@@ -58,13 +58,13 @@ class RegularEmployeeTravelOrderController extends Controller
                 break;
         }
         
-        // Get paginated results
-        $travelOrders = $query->orderBy('created_at', 'desc')->paginate(10)->appends($request->except('page'));
+        // Get paginated results with position information
+        $travelOrders = $query->with('position')->orderBy('created_at', 'desc')->paginate(10)->appends($request->except('page'));
         
         // Check if this is an AJAX request for partial updates
         if ($request->ajax() || $request->get('ajax')) {
             return response()->json([
-                'table_body' => view('travel-orders.partials.table-rows', compact('travelOrders', 'tab'))->render(),
+                'table_body' => view('travel-orders.partials.table-rows', compact('travelOrders', 'tab'))->with('travelOrders', $travelOrders->load('position'))->render(),
                 'pagination' => (string) $travelOrders->withQueryString()->links()
             ]);
         }
@@ -77,7 +77,17 @@ class RegularEmployeeTravelOrderController extends Controller
      */
     public function create(): View
     {
-        return view('travel-orders.create');
+        $user = Auth::user();
+        $employee = $user->employee;
+        
+        if (!$employee) {
+            abort(403, 'You do not have an employee record.');
+        }
+        
+        // Get all positions for the employee
+        $positions = $employee->positions()->with(['office', 'division', 'unit', 'subunit', 'class'])->get();
+        
+        return view('travel-orders.create', compact('positions'));
     }
 
     /**
@@ -91,6 +101,7 @@ class RegularEmployeeTravelOrderController extends Controller
             'date_to' => 'required|date|after_or_equal:date_from',
             'departure_time' => 'nullable|string|max:20', // Increased max length to accommodate any format
             'purpose' => 'required|string|max:500',
+            'position_id' => 'required|exists:emp_positions,id', // Add validation for position selection
         ]);
 
         $user = Auth::user();
@@ -100,6 +111,14 @@ class RegularEmployeeTravelOrderController extends Controller
         if (!$employee) {
             return redirect()->route('dashboard')
                 ->with('error', 'You do not have an employee record. Please contact your administrator to set up your employee profile.');
+        }
+
+        // Verify that the selected position belongs to the employee
+        $position = $employee->positions()->where('id', $request->position_id)->first();
+        if (!$position) {
+            return redirect()->back()
+                ->with('error', 'Invalid position selected.')
+                ->withInput();
         }
 
         // Process departure_time to ensure it's in the correct format or null
@@ -120,6 +139,7 @@ class RegularEmployeeTravelOrderController extends Controller
         // Create the travel order
         $travelOrder = TravelOrder::create([
             'employee_id' => $employee->id,
+            'emp_position_id' => $request->position_id, // Associate with the selected position
             'destination' => $request->destination,
             'date_from' => $request->date_from,
             'date_to' => $request->date_to,

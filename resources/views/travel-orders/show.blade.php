@@ -31,6 +31,19 @@
                         <div class="bg-gray-50 rounded-xl p-6 border border-gray-200">
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div>
+                                    <h3 class="text-sm font-medium text-gray-500">Position</h3>
+                                    <p class="mt-1 text-base font-medium text-gray-900">
+                                        @if($travelOrder->position)
+                                            {{ $travelOrder->position->position_name }}
+                                            @if($travelOrder->position->office) - {{ $travelOrder->position->office->office_name }} @endif
+                                            @if($travelOrder->position->is_unit_head) (Unit Head) @elseif($travelOrder->position->is_division_head) (Division Head) @elseif($travelOrder->position->is_vp) (VP) @elseif($travelOrder->position->is_president) (President) @endif
+                                        @else
+                                            N/A
+                                        @endif
+                                    </p>
+                                </div>
+                                
+                                <div>
                                     <h3 class="text-sm font-medium text-gray-500">Destination</h3>
                                     <p class="mt-1 text-base font-medium text-gray-900">{{ $travelOrder->destination }}</p>
                                 </div>

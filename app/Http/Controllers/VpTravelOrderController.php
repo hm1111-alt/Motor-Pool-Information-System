@@ -26,18 +26,19 @@ class VpTravelOrderController extends Controller
         // Get search term if provided
         $search = $request->get('search', '');
         
-        // Build the query based on the selected tab
-        $query = TravelOrder::whereHas('employee', function ($query) use ($employee) {
-                $query->where('office_id', $employee->office_id)
-                      ->where('is_divisionhead', 1) // Only division heads
-                      ->where(function ($query) {
-                          $query->where('is_vp', 0)
-                                ->orWhereNull('is_vp');
-                      })
-                      ->where(function ($query) {
-                          $query->where('is_president', 0)
-                                ->orWhereNull('is_president');
-                      });
+        // Find the office_id of the current employee's primary position
+        $primaryPosition = $employee->positions()->where('is_primary', true)->first();
+        $officeId = $primaryPosition ? $primaryPosition->office_id : null;
+        
+        $query = TravelOrder::whereHas('employee', function ($query) {
+                $query->whereHas('officer', function ($officerQuery) {
+                    $officerQuery->where('division_head', true)
+                          ->where('vp', false)
+                          ->where('president', false);
+                });
+            })
+            ->whereHas('position', function ($positionQuery) use ($officeId) {
+                $positionQuery->where('office_id', $officeId);
             })
             ->where('head_approved', true)
             ->where('vp_approved', true); // Already approved by division head
@@ -68,13 +69,13 @@ class VpTravelOrderController extends Controller
                 break;
         }
         
-        // Get paginated results
-        $travelOrders = $query->orderBy('created_at', 'desc')->paginate(10)->appends($request->except('page'));
+        // Get paginated results with position information
+        $travelOrders = $query->with('position', 'employee')->orderBy('created_at', 'desc')->paginate(10)->appends($request->except('page'));
         
         // Check if this is an AJAX request for partial updates
         if ($request->ajax() || $request->get('ajax')) {
             return response()->json([
-                'table_body' => view('travel-orders.approvals.partials.table-rows', compact('travelOrders', 'tab'))->render(),
+                'table_body' => view('travel-orders.approvals.partials.table-rows', compact('travelOrders', 'tab'))->with('travelOrders', $travelOrders->load('position', 'employee'))->render(),
                 'pagination' => (string) $travelOrders->withQueryString()->links()
             ]);
         }
@@ -82,6 +83,46 @@ class VpTravelOrderController extends Controller
         return view('travel-orders.approvals.vp-index', compact('travelOrders', 'tab', 'search'));
     }
 
+    /**
+     * Display the specified resource for approval.
+     */
+    public function show(TravelOrder $travelOrder): View
+    {
+        $user = Auth::user();
+        $employee = $user->employee;
+        
+        // Check if employee exists
+        if (!$employee) {
+            return redirect()->route('dashboard')
+                ->with('error', 'You do not have an employee record. Please contact your administrator to set up your employee profile.');
+        }
+        
+        // Check if the travel order belongs to an employee in the VP's office
+        $vpPrimaryPosition = $employee->positions()->where('is_primary', true)->first();
+        $vpOfficeId = $vpPrimaryPosition ? $vpPrimaryPosition->office_id : null;
+        
+        $travelOrderPosition = $travelOrder->position;
+        
+        // If no position is assigned to the travel order, deny access
+        if (!$travelOrderPosition) {
+            abort(403);
+        }
+        
+        $travelOrderOfficeId = $travelOrderPosition->office_id;
+        
+        // Allow if travel order is from employee in VP's office
+        $isFromOffice = $travelOrderOfficeId === $vpOfficeId;
+        
+        // Also allow if it's the VP's own travel order
+        $isOwn = $travelOrder->employee_id === $employee->id;
+        
+        if (!$isFromOffice && !$isOwn) {
+            abort(403);
+        }
+        
+        return view('travel-orders.show', compact('travelOrder'));
+    }
+    
     /**
      * Approve a travel order.
      */
@@ -91,30 +132,48 @@ class VpTravelOrderController extends Controller
         $employee = $user->employee;
         
         // Ensure the VP can only approve travel orders from their office
-        if ($travelOrder->employee->office_id !== $employee->office_id) {
+        $vpPrimaryPosition = $employee->positions()->where('is_primary', true)->first();
+        $vpOfficeId = $vpPrimaryPosition ? $vpPrimaryPosition->office_id : null;
+        
+        $travelOrderPosition = $travelOrder->position;
+        
+        // If no position is assigned to the travel order, deny access
+        if (!$travelOrderPosition) {
+            abort(403);
+        }
+        
+        $travelOrderOfficeId = $travelOrderPosition->office_id;
+        
+        if ($travelOrderOfficeId !== $vpOfficeId) {
             abort(403);
         }
         
         // Ensure the travel order is from a division head
-        if (!$travelOrder->employee->is_divisionhead) {
+        $travelOrderPosition = $travelOrder->position;
+        if (!$travelOrderPosition || !$travelOrderPosition->is_division_head) {
             abort(403);
         }
         
-        // Ensure the head and division head have already approved this travel order
-        if (!$travelOrder->head_approved || !$travelOrder->vp_approved) {
+        // Ensure the head has already approved this travel order
+        if (!$travelOrder->head_approved) {
             abort(403);
         }
         
-        // Ensure the travel order hasn't already been approved by president
+        // Ensure the travel order hasn't already been approved by VP
+        if (!is_null($travelOrder->vp_approved)) {
+            abort(403);
+        }
+        
+        // Ensure the travel order is still at the VP approval stage (not yet approved by president)
         if (!is_null($travelOrder->president_approved)) {
             abort(403);
         }
         
         // Approve the travel order
         $travelOrder->update([
-            'president_approved' => true,
-            'president_approved_at' => now(),
-            'status' => 'approved', // Fully approved
+            'vp_approved' => true,
+            'vp_approved_at' => now(),
+            'status' => 'pending', // Still pending president approval
         ]);
 
         return redirect()->back()
@@ -130,29 +189,47 @@ class VpTravelOrderController extends Controller
         $employee = $user->employee;
         
         // Ensure the VP can only reject travel orders from their office
-        if ($travelOrder->employee->office_id !== $employee->office_id) {
+        $vpPrimaryPosition = $employee->positions()->where('is_primary', true)->first();
+        $vpOfficeId = $vpPrimaryPosition ? $vpPrimaryPosition->office_id : null;
+        
+        $travelOrderPosition = $travelOrder->position;
+        
+        // If no position is assigned to the travel order, deny access
+        if (!$travelOrderPosition) {
+            abort(403);
+        }
+        
+        $travelOrderOfficeId = $travelOrderPosition->office_id;
+        
+        if ($travelOrderOfficeId !== $vpOfficeId) {
             abort(403);
         }
         
         // Ensure the travel order is from a division head
-        if (!$travelOrder->employee->is_divisionhead) {
+        $travelOrderPosition = $travelOrder->position;
+        if (!$travelOrderPosition || !$travelOrderPosition->is_division_head) {
             abort(403);
         }
         
-        // Ensure the head and division head have already approved this travel order
-        if (!$travelOrder->head_approved || !$travelOrder->vp_approved) {
+        // Ensure the head has already approved this travel order
+        if (!$travelOrder->head_approved) {
             abort(403);
         }
         
-        // Ensure the travel order hasn't already been approved by president
+        // Ensure the travel order hasn't already been approved by VP
+        if (!is_null($travelOrder->vp_approved)) {
+            abort(403);
+        }
+        
+        // Ensure the travel order is still at the VP approval stage (not yet approved by president)
         if (!is_null($travelOrder->president_approved)) {
             abort(403);
         }
         
         // Reject the travel order
         $travelOrder->update([
-            'president_approved' => false,
-            'president_approved_at' => now(),
+            'vp_approved' => false,
+            'vp_approved_at' => now(),
             'status' => 'cancelled',
         ]);
 

@@ -110,6 +110,27 @@ Route::middleware('auth')->group(function () {
     
     Route::get('/admin/employees', [EmployeeController::class, 'index'])->name('admin.employees.index');
     Route::get('/admin/employees/create', [EmployeeController::class, 'create'])->name('admin.employees.create');
+    Route::get('/admin/employees/test-form', function () {
+        return view('admin.employees.test-form');
+    })->name('admin.employees.test-form');
+    Route::get('/admin/employees/debug-form', function () {
+        return view('admin.employees.debug-form');
+    })->name('admin.employees.debug-form');
+    Route::get('/admin/employees/create-fixed', function () {
+        $offices = \App\Models\Office::all();
+        $classes = \App\Models\ClassModel::all();
+        $divisions = \App\Models\Division::all();
+        $units = \App\Models\Unit::all();
+        $subunits = \App\Models\Subunit::all();
+        $roles = collect([
+            (object)['id' => 0, 'name' => 'none'],
+            (object)['id' => 1, 'name' => 'unit_head'],
+            (object)['id' => 2, 'name' => 'division_head'],
+            (object)['id' => 3, 'name' => 'vp'],
+            (object)['id' => 4, 'name' => 'president'],
+        ]);
+        return view('admin.employees.create-fixed', compact('offices', 'classes', 'divisions', 'units', 'subunits', 'roles'));
+    })->name('admin.employees.create-fixed');
     Route::post('/admin/employees', [EmployeeController::class, 'store'])->name('admin.employees.store');
     Route::get('/admin/employees/{employee}/edit', [EmployeeController::class, 'edit'])->name('admin.employees.edit');
     Route::put('/admin/employees/{employee}', [EmployeeController::class, 'update'])->name('admin.employees.update');
@@ -149,6 +170,7 @@ Route::middleware('auth')->group(function () {
     
     // Travel Order Approval Routes for Heads
     Route::get('/travel-orders/approvals/head', [HeadTravelOrderController::class, 'index'])->name('travel-orders.approvals.head');
+    Route::get('/travel-orders/{travelOrder}/approval-show/head', [HeadTravelOrderController::class, 'show'])->name('travel-orders.approval-show.head');
     Route::put('/travel-orders/{travelOrder}/approve/head', [HeadTravelOrderController::class, 'approve'])->name('travel-orders.approve.head');
     Route::put('/travel-orders/{travelOrder}/reject/head', [HeadTravelOrderController::class, 'reject'])->name('travel-orders.reject.head');
     
@@ -163,6 +185,7 @@ Route::middleware('auth')->group(function () {
     
     // Travel Order Approval Routes for Division Heads
     Route::get('/travel-orders/approvals/divisionhead', [DivisionHeadTravelOrderController::class, 'index'])->name('travel-orders.approvals.divisionhead');
+    Route::get('/travel-orders/{travelOrder}/approval-show/divisionhead', [DivisionHeadTravelOrderController::class, 'show'])->name('travel-orders.approval-show.divisionhead');
     Route::put('/travel-orders/{travelOrder}/approve/divisionhead', [DivisionHeadTravelOrderController::class, 'approve'])->name('travel-orders.approve.divisionhead');
     Route::put('/travel-orders/{travelOrder}/reject/divisionhead', [DivisionHeadTravelOrderController::class, 'reject'])->name('travel-orders.reject.divisionhead');
     
@@ -177,6 +200,7 @@ Route::middleware('auth')->group(function () {
     
     // Travel Order Approval Routes for VPs
     Route::get('/travel-orders/approvals/vp', [VpTravelOrderController::class, 'index'])->name('travel-orders.approvals.vp');
+    Route::get('/travel-orders/{travelOrder}/approval-show/vp', [VpTravelOrderController::class, 'show'])->name('travel-orders.approval-show.vp');
     Route::put('/travel-orders/{travelOrder}/approve/vp', [VpTravelOrderController::class, 'approve'])->name('travel-orders.approve.vp');
     Route::put('/travel-orders/{travelOrder}/reject/vp', [VpTravelOrderController::class, 'reject'])->name('travel-orders.reject.vp');
     
@@ -191,6 +215,7 @@ Route::middleware('auth')->group(function () {
     
     // Travel Order Approval Routes for Presidents
     Route::get('/travel-orders/approvals/president', [PresidentTravelOrderController::class, 'index'])->name('travel-orders.approvals.president');
+    Route::get('/travel-orders/{travelOrder}/approval-show/president', [PresidentTravelOrderController::class, 'show'])->name('travel-orders.approval-show.president');
     Route::put('/travel-orders/{travelOrder}/approve/president', [PresidentTravelOrderController::class, 'approve'])->name('travel-orders.approve.president');
     Route::put('/travel-orders/{travelOrder}/reject/president', [PresidentTravelOrderController::class, 'reject'])->name('travel-orders.reject.president');
     

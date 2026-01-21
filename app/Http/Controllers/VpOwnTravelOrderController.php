@@ -41,7 +41,7 @@ class VpOwnTravelOrderController extends Controller
                 break;
         }
         
-        $travelOrders = $query->orderBy('created_at', 'desc')->paginate(10);
+        $travelOrders = $query->with('position')->orderBy('created_at', 'desc')->paginate(10);
         
         return view('travel-orders.index', compact('travelOrders', 'tab'));
     }
@@ -51,7 +51,17 @@ class VpOwnTravelOrderController extends Controller
      */
     public function create(): View
     {
-        return view('travel-orders.create');
+        $user = Auth::user();
+        $employee = $user->employee;
+        
+        if (!$employee) {
+            abort(403, 'You do not have an employee record.');
+        }
+        
+        // Get all positions for the employee
+        $positions = $employee->positions()->with(['office', 'division', 'unit', 'subunit', 'class'])->get();
+        
+        return view('travel-orders.create', compact('positions'));
     }
 
     /**
@@ -62,17 +72,33 @@ class VpOwnTravelOrderController extends Controller
         $request->validate([
             'destination' => 'required|string|max:255',
             'date_from' => 'required|date|before_or_equal:date_to',
-            'date_to' => 'required|date|after_or_equal:date_from',
+            'date_to' => 'required|date|after_or_equal=date_from',
             'departure_time' => 'nullable|date_format:H:i',
             'purpose' => 'required|string|max:500',
+            'position_id' => 'required|exists:emp_positions,id', // Add validation for position selection
         ]);
-
+        
         $user = Auth::user();
         $employee = $user->employee;
-
+                
+        // Check if employee exists
+        if (!$employee) {
+            return redirect()->route('dashboard')
+                ->with('error', 'You do not have an employee record. Please contact your administrator to set up your employee profile.');
+        }
+        
+        // Verify that the selected position belongs to the employee
+        $position = $employee->positions()->where('id', $request->position_id)->first();
+        if (!$position) {
+            return redirect()->back()
+                ->with('error', 'Invalid position selected.')
+                ->withInput();
+        }
+        
         // Create the travel order
         $travelOrder = TravelOrder::create([
             'employee_id' => $employee->id,
+            'emp_position_id' => $request->position_id, // Associate with the selected position
             'destination' => $request->destination,
             'date_from' => $request->date_from,
             'date_to' => $request->date_to,
@@ -80,7 +106,7 @@ class VpOwnTravelOrderController extends Controller
             'purpose' => $request->purpose,
             'status' => 'pending',
         ]);
-
+        
         return redirect()->route('vp.travel-orders.index', ['tab' => 'pending'])
             ->with('success', 'Travel order created successfully.');
     }

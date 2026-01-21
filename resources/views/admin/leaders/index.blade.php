@@ -1,8 +1,16 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            {{ __('Leadership Roles Management') }}
-        </h2>
+        <div class="flex items-center justify-between">
+            <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+                {{ __('Leadership Roles Management') }}
+            </h2>
+            <a href="{{ route('dashboard') }}" class="bg-gray-500 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition duration-300 flex items-center shadow-md hover:shadow-lg">
+                <svg class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                </svg>
+                Back to Dashboard
+            </a>
+        </div>
     </x-slot>
 
     <div class="py-6">
@@ -68,7 +76,9 @@
                                         if ($isPresidentOffice) {
                                             continue;
                                         }
-                                        $vp = $office->employees->where('is_vp', true)->first();
+                                        $vp = $office->employees->filter(function ($employee) {
+                                            return $employee->is_vp;
+                                        })->first();
                                     @endphp
                                     <div class="bg-gray-50 rounded-lg p-4 office-item" data-name="{{ strtolower($office->office_name) }}">
                                         <div class="flex items-center justify-between">
@@ -104,7 +114,9 @@
                             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="divisions-container">
                                 @foreach($divisions as $division)
                                     @php
-                                        $divisionHead = $division->employees->where('is_divisionhead', true)->first();
+                                        $divisionHead = $division->employees->filter(function ($employee) {
+                                            return $employee->is_divisionhead;
+                                        })->first();
                                     @endphp
                                     <div class="bg-gray-50 rounded-lg p-4 division-item" data-name="{{ strtolower($division->division_name) }}" data-office="{{ strtolower($division->office->office_name ?? '') }}">
                                         <div class="flex items-center justify-between">
@@ -140,7 +152,9 @@
                             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="units-container">
                                 @foreach($units as $unit)
                                     @php
-                                        $unitHead = $unit->employees->where('is_head', true)->first();
+                                        $unitHead = $unit->employees->filter(function ($employee) {
+                                            return $employee->is_head;
+                                        })->first();
                                     @endphp
                                     <div class="bg-gray-50 rounded-lg p-4 unit-item" data-name="{{ strtolower($unit->unit_name) }}" data-division="{{ strtolower($unit->division->division_name ?? '') }}" data-office="{{ strtolower($unit->division->office->office_name ?? '') }}">
                                         <div class="flex items-center justify-between">
