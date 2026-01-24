@@ -43,6 +43,8 @@ class DashboardController extends Controller
                     return view('dashboards.vp');
                 } elseif ($employee->is_divisionhead) {
                     return view('dashboards.divisionhead');
+                } elseif ($employee->is_head && !$employee->is_divisionhead && !$employee->is_vp) {
+                    return view('dashboards.unithed');
                 } elseif ($employee->is_head) {
                     return view('dashboards.head');
                 } else {

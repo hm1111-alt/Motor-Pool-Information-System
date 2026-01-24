@@ -26,14 +26,24 @@ class PresidentTravelOrderController extends Controller
         // Get search term if provided
         $search = $request->get('search', '');
         
-        // Build the query based on the selected tab
-        $query = TravelOrder::whereHas('employee', function ($query) {
-                $query->whereHas('officer', function ($officerQuery) {
+        // Build the query to include all travel orders that could be relevant to the president
+        // This includes both VP and division head travel orders regardless of approval status
+        $query = TravelOrder::where(function ($subQuery) {
+                // Include VP travel orders (they go directly to president)
+                $subQuery->whereHas('employee.officer', function ($officerQuery) {
                     $officerQuery->where('vp', true);
                 });
-            })
-            ->where('head_approved', true)
-            ->where('vp_approved', true); // Already approved by head and VP
+                
+                // Or include division head travel orders that need president approval
+                $subQuery->orWhere(function ($orSubQuery) {
+                    $orSubQuery->whereHas('employee.officer', function ($officerQuery) {
+                        $officerQuery->where('division_head', true)
+                              ->where('vp', false)
+                              ->where('president', false);
+                    })
+                    ->where('vp_approved', true); // Already approved by VP, need president approval
+                });
+            });
         
         // Apply search filter if provided
         if (!empty($search)) {
@@ -50,16 +60,19 @@ class PresidentTravelOrderController extends Controller
         
         switch ($tab) {
             case 'approved':
-                $query->where('status', 'approved');
+                $query->where(function($q) {
+                    $q->where('president_approved', true);
+                });
                 break;
             case 'cancelled':
-                $query->where('status', 'cancelled');
+                $query->where(function($q) {
+                    $q->where('president_approved', false);
+                });
                 break;
             case 'pending':
             default:
                 $query->where(function($q) {
-                    $q->where('status', 'pending_president_approval')
-                      ->orWhere('status', 'pending');
+                    $q->where('president_approved', null);
                 });
                 break;
         }
@@ -101,9 +114,14 @@ class PresidentTravelOrderController extends Controller
         $isOwn = $travelOrder->employee_id === $employee->id;
         
         // For presidents, allow viewing any travel order that requires presidential approval
-        // This includes VP travel orders that need president approval
-        $travelOrderPosition = $travelOrder->position;
-        $requiresPresApproval = $travelOrderPosition && $travelOrderPosition->is_vp;
+        // This includes VP travel orders and division head travel orders that need president approval
+        $requiresPresApproval = false;
+        
+        if ($travelOrder->employee && $travelOrder->employee->is_vp && is_null($travelOrder->president_approved)) {
+            $requiresPresApproval = true;
+        } elseif ($travelOrder->employee && $travelOrder->employee->is_divisionhead && $travelOrder->vp_approved && is_null($travelOrder->president_approved)) {
+            $requiresPresApproval = true;
+        }
         
         if (!$requiresPresApproval && !$isOwn) {
             abort(403);
@@ -120,15 +138,19 @@ class PresidentTravelOrderController extends Controller
         $user = Auth::user();
         $employee = $user->employee;
         
-        // Ensure the travel order is from a VP
-        // Check if the position used for this travel order has VP role
-        $travelOrderPosition = $travelOrder->position;
-        if (!$travelOrderPosition || !$travelOrderPosition->is_vp) {
-            abort(403);
+        // Ensure the travel order is from a VP or division head
+        $isValidTravelOrder = false;
+        
+        // Check if it's a VP travel order
+        if ($travelOrder->employee && $travelOrder->employee->is_vp && is_null($travelOrder->president_approved)) {
+            $isValidTravelOrder = true;
+        } 
+        // Check if it's a division head travel order
+        elseif ($travelOrder->employee && $travelOrder->employee->is_divisionhead && $travelOrder->vp_approved && is_null($travelOrder->president_approved)) {
+            $isValidTravelOrder = true;
         }
         
-        // Ensure all prior approvals are in place
-        if (!$travelOrder->head_approved || !$travelOrder->vp_approved) {
+        if (!$isValidTravelOrder) {
             abort(403);
         }
         
@@ -156,15 +178,19 @@ class PresidentTravelOrderController extends Controller
         $user = Auth::user();
         $employee = $user->employee;
         
-        // Ensure the travel order is from a VP
-        // Check if the position used for this travel order has VP role
-        $travelOrderPosition = $travelOrder->position;
-        if (!$travelOrderPosition || !$travelOrderPosition->is_vp) {
-            abort(403);
+        // Ensure the travel order is from a VP or division head
+        $isValidTravelOrder = false;
+        
+        // Check if it's a VP travel order
+        if ($travelOrder->employee && $travelOrder->employee->is_vp && is_null($travelOrder->president_approved)) {
+            $isValidTravelOrder = true;
+        } 
+        // Check if it's a division head travel order
+        elseif ($travelOrder->employee && $travelOrder->employee->is_divisionhead && $travelOrder->vp_approved && is_null($travelOrder->president_approved)) {
+            $isValidTravelOrder = true;
         }
         
-        // Ensure all prior approvals are in place
-        if (!$travelOrder->head_approved || !$travelOrder->vp_approved) {
+        if (!$isValidTravelOrder) {
             abort(403);
         }
         

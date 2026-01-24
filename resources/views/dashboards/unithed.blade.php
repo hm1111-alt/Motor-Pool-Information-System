@@ -2,7 +2,7 @@
 
 @section('header')
     <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-        {{ __('President Dashboard') }}
+        {{ __('Unit Head Dashboard') }}
     </h2>
 @endsection
 
@@ -15,7 +15,7 @@
                     <div class="flex flex-col md:flex-row md:items-center md:justify-between">
                         <div>
                             <h1 class="text-2xl font-bold text-gray-800">Welcome, {{ Auth::user()->employee->first_name ?? Auth::user()->name }}!</h1>
-                            <p class="text-gray-600 mt-1">President dashboard for travel request management and institutional oversight. Your travel requests are automatically approved and sent to the motorpool.</p>
+                            <p class="text-gray-600 mt-1">Unit head dashboard for managing travel requests and unit operations.</p>
                         </div>
                         <div class="mt-4 md:mt-0">
                             <div class="flex items-center">
@@ -45,8 +45,8 @@
                                 </div>
                                 <div class="ml-4">
                                     <h3 class="text-lg font-semibold text-gray-800">My Travel Requests</h3>
-                                    <p class="text-gray-600 text-sm mt-1 mb-3">Manage your travel requests. All requests are automatically approved and sent to the motorpool.</p>
-                                    <a href="{{ route('president.travel-orders.index') }}" class="inline-flex items-center px-4 py-2 bg-white border border-green-300 text-green-800 rounded-lg hover:bg-green-50 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 text-sm font-medium transition duration-200 shadow-sm">
+                                    <p class="text-gray-600 text-sm mt-1 mb-3">Manage your travel requests and view their status.</p>
+                                    <a href="{{ route('unithead.travel-orders.index') }}" class="inline-flex items-center px-4 py-2 bg-white border border-green-300 text-green-800 rounded-lg hover:bg-green-50 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 text-sm font-medium transition duration-200 shadow-sm">
                                         View Requests
                                         <svg class="ml-1 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
@@ -66,8 +66,8 @@
                                 </div>
                                 <div class="ml-4">
                                     <h3 class="text-lg font-semibold text-gray-800">Create Travel Order</h3>
-                                    <p class="text-gray-600 text-sm mt-1 mb-3">Submit a new travel request. Requests are automatically approved and sent to the motorpool.</p>
-                                    <a href="{{ route('president.travel-orders.create') }}" class="inline-flex items-center px-4 py-2 bg-white border border-indigo-300 text-indigo-800 rounded-lg hover:bg-indigo-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 text-sm font-medium transition duration-200 shadow-sm">
+                                    <p class="text-gray-600 text-sm mt-1 mb-3">Submit a new travel request for approval.</p>
+                                    <a href="{{ route('unithead.travel-orders.create') }}" class="inline-flex items-center px-4 py-2 bg-white border border-indigo-300 text-indigo-800 rounded-lg hover:bg-indigo-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 text-sm font-medium transition duration-200 shadow-sm">
                                         Create Request
                                         <svg class="ml-1 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
@@ -77,7 +77,7 @@
                             </div>
                         </div>
                         
-                        <!-- Institutional Calendar -->
+                        <!-- Unit Schedule -->
                         <div class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl border border-blue-200 p-5 transition-all duration-200 hover:shadow-md">
                             <div class="flex items-start">
                                 <div class="rounded-lg bg-blue-600 p-3 flex-shrink-0">
@@ -86,8 +86,8 @@
                                     </svg>
                                 </div>
                                 <div class="ml-4">
-                                    <h3 class="text-lg font-semibold text-gray-800">Institution Schedule</h3>
-                                    <p class="text-gray-600 text-sm mt-1 mb-3">View vehicle assignments and schedules across the institution.</p>
+                                    <h3 class="text-lg font-semibold text-gray-800">Unit Schedule</h3>
+                                    <p class="text-gray-600 text-sm mt-1 mb-3">View vehicle assignments and schedules for your unit.</p>
                                     <a href="{{ route('vehicle-calendar.index') }}" class="inline-flex items-center px-4 py-2 bg-white border border-blue-300 text-blue-800 rounded-lg hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 text-sm font-medium transition duration-200 shadow-sm">
                                         Open Calendar
                                         <svg class="ml-1 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">

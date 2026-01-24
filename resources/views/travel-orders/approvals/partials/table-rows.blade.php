@@ -89,7 +89,7 @@
     </tr>
 @empty
     <tr>
-        <td colspan="{{ (isset($tab) && $tab == 'pending') || !isset($tab) ? '9' : '8' }}" class="px-4 py-4 text-center text-sm text-gray-500">
+        <td colspan="{{ (isset($tab) && $tab == 'pending') || !isset($tab) ? '8' : '7' }}" class="px-4 py-4 text-center text-sm text-gray-500">
             @if(isset($tab))
                 @switch($tab)
                     @case('pending')

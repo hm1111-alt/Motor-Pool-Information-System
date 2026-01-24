@@ -15,6 +15,7 @@ use App\Http\Controllers\HeadTravelOrderController;
 use App\Http\Controllers\HeadOwnTravelOrderController;
 use App\Http\Controllers\DivisionHeadTravelOrderController;
 use App\Http\Controllers\DivisionHeadOwnTravelOrderController;
+use App\Http\Controllers\UnitHeadOwnTravelOrderController;
 use App\Http\Controllers\VpTravelOrderController;
 use App\Http\Controllers\VpOwnTravelOrderController;
 use App\Http\Controllers\PresidentTravelOrderController;
@@ -173,6 +174,15 @@ Route::middleware('auth')->group(function () {
     Route::get('/travel-orders/{travelOrder}/approval-show/head', [HeadTravelOrderController::class, 'show'])->name('travel-orders.approval-show.head');
     Route::put('/travel-orders/{travelOrder}/approve/head', [HeadTravelOrderController::class, 'approve'])->name('travel-orders.approve.head');
     Route::put('/travel-orders/{travelOrder}/reject/head', [HeadTravelOrderController::class, 'reject'])->name('travel-orders.reject.head');
+    
+    // Travel Order Routes for Unit Heads (own travel orders)
+    Route::get('/unithead/travel-orders', [UnitHeadOwnTravelOrderController::class, 'index'])->name('unithead.travel-orders.index');
+    Route::get('/unithead/travel-orders/create', [UnitHeadOwnTravelOrderController::class, 'create'])->name('unithead.travel-orders.create');
+    Route::post('/unithead/travel-orders', [UnitHeadOwnTravelOrderController::class, 'store'])->name('unithead.travel-orders.store');
+    Route::get('/unithead/travel-orders/{travelOrder}', [UnitHeadOwnTravelOrderController::class, 'show'])->name('unithead.travel-orders.show');
+    Route::get('/unithead/travel-orders/{travelOrder}/edit', [UnitHeadOwnTravelOrderController::class, 'edit'])->name('unithead.travel-orders.edit');
+    Route::put('/unithead/travel-orders/{travelOrder}', [UnitHeadOwnTravelOrderController::class, 'update'])->name('unithead.travel-orders.update');
+    Route::delete('/unithead/travel-orders/{travelOrder}', [UnitHeadOwnTravelOrderController::class, 'destroy'])->name('unithead.travel-orders.destroy');
     
     // Travel Order Routes for Division Heads (own travel orders)
     Route::get('/divisionhead/travel-orders', [DivisionHeadOwnTravelOrderController::class, 'index'])->name('divisionhead.travel-orders.index');

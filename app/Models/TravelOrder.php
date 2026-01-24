@@ -80,6 +80,16 @@ class TravelOrder extends Model
             return 'Approved';
         }
         
+        // For division heads, if president_approved = 1, remarks = Approved (fully approved)
+        if ($this->employee->is_divisionhead && $this->president_approved) {
+            return 'Approved';
+        }
+        
+        // For division heads, if vp_approved = 1 but president_approved is null, remarks = For President Approval
+        if ($this->employee->is_divisionhead && $this->vp_approved && is_null($this->president_approved)) {
+            return 'For President Approval';
+        }
+        
         // if president_approved = 1, remarks = Approved
         if ($this->president_approved) {
             return 'Approved';
@@ -92,7 +102,12 @@ class TravelOrder extends Model
         
         // if vp_approved = 1 (for division head requests), remarks = For President approval
         if ($this->vp_approved && $this->employee->is_divisionhead) {
-            return 'For President approval';
+            return 'For President Approval';
+        }
+        
+        // if vp_approved = 1 (for unit head requests after division head approval), remarks = Approved
+        if ($this->vp_approved && $this->employee->is_head && !$this->employee->is_divisionhead && !$this->employee->is_vp) {
+            return 'Approved';
         }
         
         // if vp_approved = 1 (for other requests), remarks = Approved
@@ -100,15 +115,14 @@ class TravelOrder extends Model
             return 'Approved';
         }
         
-        // if divisionhead_approved = 1, remarks = For VP approval (for unit head requests) or Approved (for regular employee requests)
-        if ($this->divisionhead_approved) {
-            // For regular employees, if division head approved, it's fully approved
-            if (!$this->employee->is_head && !$this->employee->is_divisionhead && !$this->employee->is_vp && !$this->employee->is_president) {
-                return 'Approved';
-            } else {
-                // For unit heads, if division head approved, it's for VP approval
-                return 'For VP approval';
-            }
+        // if divisionhead_approved = 1 (for unit head requests), remarks = For VP approval
+        if ($this->divisionhead_approved && $this->employee->is_head && !$this->employee->is_divisionhead && !$this->employee->is_vp) {
+            return 'For VP Approval';
+        }
+        
+        // if divisionhead_approved = 1 (for regular employee requests), remarks = Approved
+        if ($this->divisionhead_approved && !$this->employee->is_head) {
+            return 'Approved';
         }
         
         // if head_approved = 1 but divisionhead_approved is null (for regular employee requests), remarks = For Division Head approval
@@ -131,13 +145,13 @@ class TravelOrder extends Model
             return 'Pending';
         }
         
-        // For division heads, if no approval yet, remarks = Pending
-        if ($this->employee->is_divisionhead && is_null($this->vp_approved)) {
+        // For VPs, if no approval yet, remarks = Pending
+        if ($this->employee->is_vp && is_null($this->president_approved)) {
             return 'Pending';
         }
         
-        // For VPs, if no approval yet, remarks = Pending
-        if ($this->employee->is_vp && is_null($this->president_approved)) {
+        // For division heads, if no approval yet, remarks = Pending
+        if ($this->employee->is_divisionhead && is_null($this->vp_approved)) {
             return 'Pending';
         }
         
@@ -153,6 +167,11 @@ class TravelOrder extends Model
         
         // if vp_approved = 0 (rejected by VP for VP's own requests), remarks = Cancelled
         if (!is_null($this->vp_approved) && !$this->vp_approved && $this->employee->is_vp) {
+            return 'Cancelled';
+        }
+        
+        // if vp_approved = 0 (rejected by VP for division head's requests), remarks = Cancelled
+        if (!is_null($this->vp_approved) && !$this->vp_approved && $this->employee->is_divisionhead) {
             return 'Cancelled';
         }
         

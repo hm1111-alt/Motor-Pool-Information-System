@@ -30,29 +30,58 @@ class DivisionHeadTravelOrderController extends Controller
         $primaryPosition = $employee->positions()->where('is_primary', true)->first();
         $divisionId = $primaryPosition ? $primaryPosition->division_id : null;
         
-        $query = TravelOrder::whereHas('employee', function ($query) {
-                $query->where(function ($subQuery) {
-                    $subQuery->whereDoesntHave('officer') // Regular employees without officer records
-                          ->orWhereHas('officer', function ($officerQuery) {
-                              $officerQuery->where(function ($innerQuery) {
-                                  $innerQuery->where('unit_head', true)  // Unit heads
-                                        ->where('division_head', false)
-                                        ->where('vp', false)
-                                        ->where('president', false);
-                              })
-                              ->orWhere(function ($innerQuery) {
-                                  $innerQuery->where('unit_head', false)  // Regular employees with officer records but no leadership roles
-                                        ->where('division_head', false)
-                                        ->where('vp', false)
-                                        ->where('president', false);
-                              });
-                          });
+        $query = TravelOrder::whereHas('employee', function ($employeeQuery) {
+                $employeeQuery->where(function ($empSubQuery) {
+                    // Include regular employees (without officer records)
+                    $empSubQuery->whereDoesntHave('officer')
+                    ->orWhereHas('officer', function ($officerQuery) {
+                        $officerQuery->where(function ($roleQuery) {
+                            // Include regular employees with no leadership roles
+                            $roleQuery->where('unit_head', false)
+                                  ->where('division_head', false)
+                                  ->where('vp', false)
+                                  ->where('president', false);
+                        })
+                        ->orWhere(function ($roleQuery) {
+                            // Include unit heads
+                            $roleQuery->where('unit_head', true)
+                                  ->where('division_head', false)
+                                  ->where('vp', false)
+                                  ->where('president', false);
+                        });
+                    });
                 });
             })
             ->whereHas('position', function ($positionQuery) use ($divisionId) {
                 $positionQuery->where('division_id', $divisionId);
             })
-            ->where('head_approved', true);  // Already approved by head
+            ->where(function ($q) {
+                // For regular employees: head must be approved
+                $q->where(function ($subQ) {
+                    $subQ->whereHas('employee.officer', function ($officerQuery) {
+                        $officerQuery->where('unit_head', false)
+                              ->where('division_head', false)
+                              ->where('vp', false)
+                              ->where('president', false);
+                    })
+                    ->where('head_approved', true);
+                })
+                ->orWhere(function ($subQ) {
+                    // For employees without officer records (regular employees): head must be approved
+                    $subQ->whereDoesntHave('employee.officer')
+                    ->where('head_approved', true);
+                })
+                ->orWhere(function ($orQ) {
+                    // For unit heads: no head approval needed
+                    $orQ->whereHas('employee.officer', function ($officerQuery) {
+                        $officerQuery->where('unit_head', true)
+                              ->where('division_head', false)
+                              ->where('vp', false)
+                              ->where('president', false);
+                    });
+                    // No additional approval needed before division head for unit heads
+                });
+            });
         
         // Apply search filter if provided
         if (!empty($search)) {
@@ -166,13 +195,13 @@ class DivisionHeadTravelOrderController extends Controller
         }
         
         // Ensure the travel order is from a regular employee or unit head (but not division head, VP, or president)
-        $travelOrderPosition = $travelOrder->position;
-        if ($travelOrderPosition && ($travelOrderPosition->is_division_head || $travelOrderPosition->is_vp || $travelOrderPosition->is_president)) {
+        if ($travelOrder->employee && ($travelOrder->employee->is_divisionhead || $travelOrder->employee->is_vp || $travelOrder->employee->is_president)) {
             abort(403);
         }
         
-        // Ensure the head has already approved this travel order
-        if (!$travelOrder->head_approved) {
+        // For unit head travel orders, no need for head approval
+        // For regular employee travel orders, ensure the head has already approved
+        if (!$travelOrder->employee->is_head && !$travelOrder->head_approved) {
             abort(403);
         }
         
@@ -191,7 +220,7 @@ class DivisionHeadTravelOrderController extends Controller
         $travelOrder->update([
             'divisionhead_approved' => true,
             'divisionhead_approved_at' => now(),
-            'status' => 'approved', // Fully approved by division head for regular employee
+            'status' => $travelOrder->employee->is_head && !$travelOrder->employee->is_divisionhead ? 'pending' : 'approved', // Keep pending for unit heads (need VP approval), approved for regular employees
         ]);
 
         return redirect()->back()
@@ -229,13 +258,13 @@ class DivisionHeadTravelOrderController extends Controller
         }
         
         // Ensure the travel order is from a regular employee or unit head (but not division head, VP, or president)
-        $travelOrderPosition = $travelOrder->position;
-        if ($travelOrderPosition && ($travelOrderPosition->is_division_head || $travelOrderPosition->is_vp || $travelOrderPosition->is_president)) {
+        if ($travelOrder->employee && ($travelOrder->employee->is_divisionhead || $travelOrder->employee->is_vp || $travelOrder->employee->is_president)) {
             abort(403);
         }
         
-        // Ensure the head has already approved this travel order
-        if (!$travelOrder->head_approved) {
+        // For unit head travel orders, no need for head approval
+        // For regular employee travel orders, ensure the head has already approved
+        if (!$travelOrder->employee->is_head && !$travelOrder->head_approved) {
             abort(403);
         }
         

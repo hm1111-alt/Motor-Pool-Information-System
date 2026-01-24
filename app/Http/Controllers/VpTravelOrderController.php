@@ -30,18 +30,31 @@ class VpTravelOrderController extends Controller
         $primaryPosition = $employee->positions()->where('is_primary', true)->first();
         $officeId = $primaryPosition ? $primaryPosition->office_id : null;
         
-        $query = TravelOrder::whereHas('employee', function ($query) {
-                $query->whereHas('officer', function ($officerQuery) {
+        $query = TravelOrder::where(function ($query) {
+                // Include division head travel orders that need VP approval (division heads approve their own)
+                $query->whereHas('employee.officer', function ($officerQuery) {
                     $officerQuery->where('division_head', true)
                           ->where('vp', false)
                           ->where('president', false);
+                })
+                ->where(function($subQuery) {
+                    // Division head travel orders don't need head approval, they go directly to VP
+                    $subQuery->whereNull('vp_approved');
+                })
+                ->orWhere(function ($orQuery) {
+                    // Include unit head travel orders that have been approved by division head
+                    $orQuery->whereHas('employee.officer', function ($officerQuery) {
+                        $officerQuery->where('unit_head', true)
+                              ->where('division_head', false)
+                              ->where('vp', false)
+                              ->where('president', false);
+                    })
+                    ->where('divisionhead_approved', true);
                 });
             })
             ->whereHas('position', function ($positionQuery) use ($officeId) {
                 $positionQuery->where('office_id', $officeId);
-            })
-            ->where('head_approved', true)
-            ->where('vp_approved', true); // Already approved by division head
+            });
         
         // Apply search filter if provided
         if (!empty($search)) {
@@ -58,14 +71,14 @@ class VpTravelOrderController extends Controller
         
         switch ($tab) {
             case 'approved':
-                $query->where('president_approved', true);
+                $query->where('vp_approved', true);
                 break;
             case 'cancelled':
-                $query->where('president_approved', false);
+                $query->where('vp_approved', false);
                 break;
             case 'pending':
             default:
-                $query->where('president_approved', null);
+                $query->where('vp_approved', null);
                 break;
         }
         
@@ -109,6 +122,15 @@ class VpTravelOrderController extends Controller
         }
         
         $travelOrderOfficeId = $travelOrderPosition->office_id;
+        $travelOrderDivisionId = $travelOrderPosition->division_id;
+        
+        // For unit head travel orders, check if they're from the same division
+        $isFromDivision = false;
+        if ($travelOrder->employee->is_head && !$travelOrder->employee->is_divisionhead) {
+            $vpPrimaryPosition = $employee->positions()->where('is_primary', true)->first();
+            $vpDivisionId = $vpPrimaryPosition ? $vpPrimaryPosition->division_id : null;
+            $isFromDivision = $travelOrderDivisionId === $vpDivisionId;
+        }
         
         // Allow if travel order is from employee in VP's office
         $isFromOffice = $travelOrderOfficeId === $vpOfficeId;
@@ -116,7 +138,7 @@ class VpTravelOrderController extends Controller
         // Also allow if it's the VP's own travel order
         $isOwn = $travelOrder->employee_id === $employee->id;
         
-        if (!$isFromOffice && !$isOwn) {
+        if (!$isFromOffice && !$isFromDivision && !$isOwn) {
             abort(403);
         }
         
@@ -148,15 +170,29 @@ class VpTravelOrderController extends Controller
             abort(403);
         }
         
-        // Ensure the travel order is from a division head
-        $travelOrderPosition = $travelOrder->position;
-        if (!$travelOrderPosition || !$travelOrderPosition->is_division_head) {
+        // Ensure the travel order is from a division head or unit head
+        if (!$travelOrder->employee || (!$travelOrder->employee->is_divisionhead && !$travelOrder->employee->is_head)) {
             abort(403);
         }
         
-        // Ensure the head has already approved this travel order
-        if (!$travelOrder->head_approved) {
-            abort(403);
+        // For unit head travel orders, ensure division head has approved
+        // For division head travel orders, no head approval needed (they approve their own)
+        if ($travelOrder->employee->is_head && !$travelOrder->employee->is_divisionhead) {
+            // Unit head travel order - check division head approval
+            if (!$travelOrder->divisionhead_approved) {
+                abort(403);
+            }
+        } elseif ($travelOrder->employee->is_divisionhead) {
+            // Division head travel order - no head approval needed, they go directly to VP
+            // Just ensure this is the right stage (not yet approved by VP)
+            if (!is_null($travelOrder->vp_approved)) {
+                abort(403);
+            }
+        } else {
+            // Regular employee travel order - check head approval
+            if (!$travelOrder->head_approved) {
+                abort(403);
+            }
         }
         
         // Ensure the travel order hasn't already been approved by VP
@@ -173,7 +209,7 @@ class VpTravelOrderController extends Controller
         $travelOrder->update([
             'vp_approved' => true,
             'vp_approved_at' => now(),
-            'status' => 'pending', // Still pending president approval
+            'status' => $travelOrder->employee->is_divisionhead ? 'pending' : 'approved', // Division heads need president approval, others are approved
         ]);
 
         return redirect()->back()
@@ -200,20 +236,49 @@ class VpTravelOrderController extends Controller
         }
         
         $travelOrderOfficeId = $travelOrderPosition->office_id;
+        $travelOrderDivisionId = $travelOrderPosition->division_id;
         
-        if ($travelOrderOfficeId !== $vpOfficeId) {
+        // For unit head travel orders, check if they're from the same division
+        $isFromDivision = false;
+        if ($travelOrder->employee->is_head && !$travelOrder->employee->is_divisionhead) {
+            $vpPrimaryPosition = $employee->positions()->where('is_primary', true)->first();
+            $vpDivisionId = $vpPrimaryPosition ? $vpPrimaryPosition->division_id : null;
+            $isFromDivision = $travelOrderDivisionId === $vpDivisionId;
+        }
+        
+        // Allow if travel order is from employee in VP's office
+        $isFromOffice = $travelOrderOfficeId === $vpOfficeId;
+        
+        // Also allow if it's the VP's own travel order
+        $isOwn = $travelOrder->employee_id === $employee->id;
+        
+        if ($travelOrderOfficeId !== $vpOfficeId && !$isFromDivision && !$isOwn) {
             abort(403);
         }
         
-        // Ensure the travel order is from a division head
-        $travelOrderPosition = $travelOrder->position;
-        if (!$travelOrderPosition || !$travelOrderPosition->is_division_head) {
+        // Ensure the travel order is from a division head or unit head
+        if (!$travelOrder->employee || (!$travelOrder->employee->is_divisionhead && !$travelOrder->employee->is_head)) {
             abort(403);
         }
         
-        // Ensure the head has already approved this travel order
-        if (!$travelOrder->head_approved) {
-            abort(403);
+        // For unit head travel orders, ensure division head has approved
+        // For division head travel orders, no head approval needed (they approve their own)
+        if ($travelOrder->employee->is_head && !$travelOrder->employee->is_divisionhead) {
+            // Unit head travel order - check division head approval
+            if (!$travelOrder->divisionhead_approved) {
+                abort(403);
+            }
+        } elseif ($travelOrder->employee->is_divisionhead) {
+            // Division head travel order - no head approval needed, they go directly to VP
+            // Just ensure this is the right stage (not yet approved by VP)
+            if (!is_null($travelOrder->vp_approved)) {
+                abort(403);
+            }
+        } else {
+            // Regular employee travel order - check head approval
+            if (!$travelOrder->head_approved) {
+                abort(403);
+            }
         }
         
         // Ensure the travel order hasn't already been approved by VP
