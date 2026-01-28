@@ -112,47 +112,6 @@
 @endforelse
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Handle approve button clicks
-    document.querySelectorAll('.approve-btn').forEach(button => {
-        button.addEventListener('click', function() {
-            const form = this.closest('.approve-form');
-            Swal.fire({
-                title: 'Are you sure?',
-                text: 'Are you sure you want to approve this travel order?',
-                icon: 'question',
-                showCancelButton: true,
-                confirmButtonColor: '#1e6031',
-                cancelButtonColor: '#d33',
-                confirmButtonText: 'Yes, approve it!',
-                cancelButtonText: 'Cancel'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    form.submit();
-                }
-            });
-        });
-    });
-
-    // Handle reject button clicks
-    document.querySelectorAll('.reject-btn').forEach(button => {
-        button.addEventListener('click', function() {
-            const form = this.closest('.reject-form');
-            Swal.fire({
-                title: 'Are you sure?',
-                text: 'Are you sure you want to reject this travel order?',
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#d33',
-                cancelButtonColor: '#6c757d',
-                confirmButtonText: 'Yes, reject it!',
-                cancelButtonText: 'Cancel'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    form.submit();
-                }
-            });
-        });
-    });
-});
+// Approve and reject button handlers are now handled by table-search.js
+// This prevents duplicate event listeners
 </script>

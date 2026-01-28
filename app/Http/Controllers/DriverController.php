@@ -3,36 +3,29 @@
 namespace App\Http\Controllers;
 
 use App\Models\Driver;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\JsonResponse;
 
 class DriverController extends Controller
 {
     /**
      * Display a listing of the drivers.
      */
-    public function index(Request $request): View|JsonResponse
+    public function index(Request $request): View
     {
-        $search = $request->get('search');
-        
-        $query = Driver::when($search, function ($query, $search) {
-                return $query->where('first_name', 'LIKE', "%{$search}%")
-                            ->orWhere('last_name', 'LIKE', "%{$search}%")
-                            ->orWhere('position', 'LIKE', "%{$search}%");
-            })
-            ->orderBy('created_at', 'desc');
-        
-        $drivers = $query->paginate(10)->appends($request->except('page'));
-        
-        // Check if this is an AJAX request for partial updates
-        if ($request->ajax() || $request->get('ajax')) {
-            return response()->json([
-                'table_body' => view('drivers.partials.table-rows', compact('drivers'))->render(),
-                'pagination' => (string) $drivers->withQueryString()->links()
-            ]);
+        $search = $request->input('search');
+        $query = Driver::with('user');
+
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('first_name', 'like', "%{$search}%")
+                  ->orWhere('last_name', 'like', "%{$search}%");
+            });
         }
+
+        $drivers = $query->paginate(10);
 
         return view('drivers.index', compact('drivers', 'search'));
     }
@@ -52,23 +45,37 @@ class DriverController extends Controller
     {
         $request->validate([
             'first_name' => 'required|string|max:255',
-            'last_name' => 'required|string|max:255',
             'middle_initial' => 'nullable|string|max:10',
+            'last_name' => 'required|string|max:255',
             'ext_name' => 'nullable|string|max:50',
-            'sex' => 'required|in:Male,Female',
-            'contact_number' => 'nullable|string|max:50',
-            'position' => 'required|string|max:255',
-            'official_station' => 'nullable|string|max:255',
+            'sex' => 'required|in:M,F',
+            'prefix' => 'nullable|string|max:10',
+            'email' => 'required|email|unique:users,email',
+            'password' => 'required|string|min:8|confirmed',
             'availability_status' => 'required|in:Available,Not Available,On Duty,Off Duty',
         ]);
 
-        $data = $request->all();
-        
-        // Generate full names
-        $data['full_name'] = $data['first_name'] . ' ' . $data['last_name'];
-        $data['full_name2'] = $data['last_name'] . ', ' . $data['first_name'];
+        // Create user with driver role
+        $user = User::create([
+            'name' => $request->first_name . ' ' . $request->last_name,
+            'email' => $request->email,
+            'password' => bcrypt($request->password),
+            'role' => 'driver',
+        ]);
 
-        Driver::create($data);
+        // Create driver
+        $driver = Driver::create([
+            'user_id' => $user->id,
+            'first_name' => $request->first_name,
+            'middle_initial' => $request->middle_initial,
+            'last_name' => $request->last_name,
+            'ext_name' => $request->ext_name,
+            'sex' => $request->sex,
+            'prefix' => $request->prefix,
+            'availability_status' => $request->availability_status,
+            'full_name' => $request->first_name . ' ' . $request->last_name,
+            'full_name2' => $request->prefix ? $request->prefix . ' ' . $request->first_name . ' ' . $request->last_name : $request->first_name . ' ' . $request->last_name,
+        ]);
 
         return redirect()->route('drivers.index')
             ->with('success', 'Driver created successfully.');
@@ -79,6 +86,7 @@ class DriverController extends Controller
      */
     public function show(Driver $driver): View
     {
+        $driver->load('user');
         return view('drivers.show', compact('driver'));
     }
 
@@ -87,6 +95,7 @@ class DriverController extends Controller
      */
     public function edit(Driver $driver): View
     {
+        $driver->load('user');
         return view('drivers.edit', compact('driver'));
     }
 
@@ -97,23 +106,33 @@ class DriverController extends Controller
     {
         $request->validate([
             'first_name' => 'required|string|max:255',
-            'last_name' => 'required|string|max:255',
             'middle_initial' => 'nullable|string|max:10',
+            'last_name' => 'required|string|max:255',
             'ext_name' => 'nullable|string|max:50',
-            'sex' => 'required|in:Male,Female',
-            'contact_number' => 'nullable|string|max:50',
-            'position' => 'required|string|max:255',
-            'official_station' => 'nullable|string|max:255',
+            'sex' => 'required|in:M,F',
+            'prefix' => 'nullable|string|max:10',
+            'email' => 'required|email|unique:users,email,' . $driver->user->id,
             'availability_status' => 'required|in:Available,Not Available,On Duty,Off Duty',
         ]);
 
-        $data = $request->all();
-        
-        // Generate full names
-        $data['full_name'] = $data['first_name'] . ' ' . $data['last_name'];
-        $data['full_name2'] = $data['last_name'] . ', ' . $data['first_name'];
+        // Update user
+        $driver->user->update([
+            'name' => $request->first_name . ' ' . $request->last_name,
+            'email' => $request->email,
+        ]);
 
-        $driver->update($data);
+        // Update driver
+        $driver->update([
+            'first_name' => $request->first_name,
+            'middle_initial' => $request->middle_initial,
+            'last_name' => $request->last_name,
+            'ext_name' => $request->ext_name,
+            'sex' => $request->sex,
+            'prefix' => $request->prefix,
+            'availability_status' => $request->availability_status,
+            'full_name' => $request->first_name . ' ' . $request->last_name,
+            'full_name2' => $request->prefix ? $request->prefix . ' ' . $request->first_name . ' ' . $request->last_name : $request->first_name . ' ' . $request->last_name,
+        ]);
 
         return redirect()->route('drivers.index')
             ->with('success', 'Driver updated successfully.');
@@ -124,6 +143,8 @@ class DriverController extends Controller
      */
     public function destroy(Driver $driver): RedirectResponse
     {
+        // Delete user and driver
+        $driver->user->delete();
         $driver->delete();
 
         return redirect()->route('drivers.index')

@@ -38,30 +38,6 @@ Route::get('/vehicles/test-add-button', function () {
 // Simple vehicle index route
 Route::get('/vehicles/simple-index', [VehicleController::class, 'simpleIndex'])->name('vehicles.simple-index');
 
-// Direct test route for add vehicle button
-Route::get('/test/add-vehicle-button', function () {
-    return '
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <title>Add Vehicle Test</title>
-        <style>
-            body { font-family: Arial, sans-serif; padding: 20px; background-color: #f5f5f5; }
-            .container { max-width: 600px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-            .btn { display: inline-block; padding: 12px 24px; background-color: #28a745; color: white; text-decoration: none; border-radius: 4px; font-weight: bold; }
-            .btn:hover { background-color: #218838; }
-        </style>
-    </head>
-    <body>
-        <div class="container">
-            <h1>Vehicle Management Test</h1>
-            <p>Click the button below to add a new vehicle:</p>
-            <a href="' . route('vehicles.create') . '" class="btn">+ Add New Vehicle</a>
-            <p style="margin-top: 20px;"><a href="' . url('/') . '">← Back to Home</a></p>
-        </div>
-    </body>
-    </html>';
-})->name('test.add-vehicle-button');
 
 Route::get('/dashboard', [DashboardController::class, 'index'])
     ->middleware(['auth', 'verified'])
@@ -240,6 +216,49 @@ Route::middleware('auth')->group(function () {
     
     // Trip Ticket Management Routes for Motorpool Admin
     Route::resource('trip-tickets', App\Http\Controllers\TripTicketController::class);
+    Route::patch('/trip-tickets/{id}/status', [App\Http\Controllers\TripTicketController::class, 'updateStatus'])->name('trip-tickets.status.update');
+    Route::get('/api/travel-orders/{id}/passengers', [App\Http\Controllers\TripTicketController::class, 'getPassengersForTravelOrder']);
+    Route::get('/api/travel-orders/{id}/creator', [App\Http\Controllers\RegularEmployeeTravelOrderController::class, 'getCreator']);
+    Route::get('/api/itineraries/{id}/creator', [App\Http\Controllers\ItineraryController::class, 'getCreator']);
+
+    // Itinerary Management Routes for Motorpool Admin
+    Route::resource('itinerary', App\Http\Controllers\ItineraryController::class);
+    
+    // Itinerary Approval Routes
+    Route::prefix('itinerary/approvals')->name('itinerary.approvals.')->group(function () {
+        Route::get('/unit-head-pending', [App\Http\Controllers\ItineraryApprovalController::class, 'unitHeadPending'])->name('unit-head.pending');
+        Route::put('/{id}/unit-head-approve', [App\Http\Controllers\ItineraryApprovalController::class, 'approveByUnitHead'])->name('unit-head.approve');
+        Route::put('/{id}/unit-head-reject', [App\Http\Controllers\ItineraryApprovalController::class, 'rejectByUnitHead'])->name('unit-head.reject');
+        Route::get('/vp-pending', [App\Http\Controllers\ItineraryApprovalController::class, 'vpPending'])->name('vp.pending');
+        Route::put('/{id}/vp-approve', [App\Http\Controllers\ItineraryApprovalController::class, 'approveByVp'])->name('vp.approve');
+        Route::put('/{id}/vp-reject', [App\Http\Controllers\ItineraryApprovalController::class, 'rejectByVp'])->name('vp.reject');
+        Route::get('/approved', [App\Http\Controllers\ItineraryApprovalController::class, 'approved'])->name('approved');
+    });
+    
+    // Motorpool Admin Dashboard Approval Routes
+    Route::get('/motorpool/approvals/itineraries/unit-head', [App\Http\Controllers\ItineraryApprovalController::class, 'unitHeadPending'])->name('motorpool.approvals.itineraries.unit-head');
+    Route::get('/motorpool/approvals/itineraries/vp', [App\Http\Controllers\ItineraryApprovalController::class, 'vpPending'])->name('motorpool.approvals.itineraries.vp');
+    Route::get('/motorpool/approvals/itineraries/approved', [App\Http\Controllers\ItineraryApprovalController::class, 'approved'])->name('motorpool.approvals.itineraries.approved');
+    
+    // VP Trip Ticket Approval Routes
+    Route::prefix('vp/approvals/trip-tickets')->name('vp.trip-tickets.approvals.')->group(function () {
+        Route::get('/', [App\Http\Controllers\VpTripTicketApprovalController::class, 'index'])->name('index');
+        Route::get('/{tripTicket}', [App\Http\Controllers\VpTripTicketApprovalController::class, 'show'])->name('show');
+        Route::put('/{tripTicket}/approve', [App\Http\Controllers\VpTripTicketApprovalController::class, 'approve'])->name('approve');
+        Route::put('/{tripTicket}/reject', [App\Http\Controllers\VpTripTicketApprovalController::class, 'reject'])->name('reject');
+    });
+    
+    // Employee Trip Ticket Routes
+    Route::prefix('employee/trip-tickets')->name('employee.trip-tickets.')->group(function () {
+        Route::get('/', [App\Http\Controllers\EmployeeTripTicketController::class, 'index'])->name('index');
+        Route::get('/{tripTicket}', [App\Http\Controllers\EmployeeTripTicketController::class, 'show'])->name('show');
+    });
+    
+    // Travel Order Management Routes for Motorpool Admin
+    Route::prefix('motorpool')->name('motorpool.')->group(function () {
+        Route::get('/dashboard', [MotorpoolAdminController::class, 'dashboard'])->name('dashboard');
+        Route::resource('travel-orders', App\Http\Controllers\MotorpoolAdminTravelOrderController::class)->only(['index', 'show']);
+    });
     
     // Test route for travel order creation
     Route::get('/test-create-travel-order', function () {
@@ -272,3 +291,4 @@ Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])
     ->name('logout');
 
 require __DIR__.'/auth.php';
+

@@ -84,6 +84,9 @@ document.addEventListener('DOMContentLoaded', function() {
             makeAjaxRequest(url, searchTerm, tab, tableId);
         }
     });
+    
+    // Reattach event listeners on initial page load
+    reattachEventListeners();
 });
 
 // Trigger search function
@@ -129,6 +132,9 @@ function makeAjaxRequest(url, searchTerm, tab, tableId) {
         if (paginationSection && data.pagination) {
             paginationSection.innerHTML = data.pagination;
         }
+        
+        // Reattach event listeners to new elements
+        reattachEventListeners();
     })
     .catch(error => {
         console.error('Error:', error);
@@ -151,4 +157,75 @@ function debounce(func, wait) {
         clearTimeout(timeout);
         timeout = setTimeout(later, wait);
     };
+}
+
+// Reattach event listeners to elements after AJAX updates
+function reattachEventListeners() {
+    // Handle delete button clicks for all elements with class delete-btn
+    document.querySelectorAll('.delete-btn').forEach(button => {
+        // Remove existing event listeners to prevent duplicates
+        const newButton = button.cloneNode(true);
+        button.parentNode.replaceChild(newButton, button);
+        
+        newButton.addEventListener('click', function(e) {
+            e.preventDefault();
+            if (confirm('Are you sure you want to delete this item? This action cannot be undone.')) {
+                this.closest('form').submit();
+            }
+        });
+    });
+    
+    // Handle approve button clicks
+    document.querySelectorAll('.approve-btn').forEach(button => {
+        const newButton = button.cloneNode(true);
+        button.parentNode.replaceChild(newButton, button);
+        
+        newButton.addEventListener('click', function(e) {
+            e.preventDefault();
+            const form = this.closest('.approve-form');
+            if (form) {
+                Swal.fire({
+                    title: 'Are you sure?',
+                    text: 'Are you sure you want to approve this item?',
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonColor: '#1e6031',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Yes, approve it!',
+                    cancelButtonText: 'Cancel'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        form.submit();
+                    }
+                });
+            }
+        });
+    });
+    
+    // Handle reject button clicks
+    document.querySelectorAll('.reject-btn').forEach(button => {
+        const newButton = button.cloneNode(true);
+        button.parentNode.replaceChild(newButton, button);
+        
+        newButton.addEventListener('click', function(e) {
+            e.preventDefault();
+            const form = this.closest('.reject-form');
+            if (form) {
+                Swal.fire({
+                    title: 'Are you sure?',
+                    text: 'Are you sure you want to reject this item?',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d33',
+                    cancelButtonColor: '#6c757d',
+                    confirmButtonText: 'Yes, reject it!',
+                    cancelButtonText: 'Cancel'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        form.submit();
+                    }
+                });
+            }
+        });
+    });
 }

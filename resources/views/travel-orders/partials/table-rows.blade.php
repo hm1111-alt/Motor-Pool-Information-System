@@ -99,26 +99,6 @@
 @endforelse
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Handle delete button clicks for travel orders
-    document.querySelectorAll('.delete-btn').forEach(button => {
-        button.addEventListener('click', function() {
-            const form = this.closest('.delete-form');
-            Swal.fire({
-                title: 'Are you sure?',
-                text: 'Are you sure you want to delete this travel order? This action cannot be undone.',
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#d33',
-                cancelButtonColor: '#6c757d',
-                confirmButtonText: 'Yes, delete it!',
-                cancelButtonText: 'Cancel'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    form.submit();
-                }
-            });
-        });
-    });
-});
+// Delete confirmation is now handled by table-search.js
+// This prevents duplicate event listeners
 </script>

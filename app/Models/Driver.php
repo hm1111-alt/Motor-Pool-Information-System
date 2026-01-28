@@ -15,6 +15,7 @@ class Driver extends Model
      * @var array<int, string>
      */
     protected $fillable = [
+        'user_id',
         'first_name',
         'last_name',
         'middle_initial',
@@ -22,11 +23,17 @@ class Driver extends Model
         'full_name',
         'full_name2',
         'sex',
-        'contact_number',
-        'position',
-        'official_station',
+        'prefix',
         'availability_status',
     ];
+
+    /**
+     * Get the user record for this driver.
+     */
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 
     /**
      * Get the full name of the driver.
@@ -37,10 +44,10 @@ class Driver extends Model
     }
 
     /**
-     * Get the last name, first name format of the driver.
+     * Get the formal name of the driver (with prefix).
      */
-    public function getFullName2Attribute()
+    public function getFormalNameAttribute()
     {
-        return $this->last_name . ', ' . $this->first_name;
+        return $this->prefix ? $this->prefix . ' ' . $this->first_name . ' ' . $this->last_name : $this->first_name . ' ' . $this->last_name;
     }
 }

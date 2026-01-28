@@ -26,6 +26,9 @@ class Employee extends Model
         'sex',
         'prefix',
         'emp_status',
+        'position_name',
+        'contact_num',
+        'is_active',
     ];
 
     /**
@@ -35,6 +38,7 @@ class Employee extends Model
      */
     protected $casts = [
         'emp_status' => 'integer',
+        'is_active' => 'boolean',
     ];
 
     /**
@@ -156,12 +160,21 @@ class Employee extends Model
     }
 
     /**
+     * Get the driver record for this employee.
+     */
+    public function driver()
+    {
+        return $this->hasOne(Driver::class, 'emp_id');
+    }
+
+    /**
      * Get the officer record for this employee.
      */
     public function officer()
     {
         return $this->hasOne(Officer::class, 'employee_id');
     }
+
 
     /**
      * Check if employee is a unit head (using new role-per-position system with fallback)

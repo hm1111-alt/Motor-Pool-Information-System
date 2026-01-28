@@ -134,6 +134,85 @@
                         </div>
                     </div>
                     
+                    <!-- Trip Tickets Section -->
+                    <div class="mt-8">
+                        <h3 class="text-xl font-semibold text-gray-800 mb-4">Trip Tickets</h3>
+                        <div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-[#1e6031]">
+                            @if(isset($tripTickets) && $tripTickets->count() > 0)
+                                <div class="overflow-x-auto">
+                                    <table class="min-w-full divide-y divide-gray-200">
+                                        <thead class="bg-gray-50">
+                                            <tr>
+                                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+                                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Itinerary</th>
+                                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Driver</th>
+                                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Vehicle</th>
+                                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Head of Party</th>
+                                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="bg-white divide-y divide-gray-200">
+                                            @foreach($tripTickets as $ticket)
+                                                <tr>
+                                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $ticket->id }}</td>
+                                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                                        @if($ticket->itinerary)
+                                                            {{ $ticket->itinerary->id }} - {{ $ticket->itinerary->destination }}
+                                                        @else
+                                                            N/A
+                                                        @endif
+                                                    </td>
+                                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                                        @if($ticket->itinerary && $ticket->itinerary->driver)
+                                                            {{ $ticket->itinerary->driver->name }}
+                                                        @else
+                                                            N/A
+                                                        @endif
+                                                    </td>
+                                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                                        @if($ticket->itinerary && $ticket->itinerary->vehicle)
+                                                            {{ $ticket->itinerary->vehicle->make }} {{ $ticket->itinerary->vehicle->model }}
+                                                        @else
+                                                            N/A
+                                                        @endif
+                                                    </td>
+                                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                                        {{ $ticket->head_of_party ?? 'Not set' }}
+                                                    </td>
+                                                    <td class="px-6 py-4 whitespace-nowrap">
+                                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                                            @if($ticket->status === 'Pending') bg-yellow-100 text-yellow-800
+                                                            @elseif($ticket->status === 'Approved') bg-green-100 text-green-800
+                                                            @elseif($ticket->status === 'Rejected') bg-red-100 text-red-800
+                                                            @else bg-blue-100 text-blue-800
+                                                            @endif">
+                                                            {{ $ticket->status }}
+                                                        </span>
+                                                    </td>
+                                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                                        <a href="{{ route('trip-tickets.show', $ticket) }}" class="text-[#1e6031] hover:text-[#164f2a] mr-3">View</a>
+                                                        <a href="{{ route('trip-tickets.edit', $ticket) }}" class="text-blue-600 hover:text-blue-900 mr-3">Edit</a>
+                                                    </td>
+                                                </tr>
+                                            @endforeach
+                                        </tbody>
+                                    </table>
+                                </div>
+                            @else
+                                <p class="text-gray-600 mb-4">No trip tickets have been created yet.</p>
+                            @endif
+                            <div class="mt-4">
+                                <a href="{{ route('trip-tickets.index') }}" class="inline-flex items-center px-4 py-2 bg-[#1e6031] border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-[#164f2a] focus:bg-[#164f2a] active:bg-[#1e6031] focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150">
+                                    Manage Trip Tickets
+                                    <svg class="ml-1 h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                                    </svg>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Approved Travel Orders Section -->
                     <div class="mt-8">
                         <h3 class="text-xl font-semibold text-gray-800 mb-4">Recently Approved Travel Orders</h3>

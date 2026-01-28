@@ -28,5 +28,11 @@ class DatabaseSeeder extends Seeder
         
         // Call VehicleSeeder to insert vehicle data
         $this->call(VehicleSeeder::class);
+        
+        // Call ItinerarySeeder to insert itinerary data
+        $this->call(ItinerarySeeder::class);
+        
+        // Call AdminSeeder to create admin user
+        $this->call(AdminSeeder::class);
     }
 }

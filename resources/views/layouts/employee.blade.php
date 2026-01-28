@@ -146,6 +146,28 @@
                                 </div>
                                 <span :class="sidebarOpen ? 'block' : 'hidden'" class="font-medium truncate">Travel History</span>
                             </a>
+                            
+                            <!-- Trip Tickets -->
+                            <a href="{{ route('employee.trip-tickets.index') }}" class="flex items-center px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors duration-200 mb-1">
+                                <div class="rounded-lg bg-[#1e6031] p-2 mr-3 flex-shrink-0">
+                                    <svg class="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                </div>
+                                <span :class="sidebarOpen ? 'block' : 'hidden'" class="font-medium truncate">Trip Tickets</span>
+                            </a>
+                        @endif
+                        
+                        <!-- Trip Tickets (for all employees) -->
+                        @if(auth()->user()->employee)
+                            <a href="{{ route('employee.trip-tickets.index') }}" class="flex items-center px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors duration-200 mb-1">
+                                <div class="rounded-lg bg-[#1e6031] p-2 mr-3 flex-shrink-0">
+                                    <svg class="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                </div>
+                                <span :class="sidebarOpen ? 'block' : 'hidden'" class="font-medium truncate">Trip Tickets</span>
+                            </a>
                         @endif
                         
                         <!-- Division Head Travel Orders -->
@@ -230,6 +252,21 @@
                                 </div>
                                 <span :class="sidebarOpen ? 'block' : 'hidden'" class="font-medium truncate">Travel Order Approvals</span>
                             </a>
+                            
+                            <!-- Itinerary Approvals (only for Transportation Services Unit Head) -->
+                            @php
+                                $isTransportationServicesUnitHead = auth()->user()->employee->unit && str_contains(strtolower(auth()->user()->employee->unit->unit_name), 'transportation services');
+                            @endphp
+                            @if($isTransportationServicesUnitHead)
+                            <a href="{{ route('itinerary.approvals.unit-head.pending') }}" class="flex items-center px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors duration-200 mb-1">
+                                <div class="rounded-lg bg-[#1e6031] p-2 mr-3 flex-shrink-0">
+                                    <svg class="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                    </svg>
+                                </div>
+                                <span :class="sidebarOpen ? 'block' : 'hidden'" class="font-medium truncate">Itinerary Approvals</span>
+                            </a>
+                            @endif
                         @endif
                         
                         <!-- President's Travel Orders -->
@@ -313,6 +350,26 @@
                                     </svg>
                                 </div>
                                 <span :class="sidebarOpen ? 'block' : 'hidden'" class="font-medium truncate">Travel Order Approvals</span>
+                            </a>
+                            
+                            <!-- Itinerary Approvals -->
+                            <a href="{{ route('itinerary.approvals.vp.pending') }}" class="flex items-center px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors duration-200 mb-1">
+                                <div class="rounded-lg bg-[#1e6031] p-2 mr-3 flex-shrink-0">
+                                    <svg class="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                    </svg>
+                                </div>
+                                <span :class="sidebarOpen ? 'block' : 'hidden'" class="font-medium truncate">Itinerary Approvals</span>
+                            </a>
+                            
+                            <!-- Trip Ticket Approvals -->
+                            <a href="{{ route('vp.trip-tickets.approvals.index') }}" class="flex items-center px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors duration-200 mb-1">
+                                <div class="rounded-lg bg-[#1e6031] p-2 mr-3 flex-shrink-0">
+                                    <svg class="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                </div>
+                                <span :class="sidebarOpen ? 'block' : 'hidden'" class="font-medium truncate">Trip Ticket Approvals</span>
                             </a>
                         @endif
 

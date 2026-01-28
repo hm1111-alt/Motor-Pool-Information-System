@@ -25,20 +25,16 @@
                                         <dd class="mt-1 text-sm text-gray-900">{{ $driver->full_name }}</dd>
                                     </div>
                                     <div class="sm:col-span-1">
+                                        <dt class="text-sm font-medium text-gray-500">Formal Name</dt>
+                                        <dd class="mt-1 text-sm text-gray-900">{{ $driver->full_name2 }}</dd>
+                                    </div>
+                                    <div class="sm:col-span-1">
                                         <dt class="text-sm font-medium text-gray-500">Sex</dt>
                                         <dd class="mt-1 text-sm text-gray-900">{{ $driver->sex }}</dd>
                                     </div>
                                     <div class="sm:col-span-1">
-                                        <dt class="text-sm font-medium text-gray-500">Position</dt>
-                                        <dd class="mt-1 text-sm text-gray-900">{{ $driver->position }}</dd>
-                                    </div>
-                                    <div class="sm:col-span-1">
-                                        <dt class="text-sm font-medium text-gray-500">Contact Number</dt>
-                                        <dd class="mt-1 text-sm text-gray-900">{{ $driver->contact_number ?? 'N/A' }}</dd>
-                                    </div>
-                                    <div class="sm:col-span-1">
-                                        <dt class="text-sm font-medium text-gray-500">Official Station</dt>
-                                        <dd class="mt-1 text-sm text-gray-900">{{ $driver->official_station ?? 'N/A' }}</dd>
+                                        <dt class="text-sm font-medium text-gray-500">Prefix</dt>
+                                        <dd class="mt-1 text-sm text-gray-900">{{ $driver->prefix ?? 'N/A' }}</dd>
                                     </div>
                                     <div class="sm:col-span-1">
                                         <dt class="text-sm font-medium text-gray-500">Availability Status</dt>

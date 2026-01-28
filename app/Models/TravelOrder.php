@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class TravelOrder extends Model
 {
@@ -63,6 +64,14 @@ class TravelOrder extends Model
     public function position(): BelongsTo
     {
         return $this->belongsTo(EmpPosition::class, 'emp_position_id');
+    }
+    
+    /**
+     * Get the itineraries associated with the travel order.
+     */
+    public function itinerary(): HasMany
+    {
+        return $this->hasMany(Itinerary::class, 'travel_order_id');
     }
 
     /**

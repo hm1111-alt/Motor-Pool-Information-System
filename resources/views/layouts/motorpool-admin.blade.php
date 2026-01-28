@@ -97,7 +97,7 @@
                     <!-- Navigation Menu -->
                     <nav class="flex-1 px-2 py-4 overflow-y-auto">
                         <!-- Dashboard -->
-                        <a href="{{ route('dashboard') }}" class="flex items-center px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors duration-200 mb-1">
+                        <a href="{{ route('motorpool.dashboard') }}" class="flex items-center px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors duration-200 mb-1">
                             <div class="rounded-lg bg-[#1e6031] p-2 mr-3 flex-shrink-0">
                                 <svg class="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
@@ -106,6 +106,27 @@
                             <span :class="sidebarOpen ? 'block' : 'hidden'" class="font-medium truncate">Dashboard</span>
                         </a>
                         
+                        <!-- Travel Orders -->
+                        <a href="{{ route('motorpool.travel-orders.index') }}" class="flex items-center px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors duration-200 mb-1">
+                            <div class="rounded-lg bg-[#1e6031] p-2 mr-3 flex-shrink-0">
+                                <svg class="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                </svg>
+                            </div>
+                            <span :class="sidebarOpen ? 'block' : 'hidden'" class="font-medium truncate">Travel Orders</span>
+                        </a>
+                        
+                        <!-- Itinerary -->
+                        <a href="{{ route('itinerary.index') }}" class="flex items-center px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors duration-200 mb-1">
+                            <div class="rounded-lg bg-[#1e6031] p-2 mr-3 flex-shrink-0">
+                                <svg class="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+                                </svg>
+                            </div>
+                            <span :class="sidebarOpen ? 'block' : 'hidden'" class="font-medium truncate">Itinerary</span>
+                        </a>
+                        
+
                         <!-- Trip Tickets -->
                         <a href="{{ route('trip-tickets.index') }}" class="flex items-center px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors duration-200 mb-1">
                             <div class="rounded-lg bg-[#1e6031] p-2 mr-3 flex-shrink-0">
@@ -114,6 +135,16 @@
                                 </svg>
                             </div>
                             <span :class="sidebarOpen ? 'block' : 'hidden'" class="font-medium truncate">Trip Tickets</span>
+                        </a>
+
+                        <!-- Create Trip Ticket -->
+                        <a href="{{ route('trip-tickets.create') }}" class="flex items-center px-4 py-3 text-white bg-[#1e6031] hover:bg-[#164f2a] rounded-lg transition-colors duration-200 mb-1">
+                            <div class="rounded-lg bg-white p-2 mr-3 flex-shrink-0">
+                                <svg class="h-5 w-5 text-[#1e6031]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                                </svg>
+                            </div>
+                            <span :class="sidebarOpen ? 'block' : 'hidden'" class="font-medium truncate">Create Trip Ticket</span>
                         </a>
 
                         <!-- Vehicles -->
@@ -125,16 +156,6 @@
                             </div>
                             <span :class="sidebarOpen ? 'block' : 'hidden'" class="font-medium truncate">Vehicles</span>
                         </a>
-                        
-                        <!-- Add Vehicle - Placed under Vehicles -->
-                        <a href="{{ route('vehicles.create') }}" class="flex items-center px-4 py-2 bg-green-600 text-white hover:bg-green-700 rounded-lg transition-colors duration-200 mb-1 ml-4">
-                            <div class="rounded-lg bg-white p-1 mr-2 flex-shrink-0">
-                                <svg class="h-4 w-4 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                                </svg>
-                            </div>
-                            <span :class="sidebarOpen ? 'block' : 'hidden'" class="font-medium truncate text-sm">Add Vehicle</span>
-                        </a>
 
                         <!-- Drivers -->
                         <a href="{{ route('drivers.index') }}" class="flex items-center px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors duration-200 mb-1">
@@ -145,18 +166,7 @@
                             </div>
                             <span :class="sidebarOpen ? 'block' : 'hidden'" class="font-medium truncate">Drivers</span>
                         </a>
-                        
-                        <!-- Add Driver - Placed under Drivers -->
-                        <a href="{{ route('drivers.create') }}" class="flex items-center px-4 py-2 bg-blue-600 text-white hover:bg-blue-700 rounded-lg transition-colors duration-200 mb-1 ml-4">
-                            <div class="rounded-lg bg-white p-1 mr-2 flex-shrink-0">
-                                <svg class="h-4 w-4 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                                </svg>
-                            </div>
-                            <span :class="sidebarOpen ? 'block' : 'hidden'" class="font-medium truncate text-sm">Add Driver</span>
-                        </a>
-                    </nav>
-                    <!-- Logout Section -->
+                        <!-- Logout Section -->
                     <div class="p-4 border-t border-gray-200 mt-auto">
                         <form method="POST" action="{{ route('logout') }}">
                             @csrf
@@ -190,5 +200,7 @@
                 </main>
             </div>
         </div>
+        
+        @yield('scripts')
     </body>
 </html>

@@ -7,6 +7,7 @@ use Illuminate\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Employee;
+use App\Models\TripTicket;
 
 class DashboardController extends Controller
 {
@@ -24,7 +25,15 @@ class DashboardController extends Controller
 
         // Determine which dashboard to show based on user role
         if ($user->isMotorpoolAdmin()) {
-            return view('dashboards.motorpool-admin');
+            // Load trip tickets for motorpool admin
+            $tripTickets = TripTicket::with(
+                'itinerary',
+                'itinerary.driver',
+                'itinerary.vehicle',
+                'itinerary.travelOrder.employee'
+            )->latest()->get();
+            
+            return view('dashboards.motorpool-admin', compact('tripTickets'));
         } elseif ($user->isAdmin()) {
             return view('dashboards.admin');
         } elseif ($user->isDriver()) {
@@ -44,7 +53,7 @@ class DashboardController extends Controller
                 } elseif ($employee->is_divisionhead) {
                     return view('dashboards.divisionhead');
                 } elseif ($employee->is_head && !$employee->is_divisionhead && !$employee->is_vp) {
-                    return view('dashboards.unithed');
+                    return view('dashboards.unithead');
                 } elseif ($employee->is_head) {
                     return view('dashboards.head');
                 } else {

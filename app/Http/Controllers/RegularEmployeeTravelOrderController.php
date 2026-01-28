@@ -155,7 +155,7 @@ class RegularEmployeeTravelOrderController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(TravelOrder $travelOrder): View
+    public function show(TravelOrder $travelOrder)
     {
         // Ensure the employee can only view their own travel orders
         $user = Auth::user();
@@ -177,7 +177,7 @@ class RegularEmployeeTravelOrderController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(TravelOrder $travelOrder): View
+    public function edit(TravelOrder $travelOrder)
     {
         // Ensure the employee can only edit their own pending travel orders
         $user = Auth::user();
@@ -288,5 +288,26 @@ class RegularEmployeeTravelOrderController extends Controller
 
         return redirect()->route('travel-orders.index')
             ->with('success', 'Travel order deleted successfully.');
+    }
+    
+    /**
+     * Get the creator of a travel order.
+     */
+    public function getCreator($id): \Illuminate\Http\JsonResponse
+    {
+        $travelOrder = TravelOrder::with('employee')->find($id);
+        
+        if (!$travelOrder) {
+            return response()->json(['error' => 'Travel order not found'], 404);
+        }
+        
+        $creatorName = '';
+        if ($travelOrder->employee) {
+            $creatorName = $travelOrder->employee->first_name . ' ' . $travelOrder->employee->last_name;
+        }
+        
+        return response()->json([
+            'creator_name' => $creatorName
+        ]);
     }
 }

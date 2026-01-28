@@ -11,6 +11,22 @@ use App\Models\Employee;
 class MotorpoolAdminController extends Controller
 {
     /**
+     * Display the motorpool admin dashboard.
+     */
+    public function dashboard(): View
+    {
+        // Get statistics for the dashboard
+        $totalApprovedTravelOrders = TravelOrder::where('status', 'approved')->count();
+        $recentTravelOrders = TravelOrder::where('status', 'approved')
+            ->with('employee')
+            ->orderBy('created_at', 'desc')
+            ->limit(5)
+            ->get();
+        
+        return view('motorpool-admin.dashboard', compact('totalApprovedTravelOrders', 'recentTravelOrders'));
+    }
+    
+    /**
      * Display approved travel orders for the motorpool.
      */
     public function approvedTravelOrders(Request $request): View

@@ -79,6 +79,24 @@ class User extends Authenticatable
     {
         return $this->role === $role;
     }
+    
+    public function isUnitHead()
+    {
+        // Check if user is a unit head by checking their employee record
+        if ($this->employee) {
+            return $this->employee->is_head && !$this->employee->is_divisionhead && !$this->employee->is_vp;
+        }
+        return false;
+    }
+    
+    public function isVp()
+    {
+        // Check if user is a VP by checking their employee record
+        if ($this->employee) {
+            return $this->employee->is_vp;
+        }
+        return false;
+    }
 
     // Relationship methods
     public function employee()
