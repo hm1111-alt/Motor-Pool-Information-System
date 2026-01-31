@@ -109,14 +109,26 @@ class ClassController extends Controller
     public function destroy(ClassModel $class): RedirectResponse|JsonResponse
     {
         try {
-            // Check if class has related records
-            if ($class->employees()->count() > 0) {
-                $message = 'Cannot delete class because it has related records (employees). Please remove or reassign these records first.';
+            // Check for dependent records with detailed counts
+            $employeePositionCount = \App\Models\EmpPosition::where('class_id', $class->id)->count();
+            
+            // If there are dependent records, provide detailed error message
+            if ($employeePositionCount > 0) {
+                $message = "Cannot delete class '{$class->class_name}' because it has dependent records:";
+                
+                if ($employeePositionCount > 0) {
+                    $message .= "\n- {$employeePositionCount} employee position(s)";
+                }
+                
+                $message .= "\n\nPlease reassign or delete these dependent records before deleting the class.";
                 
                 if (request()->wantsJson() || request()->ajax()) {
                     return response()->json([
                         'success' => false,
-                        'message' => $message
+                        'message' => $message,
+                        'dependencies' => [
+                            'employee_positions' => $employeePositionCount
+                        ]
                     ], 422);
                 }
                 
@@ -124,29 +136,36 @@ class ClassController extends Controller
                                  ->with('error', $message);
             }
             
+            // Safe to delete
+            $className = $class->class_name;
             $class->delete();
+            
+            $successMessage = "Class '{$className}' deleted successfully.";
             
             if (request()->wantsJson() || request()->ajax()) {
                 return response()->json([
                     'success' => true,
-                    'message' => 'Class deleted successfully.'
+                    'message' => $successMessage
                 ]);
             }
             
             return redirect()->route('admin.classes.index')
-                             ->with('success', 'Class deleted successfully.');
+                             ->with('success', $successMessage);
         } catch (\Exception $e) {
             \Log::error('Error deleting class: ' . $e->getMessage());
+            \Log::error('Class ID: ' . $class->id . ', Name: ' . $class->class_name);
+            
+            $errorMessage = 'There was an error deleting the class: ' . $e->getMessage();
             
             if (request()->wantsJson() || request()->ajax()) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'There was an error deleting the class.'
+                    'message' => $errorMessage
                 ], 500);
             }
             
             return redirect()->route('admin.classes.index')
-                             ->with('error', 'There was an error deleting the class.');
+                             ->with('error', $errorMessage);
         }
     }
 }

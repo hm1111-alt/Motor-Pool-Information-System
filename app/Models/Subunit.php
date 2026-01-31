@@ -39,10 +39,18 @@ class Subunit extends Model
     }
 
     /**
-     * Get the employees for the subunit.
+     * Get the employees for the subunit through positions.
      */
     public function employees()
     {
-        return $this->hasMany(Employee::class);
+        return $this->hasManyThrough(Employee::class, EmpPosition::class, 'subunit_id', 'id', 'id', 'employee_id');
+    }
+
+    /**
+     * Get the positions for the subunit.
+     */
+    public function positions()
+    {
+        return $this->hasMany(EmpPosition::class, 'subunit_id');
     }
 }

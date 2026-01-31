@@ -40,11 +40,19 @@ class Unit extends Model
     }
 
     /**
-     * Get the employees for the unit.
+     * Get the employees for the unit through positions.
      */
     public function employees()
     {
-        return $this->hasMany(Employee::class);
+        return $this->hasManyThrough(Employee::class, EmpPosition::class, 'unit_id', 'id', 'id', 'employee_id');
+    }
+
+    /**
+     * Get the positions for the unit.
+     */
+    public function positions()
+    {
+        return $this->hasMany(EmpPosition::class, 'unit_id');
     }
 
     /**

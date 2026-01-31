@@ -145,14 +145,26 @@ class SubunitController extends Controller
     public function destroy(Subunit $subunit): RedirectResponse|JsonResponse
     {
         try {
-            // Check if subunit has related records
-            if ($subunit->employees()->count() > 0) {
-                $message = 'Cannot delete subunit because it has related records (employees). Please remove or reassign these records first.';
+            // Check for dependent records with detailed counts
+            $employeePositionCount = \App\Models\EmpPosition::where('subunit_id', $subunit->id)->count();
+            
+            // If there are dependent records, provide detailed error message
+            if ($employeePositionCount > 0) {
+                $message = "Cannot delete subunit '{$subunit->subunit_name}' because it has dependent records:";
+                
+                if ($employeePositionCount > 0) {
+                    $message .= "\n- {$employeePositionCount} employee position(s)";
+                }
+                
+                $message .= "\n\nPlease reassign or delete these dependent records before deleting the subunit.";
                 
                 if (request()->wantsJson() || request()->ajax()) {
                     return response()->json([
                         'success' => false,
-                        'message' => $message
+                        'message' => $message,
+                        'dependencies' => [
+                            'employee_positions' => $employeePositionCount
+                        ]
                     ], 422);
                 }
                 
@@ -160,29 +172,36 @@ class SubunitController extends Controller
                                  ->with('error', $message);
             }
             
+            // Safe to delete
+            $subunitName = $subunit->subunit_name;
             $subunit->delete();
+            
+            $successMessage = "Subunit '{$subunitName}' deleted successfully.";
             
             if (request()->wantsJson() || request()->ajax()) {
                 return response()->json([
                     'success' => true,
-                    'message' => 'Subunit deleted successfully.'
+                    'message' => $successMessage
                 ]);
             }
             
             return redirect()->route('admin.subunits.index')
-                             ->with('success', 'Subunit deleted successfully.');
+                             ->with('success', $successMessage);
         } catch (\Exception $e) {
             \Log::error('Error deleting subunit: ' . $e->getMessage());
+            \Log::error('Subunit ID: ' . $subunit->id . ', Name: ' . $subunit->subunit_name . ', Unit ID: ' . $subunit->unit_id);
+            
+            $errorMessage = 'There was an error deleting the subunit: ' . $e->getMessage();
             
             if (request()->wantsJson() || request()->ajax()) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'There was an error deleting the subunit.'
+                    'message' => $errorMessage
                 ], 500);
             }
             
             return redirect()->route('admin.subunits.index')
-                             ->with('error', 'There was an error deleting the subunit.');
+                             ->with('error', $errorMessage);
         }
     }
 }

@@ -8,6 +8,7 @@ use App\Models\Driver;
 use App\Models\Vehicle;
 use App\Models\TravelOrder;
 use App\Models\Employee;
+use App\Services\DistanceEstimationService;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 use Illuminate\Http\RedirectResponse;
@@ -228,9 +229,18 @@ class TripTicketController extends Controller
 
         $tripTicket = TripTicket::findOrFail($id);
         
+        // Store the old status to check if it changed to 'Completed'
+        $oldStatus = $tripTicket->status;
+        
         $tripTicket->update([
             'status' => $request->status,
         ]);
+        
+        // If status changed to 'Completed', create vehicle travel history and update vehicle mileage
+        if ($oldStatus !== 'Completed' && $request->status === 'Completed') {
+            $this->createVehicleTravelHistory($tripTicket);
+            $this->updateVehicleMileage($tripTicket);
+        }
         
         $statusMessages = [
             'Issued' => 'Trip started successfully.',
@@ -244,6 +254,89 @@ class TripTicketController extends Controller
         
         return redirect()->route('trip-tickets.index')
             ->with('success', $message);
+    }
+    
+    /**
+     * Update vehicle mileage when trip is completed
+     */
+    private function updateVehicleMileage(TripTicket $tripTicket): void
+    {
+        // Load the itinerary with related models
+        $tripTicket->load(['itinerary.vehicle']);
+        
+        // Check if itinerary and vehicle exist
+        if (!$tripTicket->itinerary || !$tripTicket->itinerary->vehicle) {
+            return;
+        }
+        
+        // Get the estimated round-trip distance
+        $distance = $this->estimateDistanceFromCLSU($tripTicket->itinerary->destination ?? '');
+        
+        // If we have a distance, update the vehicle's mileage
+        if ($distance !== null) {
+            $vehicle = $tripTicket->itinerary->vehicle;
+            $vehicle->mileage += $distance;
+            $vehicle->save();
+        }
+    }
+    
+    /**
+     * Create vehicle travel history record from completed trip ticket
+     */
+    private function createVehicleTravelHistory(TripTicket $tripTicket): void
+    {
+        // Load the itinerary with related models
+        $tripTicket->load(['itinerary.vehicle', 'itinerary.driver', 'itinerary.travelOrder.employee']);
+        
+        // Check if itinerary exists
+        if (!$tripTicket->itinerary) {
+            return;
+        }
+        
+        // Check if a travel history record already exists for this trip ticket
+        $existingRecord = \App\Models\VehicleTravelHistory::where('trip_ticket_id', $tripTicket->id)->first();
+        if ($existingRecord) {
+            return; // Prevent duplicate records
+        }
+        
+        // Prepare data for vehicle travel history
+        $data = [
+            'trip_ticket_id' => $tripTicket->id,
+            'vehicle_id' => $tripTicket->itinerary->vehicle_id,
+            'driver_id' => $tripTicket->itinerary->driver_id,
+            'head_of_party' => $tripTicket->head_of_party,
+            'destination' => $tripTicket->itinerary->destination ?? 'N/A',
+            'departure_date' => $tripTicket->itinerary->date_from ?? now(),
+            'departure_time' => $tripTicket->itinerary->departure_time,
+            'arrival_date' => $tripTicket->itinerary->date_to,
+            'arrival_time' => $tripTicket->itinerary->departure_time, // Using departure time as default
+            'distance_km' => $this->estimateDistanceFromCLSU($tripTicket->itinerary->destination ?? ''),
+            'remarks' => 'Auto-generated from completed trip ticket',
+        ];
+        
+        // Create the vehicle travel history record
+        \App\Models\VehicleTravelHistory::create($data);
+    }
+    
+    /**
+     * Estimate round-trip distance from CLSU to destination using Google Maps API
+     */
+    private function estimateDistanceFromCLSU(string $destination): float|null
+    {
+        if (empty($destination)) {
+            return null;
+        }
+        
+        // Use OSRM/OpenStreetMap for accurate distance calculation
+        $distanceService = new DistanceEstimationService();
+        
+        // CLSU is located in Science City of Muñoz, Nueva Ecija, Philippines
+        $origin = 'Central Luzon State University, Science City of Muñoz, Nueva Ecija, Philippines';
+        
+        // Get round-trip distance (OSRM service handles the calculation)
+        $roundTripDistance = $distanceService->getRoundTripDistance($origin, $destination);
+        
+        return $roundTripDistance;
     }
     
     /**

@@ -150,14 +150,32 @@ class DivisionController extends Controller
     public function destroy(Division $division): RedirectResponse|JsonResponse
     {
         try {
-            // Check if division has related records
-            if ($division->employees()->count() > 0 || $division->units()->count() > 0) {
-                $message = 'Cannot delete division because it has related records (employees or units). Please remove or reassign these records first.';
+            // Check for dependent records with detailed counts
+            $unitCount = $division->units()->count();
+            $employeePositionCount = \App\Models\EmpPosition::where('division_id', $division->id)->count();
+            
+            // If there are dependent records, provide detailed error message
+            if ($unitCount > 0 || $employeePositionCount > 0) {
+                $message = "Cannot delete division '{$division->division_name}' because it has dependent records:";
+                
+                if ($unitCount > 0) {
+                    $message .= "\n- {$unitCount} unit(s)";
+                }
+                
+                if ($employeePositionCount > 0) {
+                    $message .= "\n- {$employeePositionCount} employee position(s)";
+                }
+                
+                $message .= "\n\nPlease reassign or delete these dependent records before deleting the division.";
                 
                 if (request()->wantsJson() || request()->ajax()) {
                     return response()->json([
                         'success' => false,
-                        'message' => $message
+                        'message' => $message,
+                        'dependencies' => [
+                            'units' => $unitCount,
+                            'employee_positions' => $employeePositionCount
+                        ]
                     ], 422);
                 }
                 
@@ -165,29 +183,36 @@ class DivisionController extends Controller
                                  ->with('error', $message);
             }
             
+            // Safe to delete
+            $divisionName = $division->division_name;
             $division->delete();
+            
+            $successMessage = "Division '{$divisionName}' deleted successfully.";
             
             if (request()->wantsJson() || request()->ajax()) {
                 return response()->json([
                     'success' => true,
-                    'message' => 'Division deleted successfully.'
+                    'message' => $successMessage
                 ]);
             }
             
             return redirect()->route('admin.divisions.index')
-                             ->with('success', 'Division deleted successfully.');
+                             ->with('success', $successMessage);
         } catch (\Exception $e) {
             \Log::error('Error deleting division: ' . $e->getMessage());
+            \Log::error('Division ID: ' . $division->id . ', Name: ' . $division->division_name . ', Office ID: ' . $division->office_id);
+            
+            $errorMessage = 'There was an error deleting the division: ' . $e->getMessage();
             
             if (request()->wantsJson() || request()->ajax()) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'There was an error deleting the division.'
+                    'message' => $errorMessage
                 ], 500);
             }
             
             return redirect()->route('admin.divisions.index')
-                             ->with('error', 'There was an error deleting the division.');
+                             ->with('error', $errorMessage);
         }
     }
 }

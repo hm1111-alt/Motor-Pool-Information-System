@@ -23,25 +23,25 @@ class LeaderController extends Controller
                     $query->where('president', true);
                 })->first();
         
-        // Get all offices with their VPs
-        $offices = Office::with(['employees' => function($query) {
-            $query->whereHas('officer', function ($officerQuery) {
+        // Get all offices with their VPs - using the correct relationship through EmpPosition
+        $offices = Office::with(['positions' => function($query) {
+            $query->whereHas('employee.officer', function ($officerQuery) {
                             $officerQuery->where('vp', true);
-                        });
+                        })->with('employee.user');
         }])->get();
         
-        // Get all divisions with their Division Heads
-        $divisions = Division::with(['employees' => function($query) {
-            $query->whereHas('officer', function ($officerQuery) {
+        // Get all divisions with their Division Heads - using the correct relationship through EmpPosition
+        $divisions = Division::with(['positions' => function($query) {
+            $query->whereHas('employee.officer', function ($officerQuery) {
                             $officerQuery->where('division_head', true);
-                        });
+                        })->with('employee.user');
         }])->get();
         
-        // Get all units with their Unit Heads
-        $units = Unit::with(['employees' => function($query) {
-            $query->whereHas('officer', function ($officerQuery) {
+        // Get all units with their Unit Heads - using the correct relationship through EmpPosition
+        $units = Unit::with(['positions' => function($query) {
+            $query->whereHas('employee.officer', function ($officerQuery) {
                             $officerQuery->where('unit_head', true);
-                        });
+                        })->with('employee.user');
         }])->get();
         
         return view('admin.leaders.index', compact('president', 'offices', 'divisions', 'units'));

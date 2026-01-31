@@ -17,56 +17,55 @@
     </x-slot>
 
     <div class="py-6">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 text-gray-900">
                     <form id="employeeForm" action="{{ route('admin.employees.update', $employee) }}" method="POST">
                         @csrf
                         @method('PUT')
                         
-                        <!-- Display validation errors -->
-                        @if ($errors->any())
-                            <div class="mb-4 p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg">
-                                <ul class="list-disc list-inside">
-                                    @foreach ($errors->all() as $error)
-                                        <li>{{ $error }}</li>
-                                    @endforeach
-                                </ul>
-                            </div>
-                        @endif
-                        
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <!-- Personal Information -->
-                            <div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                            <!-- Personal Information Section -->
+                            <div class="md:col-span-2 bg-gray-50 p-4 rounded-lg">
                                 <h3 class="text-lg font-medium text-gray-900 mb-4">Personal Information</h3>
                                 
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div>
-                                        <label for="first_name" class="block text-sm font-medium text-gray-700 mb-1">First Name *</label>
+                                        <label for="first_name" class="block text-sm font-medium text-gray-700 mb-1">First Name</label>
                                         <input type="text" name="first_name" id="first_name" value="{{ old('first_name', $employee->first_name) }}" required
                                             class="w-full rounded-lg border-gray-300 shadow-sm focus:border-[#1e6031] focus:ring focus:ring-[#1e6031] focus:ring-opacity-50">
+                                        @error('first_name')
+                                            <span class="text-red-500 text-sm">{{ $message }}</span>
+                                        @enderror
                                     </div>
-                                    
-                                    <div>
-                                        <label for="last_name" class="block text-sm font-medium text-gray-700 mb-1">Last Name *</label>
-                                        <input type="text" name="last_name" id="last_name" value="{{ old('last_name', $employee->last_name) }}" required
-                                            class="w-full rounded-lg border-gray-300 shadow-sm focus:border-[#1e6031] focus:ring focus:ring-[#1e6031] focus:ring-opacity-50">
-                                    </div>
-                                </div>
-                                
-                                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+
                                     <div>
                                         <label for="middle_initial" class="block text-sm font-medium text-gray-700 mb-1">Middle Initial</label>
                                         <input type="text" name="middle_initial" id="middle_initial" value="{{ old('middle_initial', $employee->middle_initial) }}" maxlength="10"
                                             class="w-full rounded-lg border-gray-300 shadow-sm focus:border-[#1e6031] focus:ring focus:ring-[#1e6031] focus:ring-opacity-50">
+                                        @error('middle_initial')
+                                            <span class="text-red-500 text-sm">{{ $message }}</span>
+                                        @enderror
                                     </div>
-                                    
+
+                                    <div>
+                                        <label for="last_name" class="block text-sm font-medium text-gray-700 mb-1">Last Name</label>
+                                        <input type="text" name="last_name" id="last_name" value="{{ old('last_name', $employee->last_name) }}" required
+                                            class="w-full rounded-lg border-gray-300 shadow-sm focus:border-[#1e6031] focus:ring focus:ring-[#1e6031] focus:ring-opacity-50">
+                                        @error('last_name')
+                                            <span class="text-red-500 text-sm">{{ $message }}</span>
+                                        @enderror
+                                    </div>
+
                                     <div>
                                         <label for="ext_name" class="block text-sm font-medium text-gray-700 mb-1">Extension Name</label>
                                         <input type="text" name="ext_name" id="ext_name" value="{{ old('ext_name', $employee->ext_name) }}" maxlength="10"
                                             class="w-full rounded-lg border-gray-300 shadow-sm focus:border-[#1e6031] focus:ring focus:ring-[#1e6031] focus:ring-opacity-50">
+                                        @error('ext_name')
+                                            <span class="text-red-500 text-sm">{{ $message }}</span>
+                                        @enderror
                                     </div>
-                                    
+
                                     <div>
                                         <label for="sex" class="block text-sm font-medium text-gray-700 mb-1">Sex *</label>
                                         <select name="sex" id="sex" required
@@ -75,120 +74,176 @@
                                             <option value="M" {{ old('sex', $employee->sex) == 'M' ? 'selected' : '' }}>Male</option>
                                             <option value="F" {{ old('sex', $employee->sex) == 'F' ? 'selected' : '' }}>Female</option>
                                         </select>
+                                        @error('sex')
+                                            <span class="text-red-500 text-sm">{{ $message }}</span>
+                                        @enderror
                                     </div>
-                                </div>
-                                
-                                <div class="mt-4">
-                                    <label for="prefix" class="block text-sm font-medium text-gray-700 mb-1">Prefix</label>
-                                    <input type="text" name="prefix" id="prefix" value="{{ old('prefix', $employee->prefix) }}"
-                                        class="w-full rounded-lg border-gray-300 shadow-sm focus:border-[#1e6031] focus:ring focus:ring-[#1e6031] focus:ring-opacity-50">
-                                </div>
-                                
-                                <!-- Login Credentials -->
-                                <div class="mt-4">
-                                    <h4 class="text-md font-medium text-gray-800 mb-2">Login Credentials</h4>
-                                    
+
                                     <div>
-                                        <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email *</label>
+                                        <label for="prefix" class="block text-sm font-medium text-gray-700 mb-1">Prefix</label>
+                                        <input type="text" name="prefix" id="prefix" value="{{ old('prefix', $employee->prefix) }}" maxlength="10"
+                                            class="w-full rounded-lg border-gray-300 shadow-sm focus:border-[#1e6031] focus:ring focus:ring-[#1e6031] focus:ring-opacity-50">
+                                        @error('prefix')
+                                            <span class="text-red-500 text-sm">{{ $message }}</span>
+                                        @enderror
+                                    </div>
+
+                                    <div>
+                                        <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
                                         <input type="email" name="email" id="email" value="{{ old('email', $employee->user->email ?? '') }}" required
                                             class="w-full rounded-lg border-gray-300 shadow-sm focus:border-[#1e6031] focus:ring focus:ring-[#1e6031] focus:ring-opacity-50">
+                                        @error('email')
+                                            <span class="text-red-500 text-sm">{{ $message }}</span>
+                                        @enderror
                                     </div>
-                                    
-                                    <div class="mt-4">
+
+                                    <div>
                                         <label for="password" class="block text-sm font-medium text-gray-700 mb-1">Password</label>
                                         <input type="password" name="password" id="password"
                                             class="w-full rounded-lg border-gray-300 shadow-sm focus:border-[#1e6031] focus:ring focus:ring-[#1e6031] focus:ring-opacity-50">
                                         <p class="text-xs text-gray-500 mt-1">Leave blank to keep current password</p>
+                                        @error('password')
+                                            <span class="text-red-500 text-sm">{{ $message }}</span>
+                                        @enderror
                                     </div>
-                                    
-                                    <div class="mt-4">
+
+                                    <div>
                                         <label for="password_confirmation" class="block text-sm font-medium text-gray-700 mb-1">Confirm Password</label>
                                         <input type="password" name="password_confirmation" id="password_confirmation"
                                             class="w-full rounded-lg border-gray-300 shadow-sm focus:border-[#1e6031] focus:ring focus:ring-[#1e6031] focus:ring-opacity-50">
+                                        @error('password_confirmation')
+                                            <span class="text-red-500 text-sm">{{ $message }}</span>
+                                        @enderror
+                                    </div>
+
+                                    <div>
+                                        <label for="contact_num" class="block text-sm font-medium text-gray-700 mb-1">Contact Number</label>
+                                        <input type="tel" name="contact_num" id="contact_num" value="{{ old('contact_num', $employee->contact_num) }}"
+                                            class="w-full rounded-lg border-gray-300 shadow-sm focus:border-[#1e6031] focus:ring focus:ring-[#1e6031] focus:ring-opacity-50">
+                                        @error('contact_num')
+                                            <span class="text-red-500 text-sm">{{ $message }}</span>
+                                        @enderror
+                                    </div>
+
+                                    <div>
+                                        <label for="emp_status" class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                                        <select name="emp_status" id="emp_status" required
+                                            class="w-full rounded-lg border-gray-300 shadow-sm focus:border-[#1e6031] focus:ring focus:ring-[#1e6031] focus:ring-opacity-50">
+                                            <option value="1" {{ old('emp_status', $employee->emp_status) == 1 ? 'selected' : '' }}>Active</option>
+                                            <option value="0" {{ old('emp_status', $employee->emp_status) == 0 ? 'selected' : '' }}>Inactive</option>
+                                        </select>
+                                        @error('emp_status')
+                                            <span class="text-red-500 text-sm">{{ $message }}</span>
+                                        @enderror
                                     </div>
                                 </div>
                             </div>
-                            
-                            <!-- Employment Information -->
-                            <div>
-                                <h3 class="text-lg font-medium text-gray-900 mb-4">Employment Information</h3>
-                                
-                                <div>
-                                    <label for="position_name" class="block text-sm font-medium text-gray-700 mb-1">Position *</label>
-                                    <input type="text" name="position_name" id="position_name" value="{{ old('position_name', $employee->position_name) }}"
-                                        class="w-full rounded-lg border-gray-300 shadow-sm focus:border-[#1e6031] focus:ring focus:ring-[#1e6031] focus:ring-opacity-50" required>
-                                </div>
 
-                                <div class="mt-4">
-                                    <label for="position_role" class="block text-sm font-medium text-gray-700 mb-1">Role in Position</label>
-                                    <select name="position_role" id="position_role"
-                                        class="w-full rounded-lg border-gray-300 shadow-sm focus:border-[#1e6031] focus:ring focus:ring-[#1e6031] focus:ring-opacity-50">
-                                        <option value="none" {{ old('position_role', $employee->positions->firstWhere('is_primary', true)->is_unit_head || $employee->positions->firstWhere('is_primary', true)->is_division_head || $employee->positions->firstWhere('is_primary', true)->is_vp || $employee->positions->firstWhere('is_primary', true)->is_president ? '' : 'selected') }}>Regular Employee</option>
-                                        <option value="unit_head" {{ old('position_role', $employee->positions->firstWhere('is_primary', true)->is_unit_head ? 'unit_head' : '') == 'unit_head' ? 'selected' : '' }}>Unit Head</option>
-                                        <option value="division_head" {{ old('position_role', $employee->positions->firstWhere('is_primary', true)->is_division_head ? 'division_head' : '') == 'division_head' ? 'selected' : '' }}>Division Head</option>
-                                        <option value="vp" {{ old('position_role', $employee->positions->firstWhere('is_primary', true)->is_vp ? 'vp' : '') == 'vp' ? 'selected' : '' }}>VP</option>
-                                        <option value="president" {{ old('position_role', $employee->positions->firstWhere('is_primary', true)->is_president ? 'president' : '') == 'president' ? 'selected' : '' }}>President</option>
-                                    </select>
-                                </div>
+                            <!-- Primary Position Information Section -->
+                            <div class="md:col-span-2 bg-gray-50 p-4 rounded-lg">
+                                <h3 class="text-lg font-medium text-gray-900 mb-4">Primary Position Information</h3>
                                 
-                                <div class="mt-4">
-                                    <label for="class_id" class="block text-sm font-medium text-gray-700 mb-1">Class</label>
-                                    <select name="class_id" id="class_id"
-                                        class="w-full rounded-lg border-gray-300 shadow-sm focus:border-[#1e6031] focus:ring focus:ring-[#1e6031] focus:ring-opacity-50">
-                                        <option value="">Select Class</option>
-                                        @foreach($classes as $class)
-                                            <option value="{{ $class->id }}" {{ old('class_id', $employee->class_id) == $class->id ? 'selected' : '' }}>{{ $class->class_name }}</option>
-                                        @endforeach
-                                    </select>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label for="position_name" class="block text-sm font-medium text-gray-700 mb-1">Position Name</label>
+                                        <input type="text" name="position_name" id="position_name" value="{{ old('position_name', $employee->position_name) }}"
+                                            class="w-full rounded-lg border-gray-300 shadow-sm focus:border-[#1e6031] focus:ring focus:ring-[#1e6031] focus:ring-opacity-50" required>
+                                        @error('position_name')
+                                            <span class="text-red-500 text-sm">{{ $message }}</span>
+                                        @enderror
+                                    </div>
+
+                                    <div>
+                                        <label for="position_role" class="block text-sm font-medium text-gray-700 mb-1">Role in Position</label>
+                                        <select name="position_role" id="position_role"
+                                            class="w-full rounded-lg border-gray-300 shadow-sm focus:border-[#1e6031] focus:ring focus:ring-[#1e6031] focus:ring-opacity-50">
+                                            <option value="none" {{ old('position_role', $employee->positions->firstWhere('is_primary', true)->is_unit_head || $employee->positions->firstWhere('is_primary', true)->is_division_head || $employee->positions->firstWhere('is_primary', true)->is_vp || $employee->positions->firstWhere('is_primary', true)->is_president ? '' : 'selected') }}>Regular Employee</option>
+                                            <option value="unit_head" {{ old('position_role', $employee->positions->firstWhere('is_primary', true)->is_unit_head ? 'unit_head' : '') == 'unit_head' ? 'selected' : '' }}>Unit Head</option>
+                                            <option value="division_head" {{ old('position_role', $employee->positions->firstWhere('is_primary', true)->is_division_head ? 'division_head' : '') == 'division_head' ? 'selected' : '' }}>Division Head</option>
+                                            <option value="vp" {{ old('position_role', $employee->positions->firstWhere('is_primary', true)->is_vp ? 'vp' : '') == 'vp' ? 'selected' : '' }}>VP</option>
+                                            <option value="president" {{ old('position_role', $employee->positions->firstWhere('is_primary', true)->is_president ? 'president' : '') == 'president' ? 'selected' : '' }}>President</option>
+                                        </select>
+                                        @error('position_role')
+                                            <span class="text-red-500 text-sm">{{ $message }}</span>
+                                        @enderror
+                                    </div>
+
+                                    <div>
+                                        <label for="class_id" class="block text-sm font-medium text-gray-700 mb-1">Class (Optional)</label>
+                                        <select name="class_id" id="class_id"
+                                            class="w-full rounded-lg border-gray-300 shadow-sm focus:border-[#1e6031] focus:ring focus:ring-[#1e6031] focus:ring-opacity-50">
+                                            <option value="">Select Class (Optional)</option>
+                                            @foreach($classes as $class)
+                                                <option value="{{ $class->id }}" {{ old('class_id', $employee->class_id) == $class->id ? 'selected' : '' }}>{{ $class->class_name }}</option>
+                                            @endforeach
+                                        </select>
+                                        @error('class_id')
+                                            <span class="text-red-500 text-sm">{{ $message }}</span>
+                                        @enderror
+                                    </div>
+
+                                    <div>
+                                        <label for="office_id" class="block text-sm font-medium text-gray-700 mb-1">Office (Optional)</label>
+                                        <select name="office_id" id="office_id"
+                                            class="w-full rounded-lg border-gray-300 shadow-sm focus:border-[#1e6031] focus:ring focus:ring-[#1e6031] focus:ring-opacity-50">
+                                            <option value="">Select Office (Optional)</option>
+                                            @foreach($offices as $office)
+                                                <option value="{{ $office->id }}" {{ old('office_id', $employee->office_id) == $office->id ? 'selected' : '' }}>{{ $office->office_name }}</option>
+                                            @endforeach
+                                        </select>
+                                        @error('office_id')
+                                            <span class="text-red-500 text-sm">{{ $message }}</span>
+                                        @enderror
+                                    </div>
+
+                                    <div>
+                                        <label for="division_id" class="block text-sm font-medium text-gray-700 mb-1">Division (Optional)</label>
+                                        <select name="division_id" id="division_id"
+                                            class="w-full rounded-lg border-gray-300 shadow-sm focus:border-[#1e6031] focus:ring focus:ring-[#1e6031] focus:ring-opacity-50">
+                                            <option value="">Select Division (Optional)</option>
+                                            @foreach($divisions as $division)
+                                                <option value="{{ $division->id }}" {{ old('division_id', $employee->division_id) == $division->id ? 'selected' : '' }}>{{ $division->division_name }}</option>
+                                            @endforeach
+                                        </select>
+                                        @error('division_id')
+                                            <span class="text-red-500 text-sm">{{ $message }}</span>
+                                        @enderror
+                                    </div>
+
+                                    <div>
+                                        <label for="unit_id" class="block text-sm font-medium text-gray-700 mb-1">Unit (Optional)</label>
+                                        <select name="unit_id" id="unit_id"
+                                            class="w-full rounded-lg border-gray-300 shadow-sm focus:border-[#1e6031] focus:ring focus:ring-[#1e6031] focus:ring-opacity-50">
+                                            <option value="">Select Unit (Optional)</option>
+                                            @foreach($units as $unit)
+                                                <option value="{{ $unit->id }}" {{ old('unit_id', $employee->unit_id) == $unit->id ? 'selected' : '' }}>{{ $unit->unit_name }}</option>
+                                            @endforeach
+                                        </select>
+                                        @error('unit_id')
+                                            <span class="text-red-500 text-sm">{{ $message }}</span>
+                                        @enderror
+                                    </div>
+
+                                    <div>
+                                        <label for="subunit_id" class="block text-sm font-medium text-gray-700 mb-1">Subunit (Optional)</label>
+                                        <select name="subunit_id" id="subunit_id"
+                                            class="w-full rounded-lg border-gray-300 shadow-sm focus:ring focus:ring-[#1e6031] focus:ring-opacity-50">
+                                            <option value="">Select Subunit (Optional)</option>
+                                            @foreach($subunits as $subunit)
+                                                <option value="{{ $subunit->id }}" {{ old('subunit_id', $employee->subunit_id) == $subunit->id ? 'selected' : '' }}>{{ $subunit->subunit_name }}</option>
+                                            @endforeach
+                                        </select>
+                                        @error('subunit_id')
+                                            <span class="text-red-500 text-sm">{{ $message }}</span>
+                                        @enderror
+                                    </div>
                                 </div>
-                                
-                                <div class="mt-4">
-                                    <label for="office_id" class="block text-sm font-medium text-gray-700 mb-1">Office</label>
-                                    <select name="office_id" id="office_id"
-                                        class="w-full rounded-lg border-gray-300 shadow-sm focus:border-[#1e6031] focus:ring focus:ring-[#1e6031] focus:ring-opacity-50">
-                                        <option value="">Select Office</option>
-                                        @foreach($offices as $office)
-                                            <option value="{{ $office->id }}" {{ old('office_id', $employee->office_id) == $office->id ? 'selected' : '' }}>{{ $office->office_name }}</option>
-                                        @endforeach
-                                    </select>
-                                </div>
-                                
-                                <div class="mt-4">
-                                    <label for="division_id" class="block text-sm font-medium text-gray-700 mb-1">Division</label>
-                                    <select name="division_id" id="division_id"
-                                        class="w-full rounded-lg border-gray-300 shadow-sm focus:border-[#1e6031] focus:ring focus:ring-[#1e6031] focus:ring-opacity-50">
-                                        <option value="">Select Division</option>
-                                        @foreach($divisions as $division)
-                                            <option value="{{ $division->id }}" {{ old('division_id', $employee->division_id) == $division->id ? 'selected' : '' }}>{{ $division->division_name }}</option>
-                                        @endforeach
-                                    </select>
-                                </div>
-                                
-                                <div class="mt-4">
-                                    <label for="unit_id" class="block text-sm font-medium text-gray-700 mb-1">Unit</label>
-                                    <select name="unit_id" id="unit_id"
-                                        class="w-full rounded-lg border-gray-300 shadow-sm focus:border-[#1e6031] focus:ring focus:ring-[#1e6031] focus:ring-opacity-50">
-                                        <option value="">Select Unit</option>
-                                        @foreach($units as $unit)
-                                            <option value="{{ $unit->id }}" {{ old('unit_id', $employee->unit_id) == $unit->id ? 'selected' : '' }}>{{ $unit->unit_name }}</option>
-                                        @endforeach
-                                    </select>
-                                </div>
-                                
-                                <div class="mt-4">
-                                    <label for="subunit_id" class="block text-sm font-medium text-gray-700 mb-1">Subunit</label>
-                                    <select name="subunit_id" id="subunit_id"
-                                        class="w-full rounded-lg border-gray-300 shadow-sm focus:border-[#1e6031] focus:ring focus:ring-[#1e6031] focus:ring-opacity-50">
-                                        <option value="">Select Subunit</option>
-                                        @foreach($subunits as $subunit)
-                                            <option value="{{ $subunit->id }}" {{ old('subunit_id', $employee->subunit_id) == $subunit->id ? 'selected' : '' }}>{{ $subunit->subunit_name }}</option>
-                                        @endforeach
-                                    </select>
-                                </div>
+                            </div>
                                                         
-                                <!-- Additional Positions -->
+                            <!-- Additional Positions Section -->
+                            <div class="md:col-span-2">
                                 <div id="additionalPositionsSection">
-                                    <h3 class="text-lg font-medium text-gray-900 mt-4 mb-4">Additional Positions</h3>
+                                    <h3 class="text-lg font-medium text-gray-900 mb-4">Additional Positions</h3>
                                                             
                                     <div id="additionalPositionsContainer">
                                         <!-- Dynamic positions will be added here -->
@@ -200,7 +255,7 @@
                                                             <h4 class="text-md font-medium text-gray-800">Additional Position #{{ $loop->iteration }}</h4>
                                                             <button type="button" class="remove-position-btn bg-red-500 hover:bg-red-700 text-white px-2 py-1 rounded text-sm">Remove</button>
                                                         </div>
-                                                                                            
+                                                                                
                                                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                             <div>
                                                                 <label class="block text-sm font-medium text-gray-700 mb-1">Position Name</label>
@@ -209,7 +264,7 @@
                                                                     class="w-full rounded-lg border-gray-300 shadow-sm focus:border-[#1e6031] focus:ring focus:ring-[#1e6031] focus:ring-opacity-50">
                                                                 <input type="hidden" name="additional_positions[{{ $loop->iteration }}][id]" value="{{ $position->id }}">
                                                             </div>
-                                                                                                
+                                                                                    
                                                             <div>
                                                                 <label class="block text-sm font-medium text-gray-700 mb-1">Class</label>
                                                                 <select name="additional_positions[{{ $loop->iteration }}][class_id]" 
@@ -220,7 +275,7 @@
                                                                     @endforeach
                                                                 </select>
                                                             </div>
-                                                                                                
+                                                                                    
                                                             <div>
                                                                 <label class="block text-sm font-medium text-gray-700 mb-1">Office</label>
                                                                 <select name="additional_positions[{{ $loop->iteration }}][office_id]" 
@@ -231,7 +286,7 @@
                                                                     @endforeach
                                                                 </select>
                                                             </div>
-                                                                                                
+                                                                                    
                                                             <div>
                                                                 <label class="block text-sm font-medium text-gray-700 mb-1">Division</label>
                                                                 <select name="additional_positions[{{ $loop->iteration }}][division_id]" 
@@ -242,7 +297,7 @@
                                                                     @endforeach
                                                                 </select>
                                                             </div>
-                                                                                                
+                                                                                    
                                                             <div>
                                                                 <label class="block text-sm font-medium text-gray-700 mb-1">Unit</label>
                                                                 <select name="additional_positions[{{ $loop->iteration }}][unit_id]" 
@@ -253,7 +308,7 @@
                                                                     @endforeach
                                                                 </select>
                                                             </div>
-                                                                                                
+                                                                                    
                                                             <div>
                                                                 <label class="block text-sm font-medium text-gray-700 mb-1">Subunit</label>
                                                                 <select name="additional_positions[{{ $loop->iteration }}][subunit_id]" 
@@ -264,7 +319,7 @@
                                                                     @endforeach
                                                                 </select>
                                                             </div>
-
+                        
                                                             <div>
                                                                 <label class="block text-sm font-medium text-gray-700 mb-1">Role in Position</label>
                                                                 <select name="additional_positions[{{ $loop->iteration }}][position_role]" 
@@ -287,20 +342,14 @@
                                         Add Another Position
                                     </button>
                                 </div>
-                                                        
-                                <!-- Hidden input to always set emp_status to active (1) -->
-                                <input type="hidden" name="emp_status" value="1">
                             </div>
-                                                    
-                            <!-- Status and Roles -->
-                            
                         </div>
                         
-                        <div class="mt-6 flex justify-end space-x-3">
-                            <a href="{{ route('admin.employees.index') }}" class="bg-gray-500 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition duration-300">
+                        <div class="flex items-center justify-end mt-6">
+                            <a href="{{ route('admin.employees.index') }}" class="mr-3 bg-gray-500 hover:bg-gray-700 text-white px-6 py-3 rounded-lg transition duration-300">
                                 Cancel
                             </a>
-                            <button type="submit" class="bg-[#1e6031] hover:bg-[#164f2a] text-white px-4 py-2 rounded-lg transition duration-300">
+                            <button type="submit" class="bg-[#1e6031] hover:bg-[#164f2a] text-white px-6 py-3 rounded-lg transition duration-300 shadow-md hover:shadow-lg">
                                 Update Employee
                             </button>
                         </div>
@@ -317,6 +366,11 @@
             const unitSelect = document.getElementById('unit_id');
             const subunitSelect = document.getElementById('subunit_id');
             
+            // Store original options for reset
+            const originalDivisionOptions = divisionSelect.innerHTML;
+            const originalUnitOptions = unitSelect.innerHTML;
+            const originalSubunitOptions = subunitSelect.innerHTML;
+            
             // Load divisions when office is selected
             officeSelect.addEventListener('change', function() {
                 const officeId = this.value;
@@ -329,7 +383,8 @@
                         .then(response => response.json())
                         .then(divisions => {
                             divisions.forEach(division => {
-                                divisionSelect.innerHTML += '<option value="' + division.id + '">' + division.division_name + '</option>';
+                                const selected = division.id == {{ $employee->division_id ?? 'null' }} ? 'selected' : '';
+                                divisionSelect.innerHTML += '<option value="' + division.id + '" ' + selected + '>' + division.division_name + '</option>';
                             });
                         })
                         .catch(error => console.error('Error:', error));
@@ -347,7 +402,8 @@
                         .then(response => response.json())
                         .then(units => {
                             units.forEach(unit => {
-                                unitSelect.innerHTML += '<option value="' + unit.id + '">' + unit.unit_name + '</option>';
+                                const selected = unit.id == {{ $employee->unit_id ?? 'null' }} ? 'selected' : '';
+                                unitSelect.innerHTML += '<option value="' + unit.id + '" ' + selected + '>' + unit.unit_name + '</option>';
                             });
                         })
                         .catch(error => console.error('Error:', error));
@@ -364,12 +420,68 @@
                         .then(response => response.json())
                         .then(subunits => {
                             subunits.forEach(subunit => {
-                                subunitSelect.innerHTML += '<option value="' + subunit.id + '">' + subunit.subunit_name + '</option>';
+                                const selected = subunit.id == {{ $employee->subunit_id ?? 'null' }} ? 'selected' : '';
+                                subunitSelect.innerHTML += '<option value="' + subunit.id + '" ' + selected + '>' + subunit.subunit_name + '</option>';
                             });
                         })
                         .catch(error => console.error('Error:', error));
                 }
             });
+            
+            // Initialize cascading dropdowns on page load if values exist
+            function initializeCascadingDropdowns() {
+                const officeId = officeSelect.value;
+                const divisionId = divisionSelect.value;
+                const unitId = unitSelect.value;
+                
+                // If office is selected, load divisions
+                if (officeId) {
+                    fetch('{{ route('admin.employees.get-divisions-by-office') }}?office_id=' + officeId)
+                        .then(response => response.json())
+                        .then(divisions => {
+                            let divisionHtml = '<option value="">Select Division</option>';
+                            divisions.forEach(division => {
+                                const selected = division.id == {{ $employee->division_id ?? 'null' }} ? 'selected' : '';
+                                divisionHtml += '<option value="' + division.id + '" ' + selected + '>' + division.division_name + '</option>';
+                            });
+                            divisionSelect.innerHTML = divisionHtml;
+                        })
+                        .catch(error => console.error('Error:', error));
+                }
+                
+                // If division is selected, load units
+                if (divisionId) {
+                    fetch('{{ route('admin.employees.get-units-by-division') }}?division_id=' + divisionId)
+                        .then(response => response.json())
+                        .then(units => {
+                            let unitHtml = '<option value="">Select Unit</option>';
+                            units.forEach(unit => {
+                                const selected = unit.id == {{ $employee->unit_id ?? 'null' }} ? 'selected' : '';
+                                unitHtml += '<option value="' + unit.id + '" ' + selected + '>' + unit.unit_name + '</option>';
+                            });
+                            unitSelect.innerHTML = unitHtml;
+                        })
+                        .catch(error => console.error('Error:', error));
+                }
+                
+                // If unit is selected, load subunits
+                if (unitId) {
+                    fetch('{{ route('admin.employees.get-subunits-by-unit') }}?unit_id=' + unitId)
+                        .then(response => response.json())
+                        .then(subunits => {
+                            let subunitHtml = '<option value="">Select Subunit</option>';
+                            subunits.forEach(subunit => {
+                                const selected = subunit.id == {{ $employee->subunit_id ?? 'null' }} ? 'selected' : '';
+                                subunitHtml += '<option value="' + subunit.id + '" ' + selected + '>' + subunit.subunit_name + '</option>';
+                            });
+                            subunitSelect.innerHTML = subunitHtml;
+                        })
+                        .catch(error => console.error('Error:', error));
+                }
+            }
+            
+            // Initialize on page load
+            initializeCascadingDropdowns();
 
             // Handle additional positions
             let positionCounter = {{ $employee->positions->where('is_primary', false)->count() > 0 ? $employee->positions->where('is_primary', false)->count() : 0 }};

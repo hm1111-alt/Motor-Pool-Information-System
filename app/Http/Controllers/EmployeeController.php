@@ -247,6 +247,24 @@ class EmployeeController extends Controller
     }
 
     /**
+     * Display the specified employee.
+     */
+    public function show(Employee $employee)
+    {
+        // Load all related data
+        $employee->load([
+            'user',
+            'positions.office',
+            'positions.division',
+            'positions.unit',
+            'positions.subunit',
+            'positions.class'
+        ]);
+        
+        return view('admin.employees.show', compact('employee'));
+    }
+
+    /**
      * Show the form for editing the specified employee.
      */
     public function edit(Employee $employee): View
@@ -284,6 +302,8 @@ class EmployeeController extends Controller
             'prefix' => 'nullable|string|max:10',
             'email' => 'required|email|unique:users,email,' . ($employee->user_id ?? 0),
             'password' => 'nullable|string|min:8|confirmed',
+            'contact_num' => 'nullable|string|max:20',
+            'emp_status' => 'required|boolean',
             'position_name' => 'required|string|max:255',
             'office_id' => 'nullable|exists:offices,id',
             'division_id' => 'nullable|exists:divisions,id',
@@ -292,6 +312,7 @@ class EmployeeController extends Controller
             'class_id' => 'nullable|exists:class,id',
             'position_role' => 'nullable|in:none,unit_head,division_head,vp,president',
             'additional_positions' => 'nullable|array',
+            'additional_positions.*.id' => 'nullable|exists:emp_positions,id',
             'additional_positions.*.position_name' => 'nullable|string|max:255',
             'additional_positions.*.office_id' => 'nullable|exists:offices,id',
             'additional_positions.*.division_id' => 'nullable|exists:divisions,id',
@@ -301,8 +322,8 @@ class EmployeeController extends Controller
             'additional_positions.*.position_role' => 'nullable|in:none,unit_head,division_head,vp,president',
         ]);
 
-        // Handle checkbox values properly - always set emp_status to active (1)
-        $isActive = 1; // Default to active
+        // Handle status properly
+        $isActive = $request->emp_status;
         $selectedRole = $request->input('position_role', ''); // Default to no role for primary position
 
         // Update the user if it exists
@@ -340,6 +361,7 @@ class EmployeeController extends Controller
             'full_name2' => $request->last_name . ', ' . $request->first_name,
             'sex' => $request->sex,
             'prefix' => $request->prefix,
+            'contact_num' => $request->contact_num,
             'emp_status' => $isActive,
         ]);
         
@@ -377,29 +399,60 @@ class EmployeeController extends Controller
         
         // Handle additional positions if provided
         if ($request->has('additional_positions')) {
-            // First, remove existing additional positions
-            $employee->positions()->where('is_primary', false)->delete();
+            // Get existing additional position IDs
+            $existingPositionIds = $employee->positions()->where('is_primary', false)->pluck('id')->toArray();
             
-            // Add new additional positions
-            foreach ($request->additional_positions as $position) {
-                if (!empty($position['position_name'])) {
-                    $positionRole = $position['position_role'] ?? 'none';
-                    \App\Models\EmpPosition::create([
-                        'employee_id' => $employee->id,
-                        'position_name' => $position['position_name'],
-                        'office_id' => $position['office_id'] ?? null,
-                        'division_id' => $position['division_id'] ?? null,
-                        'unit_id' => $position['unit_id'] ?? null,
-                        'subunit_id' => $position['subunit_id'] ?? null,
-                        'class_id' => $position['class_id'] ?? null,
-                        'is_primary' => false,
-                        'is_unit_head' => $positionRole === 'unit_head',
-                        'is_division_head' => $positionRole === 'division_head',
-                        'is_vp' => $positionRole === 'vp',
-                        'is_president' => $positionRole === 'president',
-                    ]);
+            // Process each additional position
+            foreach ($request->additional_positions as $positionData) {
+                if (!empty($positionData['position_name'])) {
+                    $positionRole = $positionData['position_role'] ?? 'none';
+                    
+                    if (isset($positionData['id']) && in_array($positionData['id'], $existingPositionIds)) {
+                        // Update existing position
+                        $position = \App\Models\EmpPosition::find($positionData['id']);
+                        if ($position) {
+                            $position->update([
+                                'position_name' => $positionData['position_name'],
+                                'office_id' => $positionData['office_id'] ?? null,
+                                'division_id' => $positionData['division_id'] ?? null,
+                                'unit_id' => $positionData['unit_id'] ?? null,
+                                'subunit_id' => $positionData['subunit_id'] ?? null,
+                                'class_id' => $positionData['class_id'] ?? null,
+                                'is_unit_head' => $positionRole === 'unit_head',
+                                'is_division_head' => $positionRole === 'division_head',
+                                'is_vp' => $positionRole === 'vp',
+                                'is_president' => $positionRole === 'president',
+                            ]);
+                        }
+                        // Remove from existing IDs array to track which ones were processed
+                        $existingPositionIds = array_diff($existingPositionIds, [$positionData['id']]);
+                    } else {
+                        // Create new position
+                        \App\Models\EmpPosition::create([
+                            'employee_id' => $employee->id,
+                            'position_name' => $positionData['position_name'],
+                            'office_id' => $positionData['office_id'] ?? null,
+                            'division_id' => $positionData['division_id'] ?? null,
+                            'unit_id' => $positionData['unit_id'] ?? null,
+                            'subunit_id' => $positionData['subunit_id'] ?? null,
+                            'class_id' => $positionData['class_id'] ?? null,
+                            'is_primary' => false,
+                            'is_unit_head' => $positionRole === 'unit_head',
+                            'is_division_head' => $positionRole === 'division_head',
+                            'is_vp' => $positionRole === 'vp',
+                            'is_president' => $positionRole === 'president',
+                        ]);
+                    }
                 }
             }
+            
+            // Delete any remaining unprocessed positions (were removed from the form)
+            if (!empty($existingPositionIds)) {
+                \App\Models\EmpPosition::whereIn('id', $existingPositionIds)->delete();
+            }
+        } else {
+            // No additional positions in request, delete all existing additional positions
+            $employee->positions()->where('is_primary', false)->delete();
         }
 
         // Update or create officer record based on selected role
@@ -458,29 +511,78 @@ class EmployeeController extends Controller
     public function destroy(Employee $employee): RedirectResponse|JsonResponse
     {
         try {
+            // Check for dependent records with detailed counts
+            $positionCount = $employee->positions()->count();
+            $officerCount = $employee->officer ? 1 : 0;
+            $userCount = $employee->user ? 1 : 0;
+            
+            // If there are dependent records, provide detailed error message
+            if ($positionCount > 0 || $officerCount > 0 || $userCount > 0) {
+                $message = "Cannot delete employee '{$employee->full_name}' because it has dependent records:";
+                
+                if ($positionCount > 0) {
+                    $message .= "\n- {$positionCount} position(s)";
+                }
+                
+                if ($officerCount > 0) {
+                    $message .= "\n- 1 officer record";
+                }
+                
+                if ($userCount > 0) {
+                    $message .= "\n- 1 user account";
+                }
+                
+                $message .= "\n\nOptions:";
+                $message .= "\n1. Reassign or delete these dependent records first";
+                $message .= "\n2. Archive the employee instead (set status to inactive)";
+                $message .= "\n\nTo archive, update the employee's status to inactive instead of deleting.";
+                
+                if (request()->wantsJson() || request()->ajax()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => $message,
+                        'dependencies' => [
+                            'positions' => $positionCount,
+                            'officer' => $officerCount,
+                            'user' => $userCount
+                        ]
+                    ], 422);
+                }
+                
+                return redirect()->route('admin.employees.index')
+                                 ->with('error', $message);
+            }
+            
+            // Safe to delete
+            $employeeName = $employee->full_name;
             $employee->delete();
+            
+            $successMessage = "Employee '{$employeeName}' deleted successfully.";
             
             if (request()->wantsJson() || request()->ajax()) {
                 return response()->json([
                     'success' => true,
-                    'message' => 'Employee deleted successfully.'
+                    'message' => $successMessage
                 ]);
             }
             
             return redirect()->route('admin.employees.index')
-                             ->with('success', 'Employee deleted successfully.');
+                             ->with('success', $successMessage);
         } catch (\Exception $e) {
             \Log::error('Error deleting employee: ' . $e->getMessage());
+            \Log::error('Employee ID: ' . $employee->id . ', Name: ' . $employee->full_name . ', User ID: ' . $employee->user_id);
+            
+            $errorMessage = 'There was an error deleting the employee: ' . $e->getMessage();
             
             if (request()->wantsJson() || request()->ajax()) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'There was an error deleting the employee.'
+                    'message' => $errorMessage
                 ], 500);
             }
             
             return redirect()->route('admin.employees.index')
-                             ->with('error', 'There was an error deleting the employee.');
+                             ->with('error', $errorMessage);
         }
     }
 

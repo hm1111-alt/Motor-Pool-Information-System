@@ -32,11 +32,19 @@ class Office extends Model
     ];
 
     /**
-     * Get the employees for the office.
+     * Get the employees for the office through positions.
      */
     public function employees()
     {
-        return $this->hasMany(Employee::class);
+        return $this->hasManyThrough(Employee::class, EmpPosition::class, 'office_id', 'id', 'id', 'employee_id');
+    }
+
+    /**
+     * Get the positions for the office.
+     */
+    public function positions()
+    {
+        return $this->hasMany(EmpPosition::class, 'office_id');
     }
 
     /**

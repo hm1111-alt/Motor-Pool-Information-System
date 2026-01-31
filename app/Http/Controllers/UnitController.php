@@ -150,14 +150,32 @@ class UnitController extends Controller
     public function destroy(Unit $unit): RedirectResponse|JsonResponse
     {
         try {
-            // Check if unit has related records
-            if ($unit->employees()->count() > 0 || $unit->subunits()->count() > 0) {
-                $message = 'Cannot delete unit because it has related records (employees or subunits). Please remove or reassign these records first.';
+            // Check for dependent records with detailed counts
+            $subunitCount = $unit->subunits()->count();
+            $employeePositionCount = \App\Models\EmpPosition::where('unit_id', $unit->id)->count();
+            
+            // If there are dependent records, provide detailed error message
+            if ($subunitCount > 0 || $employeePositionCount > 0) {
+                $message = "Cannot delete unit '{$unit->unit_name}' because it has dependent records:";
+                
+                if ($subunitCount > 0) {
+                    $message .= "\n- {$subunitCount} subunit(s)";
+                }
+                
+                if ($employeePositionCount > 0) {
+                    $message .= "\n- {$employeePositionCount} employee position(s)";
+                }
+                
+                $message .= "\n\nPlease reassign or delete these dependent records before deleting the unit.";
                 
                 if (request()->wantsJson() || request()->ajax()) {
                     return response()->json([
                         'success' => false,
-                        'message' => $message
+                        'message' => $message,
+                        'dependencies' => [
+                            'subunits' => $subunitCount,
+                            'employee_positions' => $employeePositionCount
+                        ]
                     ], 422);
                 }
                 
@@ -165,29 +183,36 @@ class UnitController extends Controller
                                  ->with('error', $message);
             }
             
+            // Safe to delete
+            $unitName = $unit->unit_name;
             $unit->delete();
+            
+            $successMessage = "Unit '{$unitName}' deleted successfully.";
             
             if (request()->wantsJson() || request()->ajax()) {
                 return response()->json([
                     'success' => true,
-                    'message' => 'Unit deleted successfully.'
+                    'message' => $successMessage
                 ]);
             }
             
             return redirect()->route('admin.units.index')
-                             ->with('success', 'Unit deleted successfully.');
+                             ->with('success', $successMessage);
         } catch (\Exception $e) {
             \Log::error('Error deleting unit: ' . $e->getMessage());
+            \Log::error('Unit ID: ' . $unit->id . ', Name: ' . $unit->unit_name . ', Division ID: ' . $unit->division_id);
+            
+            $errorMessage = 'There was an error deleting the unit: ' . $e->getMessage();
             
             if (request()->wantsJson() || request()->ajax()) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'There was an error deleting the unit.'
+                    'message' => $errorMessage
                 ], 500);
             }
             
             return redirect()->route('admin.units.index')
-                             ->with('error', 'There was an error deleting the unit.');
+                             ->with('error', $errorMessage);
         }
     }
 }

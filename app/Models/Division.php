@@ -40,11 +40,19 @@ class Division extends Model
     }
 
     /**
-     * Get the employees for the division.
+     * Get the employees for the division through positions.
      */
     public function employees()
     {
-        return $this->hasMany(Employee::class);
+        return $this->hasManyThrough(Employee::class, EmpPosition::class, 'division_id', 'id', 'id', 'employee_id');
+    }
+
+    /**
+     * Get the positions for the division.
+     */
+    public function positions()
+    {
+        return $this->hasMany(EmpPosition::class, 'division_id');
     }
 
     /**

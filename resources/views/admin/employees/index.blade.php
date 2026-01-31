@@ -78,13 +78,9 @@
                         <table class="min-w-full divide-y divide-gray-200" id="employees-table">
                             <thead class="bg-gray-50">
                                 <tr>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">No</th>
                                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Employee Name</th>
                                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Position</th>
-                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Office</th>
-                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Division</th>
-                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Unit</th>
-                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Subunit</th>
-                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Class</th>
                                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
                                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
@@ -141,7 +137,7 @@
                     // Show loading state
                     tableBody.innerHTML = `
                         <tr>
-                            <td colspan="10" class="px-6 py-4 text-center">
+                            <td colspan="6" class="px-6 py-4 text-center">
                                 <div class="flex justify-center">
                                     <svg class="animate-spin h-5 w-5 text-[#1e6031]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -222,7 +218,7 @@
                         console.error('Search error:', error);
                         tableBody.innerHTML = `
                             <tr>
-                                <td colspan="10" class="px-6 py-4 text-center text-red-500">
+                                <td colspan="6" class="px-6 py-4 text-center text-red-500">
                                     Error loading search results. Please try again.
                                 </td>
                             </tr>
@@ -233,85 +229,7 @@
             
             // Function to attach event listeners
             function attachEventListeners() {
-                // Reattach delete button event listeners
-                document.querySelectorAll('.delete-employee').forEach(button => {
-                    button.addEventListener('click', function(e) {
-                        e.preventDefault();
-                        
-                        const employeeName = this.getAttribute('data-name');
-                        const form = this.closest('.delete-form');
-                        
-                        Swal.fire({
-                            title: 'Are you sure?',
-                            text: `You are about to delete the employee "${employeeName}". This action cannot be undone.`,
-                            icon: 'warning',
-                            showCancelButton: true,
-                            confirmButtonColor: '#d33',
-                            cancelButtonColor: '#3085d6',
-                            confirmButtonText: 'Yes, delete it!',
-                            cancelButtonText: 'Cancel'
-                        }).then((result) => {
-                            if (result.isConfirmed) {
-                                const formData = new FormData(form);
-                                
-                                fetch(form.action, {
-                                    method: 'POST',
-                                    body: formData,
-                                    headers: {
-                                        'X-Requested-With': 'XMLHttpRequest',
-                                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                                    }
-                                })
-                                .then(response => {
-                                    // Check if response is JSON
-                                    const contentType = response.headers.get('content-type');
-                                    if (contentType && contentType.includes('application/json')) {
-                                        return response.json().then(data => ({ data, status: response.status, isJson: true }));
-                                    } else {
-                                        // If not JSON, assume success for redirect responses
-                                        return { 
-                                            data: { success: true, message: 'Employee deleted successfully.' }, 
-                                            status: response.status, 
-                                            isJson: false 
-                                        };
-                                    }
-                                })
-                                .then(({ data, status, isJson }) => {
-                                    if (data.success) {
-                                        Swal.fire({
-                                            title: 'Deleted!',
-                                            text: data.message,
-                                            icon: 'success',
-                                            confirmButtonColor: '#1e6031'
-                                        }).then(() => {
-                                            // Reload the page to reflect changes
-                                            location.reload();
-                                        });
-                                    } else {
-                                        Swal.fire({
-                                            title: 'Error!',
-                                            text: data.message || 'There was an error deleting the employee.',
-                                            icon: 'error',
-                                            confirmButtonColor: '#1e6031'
-                                        });
-                                    }
-                                })
-                                .catch(error => {
-                                    console.error('Delete error:', error);
-                                    Swal.fire({
-                                        title: 'Deleted!',
-                                        text: 'Employee deleted successfully.',
-                                        icon: 'success',
-                                        confirmButtonColor: '#1e6031'
-                                    }).then(() => {
-                                        // Even if there was an error, reload to show the current state
-                                        location.reload();
-                                    });
-                                });
-                            }
-                        });
-                    });
-                });
+                // Delete functionality removed - no event listeners needed
                 
                 // Reattach pagination event listeners
                 if (paginationSection) {
@@ -322,7 +240,7 @@
                             // Show loading state
                             tableBody.innerHTML = `
                                 <tr>
-                                    <td colspan="10" class="px-6 py-4 text-center">
+                                    <td colspan="6" class="px-6 py-4 text-center">
                                         <div class="flex justify-center">
                                             <svg class="animate-spin h-5 w-5 text-[#1e6031]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>

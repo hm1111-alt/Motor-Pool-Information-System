@@ -75,6 +75,7 @@ class VehicleController extends Controller
             'plate_number' => 'required|string|max:50|unique:vehicle,plate_number',
             'model' => 'required|string|max:255',
             'type' => 'required|string|max:255',
+            'fuel_type' => 'required|string|max:255',
             'seating_capacity' => 'required|integer|min:1',
             'mileage' => 'required|integer|min:0',
             'status' => 'required|in:Available,Not Available,Active,Under Maintenance',
@@ -97,7 +98,16 @@ class VehicleController extends Controller
      */
     public function show(Vehicle $vehicle): View
     {
-        return view('vehicles.show', compact('vehicle'));
+        // Load vehicle with travel history
+        $vehicle->load(['travelHistory.driver', 'travelHistory.tripTicket']);
+        
+        // Get travel history ordered by departure date
+        $travelHistory = $vehicle->travelHistory()->with(['driver', 'tripTicket'])
+            ->orderBy('departure_date', 'desc')
+            ->orderBy('departure_time', 'desc')
+            ->paginate(10);
+        
+        return view('vehicles.show', compact('vehicle', 'travelHistory'));
     }
 
     /**
@@ -132,6 +142,7 @@ class VehicleController extends Controller
             ],
             'model' => 'required|string|max:255',
             'type' => 'required|string|max:255',
+            'fuel_type' => 'required|string|max:255',
             'seating_capacity' => 'required|integer|min:1',
             'mileage' => 'required|integer|min:0',
             'status' => 'required|in:Available,Not Available,Active,Under Maintenance',

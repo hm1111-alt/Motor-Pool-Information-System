@@ -146,16 +146,6 @@
                                 </div>
                                 <span :class="sidebarOpen ? 'block' : 'hidden'" class="font-medium truncate">Travel History</span>
                             </a>
-                            
-                            <!-- Trip Tickets -->
-                            <a href="{{ route('employee.trip-tickets.index') }}" class="flex items-center px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors duration-200 mb-1">
-                                <div class="rounded-lg bg-[#1e6031] p-2 mr-3 flex-shrink-0">
-                                    <svg class="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                    </svg>
-                                </div>
-                                <span :class="sidebarOpen ? 'block' : 'hidden'" class="font-medium truncate">Trip Tickets</span>
-                            </a>
                         @endif
                         
                         <!-- Trip Tickets (for all employees) -->

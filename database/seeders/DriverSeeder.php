@@ -15,72 +15,67 @@ class DriverSeeder extends Seeder
      */
     public function run(): void
     {
-        // Driver data array
+        // Driver data array matching the new schema
         $drivers = [
             [
-                'first_name' => 'Irwin',
+                'firsts_name' => 'Irwin',
+                'middle_initial' => 'J',
                 'last_name' => 'Salapare',
-                'middle_initial' => null,
-                'ext_name' => null,
-                'full_name' => 'Irwin Salapare',
-                'full_name2' => 'Salapare, Irwin',
-                'sex' => null,
-                'contact_number' => '09175107991',
+                'contact_num' => '09175107991',
+                'email' => 'irwin.salapare@example.com',
+                'password' => 'password123',
+                'address' => 'Sample Address 1, Manila',
                 'position' => 'Admin Officer',
                 'official_station' => 'MPS, Transportation Services',
-                'availability_status' => 'Active',
+                'availability_status' => 'Available',
             ],
             [
-                'first_name' => 'Enrico',
+                'firsts_name' => 'Enrico',
+                'middle_initial' => 'M',
                 'last_name' => 'Baltazar',
-                'middle_initial' => null,
-                'ext_name' => null,
-                'full_name' => 'Enrico Baltazar',
-                'full_name2' => 'Baltazar, Enrico',
-                'sex' => null,
-                'contact_number' => '09273685031',
+                'contact_num' => '09273685031',
+                'email' => 'enrico.baltazar@example.com',
+                'password' => 'password123',
+                'address' => 'Sample Address 2, Quezon City',
                 'position' => 'Admin Assistant III',
                 'official_station' => 'Motor Pool Section',
-                'availability_status' => 'Active',
+                'availability_status' => 'Available',
             ],
             [
-                'first_name' => 'Wilson',
+                'firsts_name' => 'Wilson',
+                'middle_initial' => 'K',
                 'last_name' => 'Dacumos',
-                'middle_initial' => null,
-                'ext_name' => null,
-                'full_name' => 'Wilson Dacumos',
-                'full_name2' => 'Dacumos, Wilson',
-                'sex' => null,
-                'contact_number' => '09554263129',
+                'contact_num' => '09554263129',
+                'email' => 'wilson.dacumos@example.com',
+                'password' => 'password123',
+                'address' => 'Sample Address 3, Makati',
                 'position' => 'Admin Aide III',
                 'official_station' => 'Motor Pool Section',
-                'availability_status' => 'Active',
+                'availability_status' => 'On Duty',
             ],
             [
-                'first_name' => 'Alejandro',
+                'firsts_name' => 'Alejandro',
+                'middle_initial' => 'L',
                 'last_name' => 'Catalma',
-                'middle_initial' => null,
-                'ext_name' => null,
-                'full_name' => 'Alejandro Catalma',
-                'full_name2' => 'Catalma, Alejandro',
-                'sex' => null,
-                'contact_number' => '09536943549',
+                'contact_num' => '09536943549',
+                'email' => 'alejandro.catalma@example.com',
+                'password' => 'password123',
+                'address' => 'Sample Address 4, Pasig',
                 'position' => 'Admin Aide IV',
                 'official_station' => 'Motor Pool Section',
-                'availability_status' => 'Active',
+                'availability_status' => 'Available',
             ],
             [
-                'first_name' => 'Joey',
+                'firsts_name' => 'Joey',
+                'middle_initial' => 'M',
                 'last_name' => 'Corales',
-                'middle_initial' => null,
-                'ext_name' => null,
-                'full_name' => 'Joey Corales',
-                'full_name2' => 'Corales, Joey',
-                'sex' => null,
-                'contact_number' => '09274089758',
+                'contact_num' => '09274089758',
+                'email' => 'joey.corales@example.com',
+                'password' => 'password123',
+                'address' => 'Sample Address 5, Taguig',
                 'position' => 'Admin Aide III',
                 'official_station' => 'Motor Pool Section',
-                'availability_status' => 'Active',
+                'availability_status' => 'Not Available',
             ],
         ];
 
@@ -88,15 +83,28 @@ class DriverSeeder extends Seeder
         foreach ($drivers as $index => $driverData) {
             // Create a user for each driver
             $user = User::create([
-                'name' => $driverData['first_name'] . ' ' . $driverData['last_name'],
-                'email' => strtolower($driverData['first_name'] . '.' . $driverData['last_name']) . '@example.com',
-                'contact_num' => $driverData['contact_number'],
-                'password' => Hash::make('password123'),
+                'name' => $driverData['firsts_name'] . ' ' . $driverData['last_name'],
+                'email' => $driverData['email'],
+                'password' => Hash::make($driverData['password']),
                 'role' => 'driver',
             ]);
 
-            // Create the driver record (without user_id since it's not in the schema)
-            Driver::create($driverData);
+            // Create the driver record with user_id
+            Driver::create([
+                'user_id' => $user->id,
+                'firsts_name' => $driverData['firsts_name'],
+                'middle_initial' => $driverData['middle_initial'],
+                'last_name' => $driverData['last_name'],
+                'full_name' => $driverData['firsts_name'] . ' ' . $driverData['last_name'],
+                'full_name2' => $driverData['firsts_name'] . ' ' . $driverData['middle_initial'] . '. ' . $driverData['last_name'],
+                'contact_num' => $driverData['contact_num'],
+                'email' => $driverData['email'],
+                'password' => Hash::make($driverData['password']),
+                'address' => $driverData['address'],
+                'position' => $driverData['position'],
+                'official_station' => $driverData['official_station'],
+                'availability_status' => $driverData['availability_status'],
+            ]);
         }
     }
 }

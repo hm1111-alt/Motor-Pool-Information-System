@@ -22,6 +22,8 @@ use App\Http\Controllers\PresidentTravelOrderController;
 use App\Http\Controllers\PresidentOwnTravelOrderController;
 use App\Http\Controllers\MotorpoolAdminController;
 use App\Http\Controllers\VehicleController;
+use App\Http\Controllers\DriverController;
+use App\Http\Controllers\DriverDashboardController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use Illuminate\Support\Facades\Auth;
@@ -29,6 +31,32 @@ use Illuminate\Support\Facades\Auth;
 Route::get('/', function () {
     return view('welcome');
 });
+
+// Debug route to check user-driver relationship
+Route::get('/debug-driver-check', function() {
+    if (!Auth::check()) {
+        return 'Not logged in. Please log in first.';
+    }
+    
+    $user = Auth::user();
+    $driver = \App\Models\Driver::where('user_id', $user->id)->first();
+    
+    return response()->json([
+        'user' => [
+            'id' => $user->id,
+            'name' => $user->name,
+            'email' => $user->email,
+            'role' => $user->role
+        ],
+        'driver' => $driver ? [
+            'id' => $driver->id,
+            'user_id' => $driver->user_id,
+            'name' => $driver->firsts_name . ' ' . $driver->last_name,
+            'email' => $driver->email
+        ] : null,
+        'message' => $driver ? 'Driver record found' : 'No driver record found'
+    ]);
+})->middleware('auth');
 
 // Test route for vehicle add button
 Route::get('/vehicles/test-add-button', function () {
@@ -38,6 +66,13 @@ Route::get('/vehicles/test-add-button', function () {
 // Simple vehicle index route
 Route::get('/vehicles/simple-index', [VehicleController::class, 'simpleIndex'])->name('vehicles.simple-index');
 
+// Driver Dashboard Routes (Accessible only to drivers)
+Route::middleware(['auth', 'role:driver'])->prefix('driver')->name('driver.')->group(function () {
+    Route::get('/dashboard', [DriverDashboardController::class, 'index'])->name('dashboard');
+    Route::get('/itineraries', [DriverDashboardController::class, 'itineraries'])->name('itineraries');
+    Route::get('/trip-tickets', [DriverDashboardController::class, 'tripTickets'])->name('trip-tickets');
+    Route::get('/calendar/events', [DriverDashboardController::class, 'getCalendarEvents'])->name('calendar.events');
+});
 
 Route::get('/dashboard', [DashboardController::class, 'index'])
     ->middleware(['auth', 'verified'])
@@ -87,6 +122,7 @@ Route::middleware('auth')->group(function () {
     
     Route::get('/admin/employees', [EmployeeController::class, 'index'])->name('admin.employees.index');
     Route::get('/admin/employees/create', [EmployeeController::class, 'create'])->name('admin.employees.create');
+    Route::get('/admin/employees/{employee}', [EmployeeController::class, 'show'])->name('admin.employees.show');
     Route::get('/admin/employees/test-form', function () {
         return view('admin.employees.test-form');
     })->name('admin.employees.test-form');
@@ -117,6 +153,74 @@ Route::middleware('auth')->group(function () {
     Route::get('/admin/employees/get-divisions-by-office', [EmployeeController::class, 'getDivisionsByOffice'])->name('admin.employees.get-divisions-by-office');
     Route::get('/admin/employees/get-units-by-division', [EmployeeController::class, 'getUnitsByDivision'])->name('admin.employees.get-units-by-division');
     Route::get('/admin/employees/get-subunits-by-unit', [EmployeeController::class, 'getSubunitsByUnit'])->name('admin.employees.get-subunits-by-unit');
+    
+    // Test route for cascading dropdowns
+    Route::get('/admin/employees/test-dropdowns', function() {
+        $offices = \App\Models\Office::all();
+        return view('admin.employees.test-dropdowns', compact('offices'));
+    })->name('admin.employees.test-dropdowns');
+    
+    // Test route for edit employee functionality
+    Route::get('/admin/employees/test-edit/{id}', function($id) {
+        $employee = \App\Models\Employee::with(['user', 'positions'])->findOrFail($id);
+        $offices = \App\Models\Office::all();
+        $classes = \App\Models\ClassModel::all();
+        
+        // Get related divisions, units, and subunits based on primary position
+        $primaryPosition = $employee->positions()->where('is_primary', true)->first();
+        $officeId = $primaryPosition ? $primaryPosition->office_id : null;
+        $divisionId = $primaryPosition ? $primaryPosition->division_id : null;
+        $unitId = $primaryPosition ? $primaryPosition->unit_id : null;
+        
+        $divisions = $officeId ? \App\Models\Division::where('office_id', $officeId)->get() : collect();
+        $units = $divisionId ? \App\Models\Unit::where('division_id', $divisionId)->get() : collect();
+        $subunits = $unitId ? \App\Models\Subunit::where('unit_id', $unitId)->get() : collect();
+        
+        return view('admin.employees.edit', compact('employee', 'offices', 'divisions', 'units', 'subunits', 'classes'));
+    })->name('admin.employees.test-edit');
+    
+    // Test form route
+    Route::get('/admin/employees/test-edit-form', function() {
+        return view('admin.employees.test-edit-form');
+    })->name('admin.employees.test-edit-form');
+    
+    // Simple test update route
+    Route::post('/admin/employees/test-update/{id}', function(Request $request, $id) {
+        $employee = \App\Models\Employee::findOrFail($id);
+        \Log::info('Test update request received', [
+            'employee_id' => $id,
+            'request_data' => $request->all()
+        ]);
+        
+        try {
+            // Simple update test
+            $employee->update([
+                'first_name' => $request->first_name,
+                'last_name' => $request->last_name,
+                'sex' => $request->sex,
+            ]);
+            
+            \Log::info('Test update successful', [
+                'employee_id' => $id
+            ]);
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Employee updated successfully',
+                'employee' => $employee
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Test update failed', [
+                'employee_id' => $id,
+                'error' => $e->getMessage()
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Update failed: ' . $e->getMessage()
+            ], 500);
+        }
+    })->name('admin.employees.test-update');
     
     // Leadership Routes
     Route::get('/admin/leaders', [LeaderController::class, 'index'])->name('admin.leaders.index');
@@ -212,7 +316,7 @@ Route::middleware('auth')->group(function () {
     Route::resource('vehicles', App\Http\Controllers\VehicleController::class);
     
     // Driver Management Routes for Motorpool Admin
-    Route::resource('drivers', App\Http\Controllers\DriverController::class);
+    Route::resource('drivers', DriverController::class);
     
     // Trip Ticket Management Routes for Motorpool Admin
     Route::resource('trip-tickets', App\Http\Controllers\TripTicketController::class);
@@ -253,6 +357,15 @@ Route::middleware('auth')->group(function () {
         Route::get('/', [App\Http\Controllers\EmployeeTripTicketController::class, 'index'])->name('index');
         Route::get('/{tripTicket}', [App\Http\Controllers\EmployeeTripTicketController::class, 'show'])->name('show');
     });
+    
+    // Vehicle Travel History Routes
+    Route::prefix('vehicles')->name('vehicles.')->group(function () {
+        Route::get('/travel-history', [App\Http\Controllers\VehicleTravelHistoryController::class, 'index'])->name('travel-history');
+    });
+    
+    // Vehicle Maintenance Routes
+    Route::resource('vehicle-maintenance', App\Http\Controllers\VehicleMaintenanceController::class);
+    Route::get('/vehicles/{vehicle}/maintenance', [App\Http\Controllers\VehicleMaintenanceController::class, 'maintenanceByVehicle'])->name('vehicles.maintenance');
     
     // Travel Order Management Routes for Motorpool Admin
     Route::prefix('motorpool')->name('motorpool.')->group(function () {

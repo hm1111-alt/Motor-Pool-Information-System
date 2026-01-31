@@ -4,50 +4,83 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\Hash;
 
 class Driver extends Model
 {
     use HasFactory;
-
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array<int, string>
-     */
+    
     protected $fillable = [
         'user_id',
-        'first_name',
-        'last_name',
+        'firsts_name',
         'middle_initial',
-        'ext_name',
+        'last_name',
         'full_name',
         'full_name2',
-        'sex',
-        'prefix',
+        'contact_num',
+        'email',
+        'password',
+        'address',
+        'position',
+        'official_station',
         'availability_status',
     ];
-
+    
+    protected $hidden = [
+        'password',
+    ];
+    
+    protected $casts = [
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
+    ];
+    
     /**
-     * Get the user record for this driver.
+     * Get the user associated with this driver.
      */
-    public function user()
+    public function user(): BelongsTo
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class, 'user_id');
     }
-
+    
+    /**
+     * Get the itineraries for this driver.
+     */
+    public function itineraries(): HasMany
+    {
+        return $this->hasMany(Itinerary::class, 'driver_id');
+    }
+    
     /**
      * Get the full name of the driver.
      */
-    public function getFullNameAttribute()
+    public function getFullNameAttribute(): string
     {
-        return $this->first_name . ' ' . $this->last_name;
+        return $this->firsts_name . ' ' . $this->last_name;
     }
-
+    
     /**
-     * Get the formal name of the driver (with prefix).
+     * Get the formal name of the driver (with middle initial).
      */
-    public function getFormalNameAttribute()
+    public function getFormalNameAttribute(): string
     {
-        return $this->prefix ? $this->prefix . ' ' . $this->first_name . ' ' . $this->last_name : $this->first_name . ' ' . $this->last_name;
+        $fullName = $this->firsts_name;
+        if ($this->middle_initial) {
+            $fullName .= ' ' . $this->middle_initial . '.';
+        }
+        $fullName .= ' ' . $this->last_name;
+        return $fullName;
+    }
+    
+    /**
+     * Hash the password when setting it.
+     */
+    public function setPasswordAttribute($value)
+    {
+        if ($value) {
+            $this->attributes['password'] = Hash::make($value);
+        }
     }
 }

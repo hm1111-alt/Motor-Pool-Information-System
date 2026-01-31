@@ -14,6 +14,7 @@
         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ $vehicle->plate_number }}</td>
         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $vehicle->model }}</td>
         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $vehicle->type }}</td>
+        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $vehicle->fuel_type ?? 'N/A' }}</td>
         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $vehicle->seating_capacity }}</td>
         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ number_format($vehicle->mileage) }}</td>
         <td class="px-6 py-4 whitespace-nowrap">
@@ -25,6 +26,13 @@
                 @endif">
                 {{ $vehicle->status }}
             </span>
+            @if($vehicle->needsMaintenance())
+            <div class="mt-1">
+                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-orange-100 text-orange-800">
+                    Needs Maintenance
+                </span>
+            </div>
+            @endif
         </td>
         <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
             <a href="{{ route('vehicles.show', $vehicle) }}" class="text-indigo-600 hover:text-indigo-900 mr-3">View</a>
@@ -38,7 +46,7 @@
     </tr>
 @empty
     <tr>
-        <td colspan="8" class="px-6 py-4 text-center text-sm text-gray-500">
+        <td colspan="9" class="px-6 py-4 text-center text-sm text-gray-500">
             No vehicles found.
         </td>
     </tr>

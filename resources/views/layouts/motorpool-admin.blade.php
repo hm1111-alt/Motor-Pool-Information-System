@@ -137,15 +137,7 @@
                             <span :class="sidebarOpen ? 'block' : 'hidden'" class="font-medium truncate">Trip Tickets</span>
                         </a>
 
-                        <!-- Create Trip Ticket -->
-                        <a href="{{ route('trip-tickets.create') }}" class="flex items-center px-4 py-3 text-white bg-[#1e6031] hover:bg-[#164f2a] rounded-lg transition-colors duration-200 mb-1">
-                            <div class="rounded-lg bg-white p-2 mr-3 flex-shrink-0">
-                                <svg class="h-5 w-5 text-[#1e6031]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                                </svg>
-                            </div>
-                            <span :class="sidebarOpen ? 'block' : 'hidden'" class="font-medium truncate">Create Trip Ticket</span>
-                        </a>
+
 
                         <!-- Vehicles -->
                         <a href="{{ route('vehicles.index') }}" class="flex items-center px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors duration-200 mb-1">
@@ -156,6 +148,8 @@
                             </div>
                             <span :class="sidebarOpen ? 'block' : 'hidden'" class="font-medium truncate">Vehicles</span>
                         </a>
+                        
+
 
                         <!-- Drivers -->
                         <a href="{{ route('drivers.index') }}" class="flex items-center px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors duration-200 mb-1">

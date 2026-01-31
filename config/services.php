@@ -35,4 +35,11 @@ return [
         ],
     ],
 
+    // Distance estimation service - now uses OpenStreetMap/OSRM (free)
+    // 'google' => [
+    //     'maps' => [
+    //         'api_key' => env('GOOGLE_MAPS_API_KEY'),
+    //     ],
+    // ],
+
 ];

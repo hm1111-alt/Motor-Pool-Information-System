@@ -26,6 +26,7 @@ class Vehicle extends Model
         'plate_number',
         'model',
         'type',
+        'fuel_type',
         'seating_capacity',
         'mileage',
         'status',
@@ -47,5 +48,61 @@ class Vehicle extends Model
     public function itineraries()
     {
         return $this->hasMany(Itinerary::class);
+    }
+    
+    /**
+     * Get the travel history records for the vehicle.
+     */
+    public function travelHistory()
+    {
+        return $this->hasMany(VehicleTravelHistory::class, 'vehicle_id');
+    }
+    
+    /**
+     * Get the maintenance records for the vehicle.
+     */
+    public function maintenanceRecords()
+    {
+        return $this->hasMany(VehicleMaintenance::class, 'vehicle_id');
+    }
+    
+    /**
+     * Check if the vehicle needs maintenance based on mileage
+     * Maintenance is needed every 5000 km
+     */
+    public function needsMaintenance(): bool
+    {
+        if ($this->mileage <= 0) {
+            return false;
+        }
+        
+        // Calculate the last maintenance mileage
+        $lastMaintenanceRecord = $this->maintenanceRecords()->orderBy('created_at', 'desc')->first();
+        $lastMaintenanceMileage = $lastMaintenanceRecord ? ($lastMaintenanceRecord->odometer_reading ?? $this->mileage) : 0;
+        
+        // Check if the difference between current mileage and last maintenance exceeds 5000 km
+        return ($this->mileage - $lastMaintenanceMileage) >= 5000;
+    }
+    
+    /**
+     * Get the next maintenance due mileage
+     */
+    public function getNextMaintenanceDue(): int
+    {
+        $lastMaintenanceRecord = $this->maintenanceRecords()->orderBy('created_at', 'desc')->first();
+        $lastMaintenanceMileage = $lastMaintenanceRecord ? ($lastMaintenanceRecord->odometer_reading ?? 0) : 0;
+        
+        // Return the next milestone after the last maintenance
+        return floor(($lastMaintenanceMileage + 5000) / 5000) * 5000;
+    }
+    
+    /**
+     * Get the remaining mileage before next maintenance
+     */
+    public function getRemainingMileageForMaintenance(): int
+    {
+        $nextMaintenance = $this->getNextMaintenanceDue();
+        $remaining = $nextMaintenance - $this->mileage;
+        return max(0, $remaining);
     }
 }

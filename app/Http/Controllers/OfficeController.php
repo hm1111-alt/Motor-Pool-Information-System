@@ -149,14 +149,38 @@ class OfficeController extends Controller
     public function destroy(Office $office): RedirectResponse|JsonResponse
     {
         try {
-            // Check if office has related records
-            if ($office->employees()->count() > 0 || $office->divisions()->count() > 0) {
-                $message = 'Cannot delete office because it has related records (employees or divisions). Please remove or reassign these records first.';
+            // Check for dependent records with detailed counts
+            $divisionCount = $office->divisions()->count();
+            
+            // Check employee positions in divisions of this office
+            $employeesWithPositions = 0;
+            if ($divisionCount > 0) {
+                $divisionIds = $office->divisions->pluck('id')->toArray();
+                $employeesWithPositions = \App\Models\EmpPosition::whereIn('division_id', $divisionIds)->count();
+            }
+            
+            // If there are dependent records, provide detailed error message
+            if ($divisionCount > 0 || $employeesWithPositions > 0) {
+                $message = "Cannot delete office '{$office->office_name}' because it has dependent records:";
+                
+                if ($divisionCount > 0) {
+                    $message .= "\n- {$divisionCount} division(s)";
+                }
+                
+                if ($employeesWithPositions > 0) {
+                    $message .= "\n- {$employeesWithPositions} employee position(s) in these divisions";
+                }
+                
+                $message .= "\n\nPlease reassign or delete these dependent records before deleting the office.";
                 
                 if (request()->wantsJson() || request()->ajax()) {
                     return response()->json([
                         'success' => false,
-                        'message' => $message
+                        'message' => $message,
+                        'dependencies' => [
+                            'divisions' => $divisionCount,
+                            'employee_positions' => $employeesWithPositions
+                        ]
                     ], 422);
                 }
                 
@@ -164,29 +188,36 @@ class OfficeController extends Controller
                                  ->with('error', $message);
             }
             
+            // Safe to delete
+            $officeName = $office->office_name;
             $office->delete();
+            
+            $successMessage = "Office '{$officeName}' deleted successfully.";
             
             if (request()->wantsJson() || request()->ajax()) {
                 return response()->json([
                     'success' => true,
-                    'message' => 'Office deleted successfully.'
+                    'message' => $successMessage
                 ]);
             }
             
             return redirect()->route('admin.offices.index')
-                             ->with('success', 'Office deleted successfully.');
+                             ->with('success', $successMessage);
         } catch (\Exception $e) {
             \Log::error('Error deleting office: ' . $e->getMessage());
+            \Log::error('Office ID: ' . $office->id . ', Name: ' . $office->office_name);
+            
+            $errorMessage = 'There was an error deleting the office: ' . $e->getMessage();
             
             if (request()->wantsJson() || request()->ajax()) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'There was an error deleting the office.'
+                    'message' => $errorMessage
                 ], 500);
             }
             
             return redirect()->route('admin.offices.index')
-                             ->with('error', 'There was an error deleting the office.');
+                             ->with('error', $errorMessage);
         }
     }
 }
