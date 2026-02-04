@@ -27,15 +27,8 @@ class DashboardController extends Controller
 
         // Determine which dashboard to show based on user role
         if ($user->isMotorpoolAdmin()) {
-            // Load trip tickets for motorpool admin
-            $tripTickets = TripTicket::with(
-                'itinerary',
-                'itinerary.driver',
-                'itinerary.vehicle',
-                'itinerary.travelOrder.employee'
-            )->latest()->get();
-            
-            return view('dashboards.motorpool-admin', compact('tripTickets'));
+            // Redirect motorpool admin to their specific dashboard
+            return redirect()->route('motorpool.dashboard');
         } elseif ($user->isAdmin()) {
             return view('dashboards.admin');
         } elseif ($user->isDriver()) {

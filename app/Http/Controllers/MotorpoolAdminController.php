@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\View\View;
 use Illuminate\Support\Facades\Auth;
 use App\Models\TravelOrder;
+use App\Models\TripTicket;
 use App\Models\Employee;
 
 class MotorpoolAdminController extends Controller
@@ -15,15 +16,15 @@ class MotorpoolAdminController extends Controller
      */
     public function dashboard(): View
     {
-        // Get statistics for the dashboard
-        $totalApprovedTravelOrders = TravelOrder::where('status', 'approved')->count();
-        $recentTravelOrders = TravelOrder::where('status', 'approved')
-            ->with('employee')
-            ->orderBy('created_at', 'desc')
-            ->limit(5)
-            ->get();
+        // Load trip tickets for motorpool admin dashboard
+        $tripTickets = TripTicket::with(
+            'itinerary',
+            'itinerary.driver',
+            'itinerary.vehicle',
+            'itinerary.travelOrder.employee'
+        )->latest()->get();
         
-        return view('motorpool-admin.dashboard', compact('totalApprovedTravelOrders', 'recentTravelOrders'));
+        return view('dashboards.motorpool-admin', compact('tripTickets'));
     }
     
     /**

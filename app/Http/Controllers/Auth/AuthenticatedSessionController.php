@@ -32,11 +32,11 @@ class AuthenticatedSessionController extends Controller
         $user = Auth::user();
         
         if ($user->isMotorpoolAdmin()) {
-            return redirect()->intended(route('dashboard', absolute: false));
+            return redirect()->route('motorpool.dashboard');
         } elseif ($user->isAdmin()) {
             return redirect()->intended(route('dashboard', absolute: false));
         } elseif ($user->isDriver()) {
-            return redirect()->intended(route('dashboard', absolute: false));
+            return redirect()->intended(route('driver.dashboard', absolute: false));
         } elseif ($user->isEmployee()) {
             return redirect()->intended(route('dashboard', absolute: false));
         }
