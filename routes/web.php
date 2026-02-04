@@ -186,7 +186,7 @@ Route::middleware('auth')->group(function () {
     Route::put('/admin/employees/{employee}', [EmployeeController::class, 'update'])->name('admin.employees.update');
     Route::delete('/admin/employees/{employee}', [EmployeeController::class, 'destroy'])->name('admin.employees.destroy');
     
-    // AJAX routes for employee form dependencies
+    // AJAX routes for employee form dependencies - moved inside auth middleware
     Route::get('/admin/employees/get-divisions-by-office', [EmployeeController::class, 'getDivisionsByOffice'])->name('admin.employees.get-divisions-by-office');
     Route::get('/admin/employees/get-units-by-division', [EmployeeController::class, 'getUnitsByDivision'])->name('admin.employees.get-units-by-division');
     Route::get('/admin/employees/get-subunits-by-unit', [EmployeeController::class, 'getSubunitsByUnit'])->name('admin.employees.get-subunits-by-unit');
@@ -283,6 +283,21 @@ Route::middleware('auth')->group(function () {
             ], 500);
         }
     })->name('admin.employees.test-update');
+    
+    // Test route for AJAX authentication
+    Route::get('/admin/employees/test-ajax-auth', function() {
+        if (Auth::check()) {
+            return response()->json([
+                'authenticated' => true,
+                'user' => Auth::user()->name
+            ]);
+        } else {
+            return response()->json([
+                'authenticated' => false,
+                'message' => 'Not authenticated'
+            ], 401);
+        }
+    })->name('admin.employees.test-ajax-auth');
     
     // Leadership Routes
     Route::get('/admin/leaders', [LeaderController::class, 'index'])->name('admin.leaders.index');

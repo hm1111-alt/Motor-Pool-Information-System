@@ -243,66 +243,33 @@
                 }
             });
             
-            // Load units when division is selected (using AJAX as fallback)
+            // Load units when division is selected (using pre-loaded data)
             divisionSelect.addEventListener('change', function() {
                 const divisionId = this.value;
-                unitSelect.innerHTML = '<option value="">Loading units...</option>';
+                console.log('Division changed to:', divisionId);
+                unitSelect.innerHTML = '<option value="">Select Unit</option>';
                 subunitSelect.innerHTML = '<option value="">Select Subunit</option>';
-
-                if (divisionId) {
-                    fetch('{{ route('admin.employees.get-units-by-division') }}?division_id=' + divisionId, {
-                        headers: {
-                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                        }
-                    })
-                        .then(response => {
-                            if (!response.ok) {
-                                throw new Error('Network response was not ok');
-                            }
-                            return response.json();
-                        })
-                        .then(units => {
-                            unitSelect.innerHTML = '<option value="">Select Unit</option>';
-                            units.forEach(unit => {
-                                unitSelect.innerHTML += '<option value="' + unit.id_unit + '">' + unit.unit_name + '</option>';
-                            });
-                        })
-                        .catch(error => {
-                            unitSelect.innerHTML = '<option value="">Error loading units</option>';
-                        });
+                
+                if (divisionId && cascadingData.units[divisionId]) {
+                    console.log('Found units for division:', cascadingData.units[divisionId]);
+                    cascadingData.units[divisionId].forEach(unit => {
+                        unitSelect.innerHTML += '<option value="' + unit.id_unit + '">' + unit.unit_name + '</option>';
+                    });
                 } else {
-                    unitSelect.innerHTML = '<option value="">Select Unit</option>';
+                    console.log('No units found for division:', divisionId);
+                    unitSelect.innerHTML = '<option value="">No units available</option>';
                 }
             });
             
-            // Load subunits when unit is selected (using AJAX)
+            // Load subunits when unit is selected (using pre-loaded data)
             unitSelect.addEventListener('change', function() {
                 const unitId = this.value;
-                subunitSelect.innerHTML = '<option value="">Loading subunits...</option>';
+                subunitSelect.innerHTML = '<option value="">Select Subunit</option>';
                 
-                if (unitId) {
-                    fetch('{{ route('admin.employees.get-subunits-by-unit') }}?unit_id=' + unitId, {
-                        headers: {
-                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                        }
-                    })
-                    .then(response => {
-                        if (!response.ok) {
-                            throw new Error('Network response was not ok');
-                        }
-                        return response.json();
-                    })
-                    .then(subunits => {
-                        subunitSelect.innerHTML = '<option value="">Select Subunit</option>';
-                        subunits.forEach(subunit => {
-                            subunitSelect.innerHTML += '<option value="' + subunit.id_subunit + '">' + subunit.subunit_name + '</option>';
-                        });
-                    })
-                    .catch(error => {
-                        subunitSelect.innerHTML = '<option value="">Error loading subunits</option>';
+                if (unitId && cascadingData.subunits[unitId]) {
+                    cascadingData.subunits[unitId].forEach(subunit => {
+                        subunitSelect.innerHTML += '<option value="' + subunit.id_subunit + '">' + subunit.subunit_name + '</option>';
                     });
-                } else {
-                    subunitSelect.innerHTML = '<option value="">Select Subunit</option>';
                 }
             });
 
@@ -419,9 +386,12 @@
 
                     if (divisionId) {
                         fetch('{{ route('admin.employees.get-units-by-division') }}?division_id=' + divisionId, {
+                            method: 'GET',
                             headers: {
-                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                            }
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                                'Content-Type': 'application/json',
+                            },
+                            credentials: 'include'
                         })
                         .then(response => {
                             if (!response.ok) {
@@ -450,9 +420,12 @@
 
                     if (unitId) {
                         fetch('{{ route('admin.employees.get-subunits-by-unit') }}?unit_id=' + unitId, {
+                            method: 'GET',
                             headers: {
-                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                            }
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                                'Content-Type': 'application/json',
+                            },
+                            credentials: 'include'
                         })
                         .then(response => {
                             if (!response.ok) {
