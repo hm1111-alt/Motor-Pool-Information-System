@@ -153,8 +153,6 @@
                                         @enderror
                                     </div>
 
-
-
                                     <div>
                                         <label for="class_id" class="block text-sm font-medium text-gray-700 mb-1">Class (Optional)</label>
                                         <select name="class_id" id="class_id"
@@ -357,9 +355,12 @@
 
                 if (officeId) {
                     fetch('{{ route('admin.employees.get-divisions-by-office') }}?office_id=' + officeId, {
+                        method: 'GET',
                         headers: {
-                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                        }
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                            'Content-Type': 'application/json',
+                        },
+                        credentials: 'include'
                     })
                         .then(response => {
                             if (!response.ok) {
@@ -379,36 +380,21 @@
                 }
             });
             
-            // Load units when division is selected
+            // Load units when division is selected (using pre-loaded data)
             divisionSelect.addEventListener('change', function() {
                 const divisionId = this.value;
-                unitSelect.innerHTML = '<option value="">Loading units...</option>';
+                unitSelect.innerHTML = '<option value="">Select Unit</option>';
                 subunitSelect.innerHTML = '<option value="">Select Subunit</option>';
-
-                if (divisionId) {
-                    fetch('{{ route('admin.employees.get-units-by-division') }}?division_id=' + divisionId, {
-                        headers: {
-                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                        }
-                    })
-                        .then(response => {
-                            if (!response.ok) {
-                                throw new Error('Network response was not ok');
-                            }
-                            return response.json();
-                        })
-                        .then(units => {
-                            unitSelect.innerHTML = '<option value="">Select Unit</option>';
-                            units.forEach(unit => {
-                                const selected = unit.id_unit == {{ $employee->unit_id ?? 'null' }} ? 'selected' : '';
-                                unitSelect.innerHTML += '<option value="' + unit.id_unit + '" ' + selected + '>' + unit.unit_name + '</option>';
-                            });
-                        })
-                        .catch(error => {
-                            unitSelect.innerHTML = '<option value="">Error loading units</option>';
-                        });
+                
+                if (divisionId && cascadingData.units[divisionId]) {
+                    console.log('Found units for division:', cascadingData.units[divisionId]);
+                    cascadingData.units[divisionId].forEach(unit => {
+                        const selected = unit.id_unit == {{ $employee->unit_id ?? 'null' }} ? 'selected' : '';
+                        unitSelect.innerHTML += '<option value="' + unit.id_unit + '" ' + selected + '>' + unit.unit_name + '</option>';
+                    });
                 } else {
-                    unitSelect.innerHTML = '<option value="">Select Unit</option>';
+                    console.log('No units found for division:', divisionId);
+                    unitSelect.innerHTML = '<option value="">No units available</option>';
                 }
             });
             
@@ -417,16 +403,11 @@
                 const unitId = this.value;
                 subunitSelect.innerHTML = '<option value="">Select Subunit</option>';
                 
-                if (unitId) {
-                    fetch('{{ route('admin.employees.get-subunits-by-unit') }}?unit_id=' + unitId)
-                        .then(response => response.json())
-                        .then(subunits => {
-                            subunits.forEach(subunit => {
-                                const selected = subunit.id == {{ $employee->subunit_id ?? 'null' }} ? 'selected' : '';
-                                subunitSelect.innerHTML += '<option value="' + subunit.id + '" ' + selected + '>' + subunit.subunit_name + '</option>';
-                            });
-                        })
-                        .catch(error => console.error('Error:', error));
+                if (unitId && cascadingData.subunits[unitId]) {
+                    cascadingData.subunits[unitId].forEach(subunit => {
+                        const selected = subunit.id_subunit == {{ $employee->subunit_id ?? 'null' }} ? 'selected' : '';
+                        subunitSelect.innerHTML += '<option value="' + subunit.id_subunit + '" ' + selected + '>' + subunit.subunit_name + '</option>';
+                    });
                 }
             });
             

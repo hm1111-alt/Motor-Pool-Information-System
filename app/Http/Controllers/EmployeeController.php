@@ -119,6 +119,18 @@ class EmployeeController extends Controller
             $cascadingData['divisions'][$office->id] = Division::where('office_id', $office->id)->get();
         }
         
+        // Load units for all divisions
+        $allDivisions = Division::all();
+        foreach ($allDivisions as $division) {
+            $cascadingData['units'][$division->id_division] = Unit::where('unit_division', $division->id_division)->get();
+        }
+        
+        // Load subunits for all units
+        $allUnits = Unit::all();
+        foreach ($allUnits as $unit) {
+            $cascadingData['subunits'][$unit->id_unit] = Subunit::where('unit_id', $unit->id_unit)->get();
+        }
+        
         return view('admin.employees.create', compact('offices', 'classes', 'divisions', 'units', 'subunits', 'cascadingData'));
     }
 
@@ -274,6 +286,30 @@ class EmployeeController extends Controller
         
         $offices = Office::all();
         
+        // Pre-load all cascading data to avoid AJAX issues
+        $cascadingData = [
+            'divisions' => [],
+            'units' => [],
+            'subunits' => []
+        ];
+        
+        // Load divisions for all offices
+        foreach ($offices as $office) {
+            $cascadingData['divisions'][$office->id] = Division::where('office_id', $office->id)->get();
+        }
+        
+        // Load units for all divisions
+        $allDivisions = Division::all();
+        foreach ($allDivisions as $division) {
+            $cascadingData['units'][$division->id_division] = Unit::where('unit_division', $division->id_division)->get();
+        }
+        
+        // Load subunits for all units
+        $allUnits = Unit::all();
+        foreach ($allUnits as $unit) {
+            $cascadingData['subunits'][$unit->id_unit] = Subunit::where('unit_id', $unit->id_unit)->get();
+        }
+        
         // Get related divisions, units, and subunits based on primary position
         $primaryPosition = $employee->positions()->where('is_primary', true)->first();
         $officeId = $primaryPosition ? $primaryPosition->office_id : null;
@@ -286,7 +322,7 @@ class EmployeeController extends Controller
         
         $classes = ClassModel::all();
         
-        return view('admin.employees.edit', compact('employee', 'offices', 'divisions', 'units', 'subunits', 'classes'));
+        return view('admin.employees.edit', compact('employee', 'offices', 'divisions', 'units', 'subunits', 'classes', 'cascadingData'));
     }
 
     /**
@@ -587,8 +623,36 @@ class EmployeeController extends Controller
      */
     public function getDivisionsByOffice(Request $request)
     {
-        $divisions = Division::where('office_id', $request->office_id)->get();
-        return response()->json($divisions);
+        try {
+            \Log::info('getDivisionsByOffice called with office_id: ' . $request->office_id);
+            
+            // Validate the office_id parameter
+            if (!$request->has('office_id') || !is_numeric($request->office_id)) {
+                \Log::error('Invalid office_id parameter: ' . $request->office_id);
+                return response()->json(['error' => 'Invalid office_id parameter'], 400);
+            }
+            
+            $divisions = Division::where('office_id', $request->office_id)->get();
+            
+            \Log::info('Found ' . $divisions->count() . ' divisions for office_id: ' . $request->office_id);
+            
+            // Log the first few divisions for debugging
+            if ($divisions->count() > 0) {
+                $sampleDivisions = $divisions->take(3)->map(function($division) {
+                    return [
+                        'id_division' => $division->id_division,
+                        'division_name' => $division->division_name
+                    ];
+                });
+                \Log::info('Sample divisions: ' . json_encode($sampleDivisions));
+            }
+            
+            return response()->json($divisions);
+        } catch (\Exception $e) {
+            \Log::error('Error in getDivisionsByOffice: ' . $e->getMessage());
+            \Log::error('Stack trace: ' . $e->getTraceAsString());
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
     }
 
     /**
@@ -598,12 +662,33 @@ class EmployeeController extends Controller
     {
         try {
             \Log::info('getUnitsByDivision called with division_id: ' . $request->division_id);
+            
+            // Validate the division_id parameter
+            if (!$request->has('division_id') || !is_numeric($request->division_id)) {
+                \Log::error('Invalid division_id parameter: ' . $request->division_id);
+                return response()->json(['error' => 'Invalid division_id parameter'], 400);
+            }
+            
             // Use unit_division as the column name based on lib_units table structure
             $units = Unit::where('unit_division', $request->division_id)->get();
-            \Log::info('Found ' . $units->count() . ' units');
+            
+            \Log::info('Found ' . $units->count() . ' units for division_id: ' . $request->division_id);
+            
+            // Log the first few units for debugging
+            if ($units->count() > 0) {
+                $sampleUnits = $units->take(3)->map(function($unit) {
+                    return [
+                        'id_unit' => $unit->id_unit,
+                        'unit_name' => $unit->unit_name
+                    ];
+                });
+                \Log::info('Sample units: ' . json_encode($sampleUnits));
+            }
+            
             return response()->json($units);
         } catch (\Exception $e) {
             \Log::error('Error in getUnitsByDivision: ' . $e->getMessage());
+            \Log::error('Stack trace: ' . $e->getTraceAsString());
             return response()->json(['error' => $e->getMessage()], 500);
         }
     }
@@ -613,7 +698,35 @@ class EmployeeController extends Controller
      */
     public function getSubunitsByUnit(Request $request)
     {
-        $subunits = Subunit::where('unit_id', $request->unit_id)->get();
-        return response()->json($subunits);
+        try {
+            \Log::info('getSubunitsByUnit called with unit_id: ' . $request->unit_id);
+            
+            // Validate the unit_id parameter
+            if (!$request->has('unit_id') || !is_numeric($request->unit_id)) {
+                \Log::error('Invalid unit_id parameter: ' . $request->unit_id);
+                return response()->json(['error' => 'Invalid unit_id parameter'], 400);
+            }
+            
+            $subunits = Subunit::where('unit_id', $request->unit_id)->get();
+            
+            \Log::info('Found ' . $subunits->count() . ' subunits for unit_id: ' . $request->unit_id);
+            
+            // Log the first few subunits for debugging
+            if ($subunits->count() > 0) {
+                $sampleSubunits = $subunits->take(3)->map(function($subunit) {
+                    return [
+                        'id_subunit' => $subunit->id_subunit,
+                        'subunit_name' => $subunit->subunit_name
+                    ];
+                });
+                \Log::info('Sample subunits: ' . json_encode($sampleSubunits));
+            }
+            
+            return response()->json($subunits);
+        } catch (\Exception $e) {
+            \Log::error('Error in getSubunitsByUnit: ' . $e->getMessage());
+            \Log::error('Stack trace: ' . $e->getTraceAsString());
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
     }
 }
