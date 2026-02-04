@@ -23,28 +23,88 @@ class LeaderController extends Controller
                     $query->where('president', true);
                 })->first();
         
-        // Get all offices with their VPs - using the correct relationship through EmpPosition
+        return view('admin.leaders.index', compact('president'));
+    }
+    
+    public function offices()
+    {
+        // Check if user is admin (not motorpool admin)
+        if (!Auth::user()->isAdmin()) {
+            return redirect()->route('dashboard');
+        }
+        
+        // Get all offices with their VPs
         $offices = Office::with(['positions' => function($query) {
             $query->whereHas('employee.officer', function ($officerQuery) {
                             $officerQuery->where('vp', true);
                         })->with('employee.user');
         }])->get();
         
-        // Get all divisions with their Division Heads - using the correct relationship through EmpPosition
-        $divisions = Division::with(['positions' => function($query) {
-            $query->whereHas('employee.officer', function ($officerQuery) {
-                            $officerQuery->where('division_head', true);
-                        })->with('employee.user');
-        }])->get();
+        return view('admin.leaders.offices', compact('offices'));
+    }
+    
+    public function showOffice(Office $office)
+    {
+        // Check if user is admin (not motorpool admin)
+        if (!Auth::user()->isAdmin()) {
+            return redirect()->route('dashboard');
+        }
         
-        // Get all units with their Unit Heads - using the correct relationship through EmpPosition
-        $units = Unit::with(['positions' => function($query) {
-            $query->whereHas('employee.officer', function ($officerQuery) {
-                            $officerQuery->where('unit_head', true);
-                        })->with('employee.user');
-        }])->get();
+        // Load office with divisions and their heads
+        $office->load([
+            'divisions.positions.employee.officer',
+            'positions.employee.officer'
+        ]);
         
-        return view('admin.leaders.index', compact('president', 'offices', 'divisions', 'units'));
+        // Get VP for this office
+        $vp = $office->employees()->whereHas('officer', function ($officerQuery) {
+            $officerQuery->where('vp', true);
+        })->first();
+        
+        return view('admin.leaders.office-show', compact('office', 'vp'));
+    }
+    
+    public function showDivision(Division $division)
+    {
+        // Check if user is admin (not motorpool admin)
+        if (!Auth::user()->isAdmin()) {
+            return redirect()->route('dashboard');
+        }
+        
+        // Load division with units and their heads
+        $division->load([
+            'units.positions.employee.officer',
+            'positions.employee.officer',
+            'office'
+        ]);
+        
+        // Get Division Head
+        $divisionHead = $division->employees()->whereHas('officer', function ($officerQuery) {
+            $officerQuery->where('division_head', true);
+        })->first();
+        
+        return view('admin.leaders.division-show', compact('division', 'divisionHead'));
+    }
+    
+    public function showUnit(Unit $unit)
+    {
+        // Check if user is admin (not motorpool admin)
+        if (!Auth::user()->isAdmin()) {
+            return redirect()->route('dashboard');
+        }
+        
+        // Load unit with its head
+        $unit->load([
+            'positions.employee.officer',
+            'division.office'
+        ]);
+        
+        // Get Unit Head
+        $unitHead = $unit->employees()->whereHas('officer', function ($officerQuery) {
+            $officerQuery->where('unit_head', true);
+        })->first();
+        
+        return view('admin.leaders.unit-show', compact('unit', 'unitHead'));
     }
     
     public function edit($type, $id = null)
@@ -87,12 +147,7 @@ class LeaderController extends Controller
         // Get all employees for selection (both active and inactive)
         $employees = Employee::all();
         
-        // Get organizational structure
-        $offices = Office::all();
-        $divisions = Division::all();
-        $units = Unit::all();
-        
-        return view('admin.leaders.edit', compact('type', 'employee', 'organization', 'employees', 'offices', 'divisions', 'units'));
+        return view('admin.leaders.edit', compact('type', 'employee', 'organization', 'employees'));
     }
     
     public function update(Request $request)
@@ -111,7 +166,7 @@ class LeaderController extends Controller
         // Additional validation to prevent assigning President as VP
         if ($request->type === 'vp' && $request->employee_id) {
             $employee = Employee::find($request->employee_id);
-            if ($employee && $employee->is_president) {
+            if ($employee && $employee->officer && $employee->officer->president) {
                 return redirect()->back()->with('error', 'Cannot assign the University President as a Vice President.');
             }
         }
@@ -128,7 +183,6 @@ class LeaderController extends Controller
         switch ($request->type) {
             case 'president':
                 // Reset current president
-                // Update the officer records instead of the employee directly
                 $currentPresident = Employee::whereHas('officer', function ($query) {
                     $query->where('president', true);
                 })->first();
@@ -141,7 +195,6 @@ class LeaderController extends Controller
                 // Set new president if selected
                 if ($request->employee_id) {
                     $employee = Employee::find($request->employee_id);
-                    // Create or update officer record for president
                     $officer = $employee->officer ?? $employee->officer()->create([
                         'employee_id' => $employee->id,
                         'unit_head' => false,
@@ -176,7 +229,6 @@ class LeaderController extends Controller
                 // Set new VP if selected
                 if ($request->employee_id) {
                     $employee = Employee::find($request->employee_id);
-                    // Create or update officer record for VP
                     $officer = $employee->officer ?? $employee->officer()->create([
                         'employee_id' => $employee->id,
                         'unit_head' => false,
@@ -190,11 +242,15 @@ class LeaderController extends Controller
                             'vp' => true
                         ]);
                     }
-                    // Assign to office if organization_id is provided
+                    // Update employee's primary position to be in this office
                     if ($request->organization_id) {
-                        $employee->office_id = $request->organization_id;
+                        $primaryPosition = $employee->positions()->where('is_primary', true)->first();
+                        if ($primaryPosition) {
+                            $primaryPosition->update([
+                                'office_id' => $request->organization_id
+                            ]);
+                        }
                     }
-                    $employee->save();
                 }
                 break;
                 
@@ -216,7 +272,6 @@ class LeaderController extends Controller
                 // Set new Division Head if selected
                 if ($request->employee_id) {
                     $employee = Employee::find($request->employee_id);
-                    // Create or update officer record for Division Head
                     $officer = $employee->officer ?? $employee->officer()->create([
                         'employee_id' => $employee->id,
                         'unit_head' => false,
@@ -230,11 +285,15 @@ class LeaderController extends Controller
                             'division_head' => true
                         ]);
                     }
-                    // Assign to division if organization_id is provided
+                    // Update employee's primary position to be in this division
                     if ($request->organization_id) {
-                        $employee->division_id = $request->organization_id;
+                        $primaryPosition = $employee->positions()->where('is_primary', true)->first();
+                        if ($primaryPosition) {
+                            $primaryPosition->update([
+                                'division_id' => $request->organization_id
+                            ]);
+                        }
                     }
-                    $employee->save();
                 }
                 break;
                 
@@ -256,7 +315,6 @@ class LeaderController extends Controller
                 // Set new Unit Head if selected
                 if ($request->employee_id) {
                     $employee = Employee::find($request->employee_id);
-                    // Create or update officer record for Unit Head
                     $officer = $employee->officer ?? $employee->officer()->create([
                         'employee_id' => $employee->id,
                         'unit_head' => true,
@@ -270,13 +328,29 @@ class LeaderController extends Controller
                             'unit_head' => true
                         ]);
                     }
-                    // Assign to unit if organization_id is provided
+                    // Update employee's primary position to be in this unit
                     if ($request->organization_id) {
-                        $employee->unit_id = $request->organization_id;
+                        $primaryPosition = $employee->positions()->where('is_primary', true)->first();
+                        if ($primaryPosition) {
+                            $primaryPosition->update([
+                                'unit_id' => $request->organization_id
+                            ]);
+                        }
                     }
-                    $employee->save();
                 }
                 break;
+        }
+        
+        // Redirect back to appropriate page
+        if ($request->type === 'vp' && $request->organization_id) {
+            return redirect()->route('admin.leaders.office.show', $request->organization_id)
+                           ->with('success', 'Leadership role updated successfully.');
+        } elseif ($request->type === 'division_head' && $request->organization_id) {
+            return redirect()->route('admin.leaders.division.show', $request->organization_id)
+                           ->with('success', 'Leadership role updated successfully.');
+        } elseif ($request->type === 'unit_head' && $request->organization_id) {
+            return redirect()->route('admin.leaders.unit.show', $request->organization_id)
+                           ->with('success', 'Leadership role updated successfully.');
         }
         
         return redirect()->route('admin.leaders.index')->with('success', 'Leadership role updated successfully.');

@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Ultra Simple Test</title>
+</head>
+<body>
+    <h1>Cascading Dropdown Test</h1>
+    
+    <p><strong>Step 1:</strong> Select Office</p>
+    <select id="office">
+        <option value="">Choose Office</option>
+        <option value="1">Office 1</option>
+        <option value="2">Office 2</option>
+    </select>
+    
+    <p><strong>Step 2:</strong> Divisions will appear here:</p>
+    <select id="division">
+        <option value="">Select Division</option>
+    </select>
+    
+    <div id="debug" style="margin-top: 20px; padding: 10px; background: #f0f0f0;">
+        <h3>Debug Info:</h3>
+        <pre id="log"></pre>
+    </div>
+
+    <script>
+        function log(msg) {
+            document.getElementById('log').innerHTML += msg + '\n';
+            console.log(msg);
+        }
+        
+        document.getElementById('office').addEventListener('change', function() {
+            const officeId = this.value;
+            log('Office selected: ' + officeId);
+            
+            if (officeId) {
+                log('Making request to: /test/ajax/divisions/' + officeId);
+                
+                fetch('/test/ajax/divisions/' + officeId)
+                    .then(response => {
+                        log('Response status: ' + response.status);
+                        log('Response OK: ' + response.ok);
+                        return response.text(); // Get raw text first
+                    })
+                    .then(text => {
+                        log('Raw response: ' + text.substring(0, 200) + '...');
+                        
+                        // Try to parse as JSON
+                        try {
+                            const data = JSON.parse(text);
+                            log('Parsed JSON successfully, got ' + data.length + ' items');
+                            
+                            const select = document.getElementById('division');
+                            select.innerHTML = '<option value="">Select Division</option>';
+                            
+                            data.forEach(item => {
+                                select.innerHTML += `<option value="${item.id_division}">${item.division_name}</option>`;
+                            });
+                            
+                            log('Divisions populated!');
+                        } catch (e) {
+                            log('JSON Parse Error: ' + e.message);
+                            log('Full response was: ' + text);
+                        }
+                    })
+                    .catch(error => {
+                        log('FETCH ERROR: ' + error.message);
+                    });
+            }
+        });
+        
+        log('Page loaded, ready to test');
+    </script>
+</body>
+</html>

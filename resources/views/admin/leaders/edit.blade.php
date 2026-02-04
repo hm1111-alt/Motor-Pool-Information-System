@@ -103,7 +103,7 @@
                                             <option value="">None - Remove current assignment</option>
                                             @foreach($employees as $emp)
                                                 {{-- Exclude President from VP assignments --}}
-                                                @if($type != 'vp' || !$emp->is_president)
+                                                @if($type != 'vp' || !$emp->officer || !$emp->officer->president)
                                                 <option value="{{ $emp->id }}" {{ (isset($employee) && $employee->id == $emp->id) ? 'selected' : '' }}>
                                                     {{ $emp->first_name }} {{ $emp->last_name }} - {{ $emp->position_name }}
                                                     @if($emp->emp_status == 0)

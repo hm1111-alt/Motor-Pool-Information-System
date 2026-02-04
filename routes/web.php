@@ -28,6 +28,43 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use Illuminate\Support\Facades\Auth;
 
+// PUBLIC TEST ROUTES (NO AUTHENTICATION REQUIRED)
+Route::get('/api/offices', function() {
+    try {
+        $offices = \App\Models\Office::all();
+        return response()->json($offices);
+    } catch (\Exception $e) {
+        return response()->json(['error' => $e->getMessage()], 500);
+    }
+})->name('api.offices');
+
+Route::get('/test/ajax/divisions/{office_id}', function($office_id) {
+    try {
+        $divisions = \App\Models\Division::where('office_id', $office_id)->get();
+        return response()->json($divisions);
+    } catch (\Exception $e) {
+        return response()->json(['error' => $e->getMessage()], 500);
+    }
+})->name('test.ajax.divisions');
+
+Route::get('/test/ajax/units/{division_id}', function($division_id) {
+    try {
+        $units = \App\Models\Unit::where('unit_division', $division_id)->get();
+        return response()->json($units);
+    } catch (\Exception $e) {
+        return response()->json(['error' => $e->getMessage()], 500);
+    }
+})->name('test.ajax.units');
+
+Route::get('/test/ajax/subunits/{unit_id}', function($unit_id) {
+    try {
+        $subunits = \App\Models\Subunit::where('unit_id', $unit_id)->get();
+        return response()->json($subunits);
+    } catch (\Exception $e) {
+        return response()->json(['error' => $e->getMessage()], 500);
+    }
+})->name('test.ajax.subunits');
+
 Route::get('/', function () {
     return view('welcome');
 });
@@ -154,11 +191,36 @@ Route::middleware('auth')->group(function () {
     Route::get('/admin/employees/get-units-by-division', [EmployeeController::class, 'getUnitsByDivision'])->name('admin.employees.get-units-by-division');
     Route::get('/admin/employees/get-subunits-by-unit', [EmployeeController::class, 'getSubunitsByUnit'])->name('admin.employees.get-subunits-by-unit');
     
+    // Debug route for testing
+    Route::get('/admin/employees/debug-divisions/{office_id}', function($office_id) {
+        try {
+            $divisions = \App\Models\Division::where('office_id', $office_id)->get();
+            return response()->json([
+                'success' => true,
+                'office_id' => $office_id,
+                'divisions' => $divisions,
+                'count' => $divisions->count()
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'error' => $e->getMessage(),
+                'office_id' => $office_id
+            ], 500);
+        }
+    })->name('admin.employees.debug-divisions');
+    
     // Test route for cascading dropdowns
     Route::get('/admin/employees/test-dropdowns', function() {
         $offices = \App\Models\Office::all();
         return view('admin.employees.test-dropdowns', compact('offices'));
     })->name('admin.employees.test-dropdowns');
+    
+    // Test route for cascading dropdown debugging
+    Route::get('/admin/employees/test-cascading', function() {
+        $offices = \App\Models\Office::all();
+        return view('admin.employees.test-cascading', compact('offices'));
+    })->name('admin.employees.test-cascading');
     
     // Test route for edit employee functionality
     Route::get('/admin/employees/test-edit/{id}', function($id) {
@@ -224,6 +286,10 @@ Route::middleware('auth')->group(function () {
     
     // Leadership Routes
     Route::get('/admin/leaders', [LeaderController::class, 'index'])->name('admin.leaders.index');
+    Route::get('/admin/leaders/offices', [LeaderController::class, 'offices'])->name('admin.leaders.offices');
+    Route::get('/admin/leaders/offices/{office}', [LeaderController::class, 'showOffice'])->name('admin.leaders.office.show');
+    Route::get('/admin/leaders/divisions/{division}', [LeaderController::class, 'showDivision'])->name('admin.leaders.division.show');
+    Route::get('/admin/leaders/units/{unit}', [LeaderController::class, 'showUnit'])->name('admin.leaders.unit.show');
     Route::get('/admin/leaders/edit/{type}/{id?}', [LeaderController::class, 'edit'])->name('admin.leaders.edit');
     Route::post('/admin/leaders/update', [LeaderController::class, 'update'])->name('admin.leaders.update');
     

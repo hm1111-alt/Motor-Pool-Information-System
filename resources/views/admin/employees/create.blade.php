@@ -130,19 +130,7 @@
                                         @enderror
                                     </div>
 
-                                    <div>
-                                        <label for="position_role" class="block text-sm font-medium text-gray-700 mb-1">Role in Position</label>
-                                        <select name="position_role" id="position_role" class="w-full rounded-lg border-gray-300 shadow-sm focus:border-[#1e6031] focus:ring focus:ring-[#1e6031] focus:ring-opacity-50">
-                                            <option value="none" {{ old('position_role') == 'none' ? 'selected' : '' }}>Regular Employee</option>
-                                            <option value="unit_head" {{ old('position_role') == 'unit_head' ? 'selected' : '' }}>Unit Head</option>
-                                            <option value="division_head" {{ old('position_role') == 'division_head' ? 'selected' : '' }}>Division Head</option>
-                                            <option value="vp" {{ old('position_role') == 'vp' ? 'selected' : '' }}>VP</option>
-                                            <option value="president" {{ old('position_role') == 'president' ? 'selected' : '' }}>President</option>
-                                        </select>
-                                        @error('position_role')
-                                            <span class="text-red-500 text-sm">{{ $message }}</span>
-                                        @enderror
-                                    </div>
+
 
                                     <div>
                                         <label for="class_id" class="block text-sm font-medium text-gray-700 mb-1">Class (Optional)</label>
@@ -174,9 +162,6 @@
                                         <label for="division_id" class="block text-sm font-medium text-gray-700 mb-1">Division (Optional)</label>
                                         <select name="division_id" id="division_id" class="w-full rounded-lg border-gray-300 shadow-sm focus:border-[#1e6031] focus:ring focus:ring-[#1e6031] focus:ring-opacity-50">
                                             <option value="">Select Division (Optional)</option>
-                                            @foreach($divisions as $division)
-                                                <option value="{{ $division->id }}" {{ old('division_id') == $division->id ? 'selected' : '' }}>{{ $division->division_name }}</option>
-                                            @endforeach
                                         </select>
                                         @error('division_id')
                                             <span class="text-red-500 text-sm">{{ $message }}</span>
@@ -187,9 +172,6 @@
                                         <label for="unit_id" class="block text-sm font-medium text-gray-700 mb-1">Unit (Optional)</label>
                                         <select name="unit_id" id="unit_id" class="w-full rounded-lg border-gray-300 shadow-sm focus:border-[#1e6031] focus:ring focus:ring-[#1e6031] focus:ring-opacity-50">
                                             <option value="">Select Unit (Optional)</option>
-                                            @foreach($units as $unit)
-                                                <option value="{{ $unit->id }}" {{ old('unit_id') == $unit->id ? 'selected' : '' }}>{{ $unit->unit_name }}</option>
-                                            @endforeach
                                         </select>
                                         @error('unit_id')
                                             <span class="text-red-500 text-sm">{{ $message }}</span>
@@ -200,9 +182,6 @@
                                         <label for="subunit_id" class="block text-sm font-medium text-gray-700 mb-1">Subunit (Optional)</label>
                                         <select name="subunit_id" id="subunit_id" class="w-full rounded-lg border-gray-300 shadow-sm focus:ring focus:ring-[#1e6031] focus:ring-opacity-50">
                                             <option value="">Select Subunit (Optional)</option>
-                                            @foreach($subunits as $subunit)
-                                                <option value="{{ $subunit->id }}" {{ old('subunit_id') == $subunit->id ? 'selected' : '' }}>{{ $subunit->subunit_name }}</option>
-                                            @endforeach
                                         </select>
                                         @error('subunit_id')
                                             <span class="text-red-500 text-sm">{{ $message }}</span>
@@ -247,6 +226,9 @@
             const unitSelect = document.getElementById('unit_id');
             const subunitSelect = document.getElementById('subunit_id');
             
+            // Use pre-loaded cascading data
+            const cascadingData = @json($cascadingData);
+            
             // Load divisions when office is selected
             officeSelect.addEventListener('change', function() {
                 const officeId = this.value;
@@ -254,50 +236,73 @@
                 unitSelect.innerHTML = '<option value="">Select Unit</option>';
                 subunitSelect.innerHTML = '<option value="">Select Subunit</option>';
                 
-                if (officeId) {
-                    fetch('{{ route('admin.employees.get-divisions-by-office') }}?office_id=' + officeId)
-                        .then(response => response.json())
-                        .then(divisions => {
-                            divisions.forEach(division => {
-                                divisionSelect.innerHTML += '<option value="' + division.id + '">' + division.division_name + '</option>';
-                            });
-                        })
-                        .catch(error => console.error('Error:', error));
+                if (officeId && cascadingData.divisions[officeId]) {
+                    cascadingData.divisions[officeId].forEach(division => {
+                        divisionSelect.innerHTML += '<option value="' + division.id_division + '">' + division.division_name + '</option>';
+                    });
                 }
             });
             
-            // Load units when division is selected
+            // Load units when division is selected (using AJAX as fallback)
             divisionSelect.addEventListener('change', function() {
                 const divisionId = this.value;
-                unitSelect.innerHTML = '<option value="">Select Unit</option>';
+                unitSelect.innerHTML = '<option value="">Loading units...</option>';
                 subunitSelect.innerHTML = '<option value="">Select Subunit</option>';
-                
+
                 if (divisionId) {
-                    fetch('{{ route('admin.employees.get-units-by-division') }}?division_id=' + divisionId)
-                        .then(response => response.json())
+                    fetch('{{ route('admin.employees.get-units-by-division') }}?division_id=' + divisionId, {
+                        headers: {
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                        }
+                    })
+                        .then(response => {
+                            if (!response.ok) {
+                                throw new Error('Network response was not ok');
+                            }
+                            return response.json();
+                        })
                         .then(units => {
+                            unitSelect.innerHTML = '<option value="">Select Unit</option>';
                             units.forEach(unit => {
-                                unitSelect.innerHTML += '<option value="' + unit.id + '">' + unit.unit_name + '</option>';
+                                unitSelect.innerHTML += '<option value="' + unit.id_unit + '">' + unit.unit_name + '</option>';
                             });
                         })
-                        .catch(error => console.error('Error:', error));
+                        .catch(error => {
+                            unitSelect.innerHTML = '<option value="">Error loading units</option>';
+                        });
+                } else {
+                    unitSelect.innerHTML = '<option value="">Select Unit</option>';
                 }
             });
             
-            // Load subunits when unit is selected
+            // Load subunits when unit is selected (using AJAX)
             unitSelect.addEventListener('change', function() {
                 const unitId = this.value;
-                subunitSelect.innerHTML = '<option value="">Select Subunit</option>';
+                subunitSelect.innerHTML = '<option value="">Loading subunits...</option>';
                 
                 if (unitId) {
-                    fetch('{{ route('admin.employees.get-subunits-by-unit') }}?unit_id=' + unitId)
-                        .then(response => response.json())
-                        .then(subunits => {
-                            subunits.forEach(subunit => {
-                                subunitSelect.innerHTML += '<option value="' + subunit.id + '">' + subunit.subunit_name + '</option>';
-                            });
-                        })
-                        .catch(error => console.error('Error:', error));
+                    fetch('{{ route('admin.employees.get-subunits-by-unit') }}?unit_id=' + unitId, {
+                        headers: {
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                        }
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.json();
+                    })
+                    .then(subunits => {
+                        subunitSelect.innerHTML = '<option value="">Select Subunit</option>';
+                        subunits.forEach(subunit => {
+                            subunitSelect.innerHTML += '<option value="' + subunit.id_subunit + '">' + subunit.subunit_name + '</option>';
+                        });
+                    })
+                    .catch(error => {
+                        subunitSelect.innerHTML = '<option value="">Error loading subunits</option>';
+                    });
+                } else {
+                    subunitSelect.innerHTML = '<option value="">Select Subunit</option>';
                 }
             });
 
@@ -371,25 +376,13 @@
                 htmlContent += '</select>';
                 htmlContent += '</div>';
 
-                htmlContent += '<div>';
-                htmlContent += '<label class="block text-sm font-medium text-gray-700 mb-1">Role in Position</label>';
-                htmlContent += '<select name="additional_positions[' + positionCounter + '][position_role]" ';
-                htmlContent += 'class="w-full rounded-lg border-gray-300 shadow-sm focus:border-[#1e6031] focus:ring focus:ring-[#1e6031] focus:ring-opacity-50">';
-                htmlContent += '<option value="none">Regular Employee</option>';
-                htmlContent += '<option value="unit_head">Unit Head</option>';
-                htmlContent += '<option value="division_head">Division Head</option>';
-                htmlContent += '<option value="vp">VP</option>';
-                htmlContent += '<option value="president">President</option>';
-                htmlContent += '</select>';
-                htmlContent += '</div>';
-
                 htmlContent += '</div>';
                 
                 positionDiv.innerHTML = htmlContent;
                 container.appendChild(positionDiv);
 
                 // Add event listeners to the new dropdowns
-                attachDropdownEventListeners(positionDiv);
+                attachDropdownEventListeners(positionDiv, cascadingData);
 
                 // Add event listener to the remove button
                 positionDiv.querySelector('.remove-position-btn').addEventListener('click', function() {
@@ -398,7 +391,7 @@
             });
 
             // Function to attach dropdown event listeners to a position group
-            function attachDropdownEventListeners(group) {
+            function attachDropdownEventListeners(group, data) {
                 const officeSelect = group.querySelector('.additional-office-select');
                 const divisionSelect = group.querySelector('.additional-division-select');
                 const unitSelect = group.querySelector('.additional-unit-select');
@@ -411,50 +404,73 @@
                     unitSelect.innerHTML = '<option value="">Select Unit</option>';
                     subunitSelect.innerHTML = '<option value="">Select Subunit</option>';
 
-                    if (officeId) {
-                        fetch('{{ route('admin.employees.get-divisions-by-office') }}?office_id=' + officeId)
-                            .then(response => response.json())
-                            .then(divisions => {
-                                divisions.forEach(division => {
-                                    divisionSelect.innerHTML += '<option value="' + division.id + '">' + division.division_name + '</option>';
-                                });
-                            })
-                            .catch(error => console.error('Error:', error));
+                    if (officeId && data.divisions[officeId]) {
+                        data.divisions[officeId].forEach(division => {
+                            divisionSelect.innerHTML += '<option value="' + division.id_division + '">' + division.division_name + '</option>';
+                        });
                     }
                 });
 
                 // Load units when division is selected for this group
                 divisionSelect.addEventListener('change', function() {
                     const divisionId = this.value;
-                    unitSelect.innerHTML = '<option value="">Select Unit</option>';
+                    unitSelect.innerHTML = '<option value="">Loading units...</option>';
                     subunitSelect.innerHTML = '<option value="">Select Subunit</option>';
 
                     if (divisionId) {
-                        fetch('{{ route('admin.employees.get-units-by-division') }}?division_id=' + divisionId)
-                            .then(response => response.json())
-                            .then(units => {
-                                units.forEach(unit => {
-                                    unitSelect.innerHTML += '<option value="' + unit.id + '">' + unit.unit_name + '</option>';
-                                });
-                            })
-                            .catch(error => console.error('Error:', error));
+                        fetch('{{ route('admin.employees.get-units-by-division') }}?division_id=' + divisionId, {
+                            headers: {
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                            }
+                        })
+                        .then(response => {
+                            if (!response.ok) {
+                                throw new Error('Network response was not ok');
+                            }
+                            return response.json();
+                        })
+                        .then(units => {
+                            unitSelect.innerHTML = '<option value="">Select Unit</option>';
+                            units.forEach(unit => {
+                                unitSelect.innerHTML += '<option value="' + unit.id_unit + '">' + unit.unit_name + '</option>';
+                            });
+                        })
+                        .catch(error => {
+                            unitSelect.innerHTML = '<option value="">Error loading units</option>';
+                        });
+                    } else {
+                        unitSelect.innerHTML = '<option value="">Select Unit</option>';
                     }
                 });
 
                 // Load subunits when unit is selected for this group
                 unitSelect.addEventListener('change', function() {
                     const unitId = this.value;
-                    subunitSelect.innerHTML = '<option value="">Select Subunit</option>';
+                    subunitSelect.innerHTML = '<option value="">Loading subunits...</option>';
 
                     if (unitId) {
-                        fetch('{{ route('admin.employees.get-subunits-by-unit') }}?unit_id=' + unitId)
-                            .then(response => response.json())
-                            .then(subunits => {
-                                subunits.forEach(subunit => {
-                                    subunitSelect.innerHTML += '<option value="' + subunit.id + '">' + subunit.subunit_name + '</option>';
-                                });
-                            })
-                            .catch(error => console.error('Error:', error));
+                        fetch('{{ route('admin.employees.get-subunits-by-unit') }}?unit_id=' + unitId, {
+                            headers: {
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                            }
+                        })
+                        .then(response => {
+                            if (!response.ok) {
+                                throw new Error('Network response was not ok');
+                            }
+                            return response.json();
+                        })
+                        .then(subunits => {
+                            subunitSelect.innerHTML = '<option value="">Select Subunit</option>';
+                            subunits.forEach(subunit => {
+                                subunitSelect.innerHTML += '<option value="' + subunit.id_subunit + '">' + subunit.subunit_name + '</option>';
+                            });
+                        })
+                        .catch(error => {
+                            subunitSelect.innerHTML = '<option value="">Error loading subunits</option>';
+                        });
+                    } else {
+                        subunitSelect.innerHTML = '<option value="">Select Subunit</option>';
                     }
                 });
             }

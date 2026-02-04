@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Simple Dropdown Test</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="p-8 bg-gray-100">
+    <div class="max-w-md mx-auto bg-white p-6 rounded-lg shadow">
+        <h1 class="text-2xl font-bold mb-6 text-center">Simple Dropdown Test</h1>
+        
+        <div class="space-y-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Office</label>
+                <select id="officeSelect" class="w-full rounded-lg border-gray-300 p-2">
+                    <option value="">Select Office</option>
+                    <option value="1">Office 1</option>
+                    <option value="2">Office 2</option>
+                    <option value="3">Office 3</option>
+                </select>
+            </div>
+            
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Division</label>
+                <select id="divisionSelect" class="w-full rounded-lg border-gray-300 p-2">
+                    <option value="">Select Division</option>
+                </select>
+            </div>
+        </div>
+        
+        <div class="mt-6 p-4 bg-blue-50 rounded">
+            <h2 class="font-bold mb-2">Console Output:</h2>
+            <div id="consoleOutput" class="text-sm font-mono h-32 overflow-y-auto bg-black text-green-400 p-2 rounded"></div>
+        </div>
+    </div>
+
+    <script>
+        function log(message) {
+            const consoleOutput = document.getElementById('consoleOutput');
+            const timestamp = new Date().toLocaleTimeString();
+            consoleOutput.innerHTML += `[${timestamp}] ${message}\n`;
+            consoleOutput.scrollTop = consoleOutput.scrollHeight;
+            console.log(message);
+        }
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            log('DOM loaded');
+            
+            const officeSelect = document.getElementById('officeSelect');
+            const divisionSelect = document.getElementById('divisionSelect');
+            
+            officeSelect.addEventListener('change', function() {
+                const officeId = this.value;
+                log(`Office changed to: ${officeId}`);
+                
+                if (officeId) {
+                    log('Making AJAX request...');
+                    
+                    // Simple test with a known working endpoint
+                    fetch('/test/ajax/divisions/' + officeId)
+                        .then(response => {
+                            log(`Response status: ${response.status}`);
+                            if (!response.ok) {
+                                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                            }
+                            return response.json();
+                        })
+                        .then(data => {
+                            log(`Received ${data.length} divisions`);
+                            log(`Data keys: ${Object.keys(data[0] || {})}`);
+                            
+                            divisionSelect.innerHTML = '<option value="">Select Division</option>';
+                            data.forEach(item => {
+                                divisionSelect.innerHTML += `<option value="${item.id_division}">${item.division_name}</option>`;
+                            });
+                            
+                            log('Divisions populated successfully');
+                        })
+                        .catch(error => {
+                            log(`ERROR: ${error.message}`);
+                            console.error('Full error:', error);
+                        });
+                } else {
+                    divisionSelect.innerHTML = '<option value="">Select Division</option>';
+                }
+            });
+            
+            log('Event listeners attached');
+        });
+    </script>
+</body>
+</html>

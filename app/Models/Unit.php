@@ -9,6 +9,18 @@ class Unit extends Model
 {
     use HasFactory;
 
+    // Specify the correct table name
+    protected $table = 'lib_units';
+    
+    // Specify the primary key
+    protected $primaryKey = 'id_unit';
+    
+    // Disable auto-incrementing if needed
+    public $incrementing = true;
+    
+    // Specify the key type
+    protected $keyType = 'int';
+
     /**
      * The attributes that are mass assignable.
      *
@@ -18,7 +30,7 @@ class Unit extends Model
         'unit_name',
         'unit_abbr',
         'unit_code',
-        'division_id',
+        'unit_division',
         'unit_isactive',
     ];
 
@@ -29,6 +41,7 @@ class Unit extends Model
      */
     protected $casts = [
         'unit_isactive' => 'boolean',
+        'unit_updated_date' => 'datetime',
     ];
 
     /**
@@ -36,7 +49,7 @@ class Unit extends Model
      */
     public function division()
     {
-        return $this->belongsTo(Division::class);
+        return $this->belongsTo(Division::class, 'unit_division');
     }
 
     /**
@@ -44,7 +57,7 @@ class Unit extends Model
      */
     public function employees()
     {
-        return $this->hasManyThrough(Employee::class, EmpPosition::class, 'unit_id', 'id', 'id', 'employee_id');
+        return $this->hasManyThrough(Employee::class, EmpPosition::class, 'unit_id', 'id', 'id_unit', 'employee_id');
     }
 
     /**
@@ -60,6 +73,6 @@ class Unit extends Model
      */
     public function subunits()
     {
-        return $this->hasMany(Subunit::class);
+        return $this->hasMany(Subunit::class, 'unit_id');
     }
 }

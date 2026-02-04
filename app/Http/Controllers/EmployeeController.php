@@ -102,19 +102,24 @@ class EmployeeController extends Controller
     {
         $offices = Office::all();
         $classes = ClassModel::all();
-        $divisions = Division::all();
-        $units = Unit::all();
-        $subunits = Subunit::all();
-        // Define available roles - these are for officer positions
-        $roles = collect([
-            (object)['id' => 0, 'name' => 'none'],
-            (object)['id' => 1, 'name' => 'unit_head'],
-            (object)['id' => 2, 'name' => 'division_head'],
-            (object)['id' => 3, 'name' => 'vp'],
-            (object)['id' => 4, 'name' => 'president'],
-        ]);
+        // Provide empty collections for backward compatibility
+        $divisions = collect();
+        $units = collect();
+        $subunits = collect();
         
-        return view('admin.employees.create', compact('offices', 'classes', 'divisions', 'units', 'subunits', 'roles'));
+        // Pre-load all cascading data to avoid AJAX issues
+        $cascadingData = [
+            'divisions' => [],
+            'units' => [],
+            'subunits' => []
+        ];
+        
+        // Load divisions for all offices
+        foreach ($offices as $office) {
+            $cascadingData['divisions'][$office->id] = Division::where('office_id', $office->id)->get();
+        }
+        
+        return view('admin.employees.create', compact('offices', 'classes', 'divisions', 'units', 'subunits', 'cascadingData'));
     }
 
     /**
@@ -133,24 +138,21 @@ class EmployeeController extends Controller
             'password' => 'required|string|min:8|confirmed',
             'position_name' => 'required|string|max:255',
             'office_id' => 'nullable|exists:offices,id',
-            'division_id' => 'nullable|exists:divisions,id',
-            'unit_id' => 'nullable|exists:units,id',
-            'subunit_id' => 'nullable|exists:subunits,id',
-            'class_id' => 'nullable|exists:class,id',
-            'position_role' => 'nullable|in:none,unit_head,division_head,vp,president',
+            'division_id' => 'nullable|exists:lib_divisions,id_division',
+            'unit_id' => 'nullable|exists:lib_units,id_unit',
+            'subunit_id' => 'nullable|exists:lib_subunits,id_subunit',
+            'class_id' => 'nullable|exists:lib_class,id_class',
             'additional_positions' => 'nullable|array',
             'additional_positions.*.position_name' => 'nullable|string|max:255',
             'additional_positions.*.office_id' => 'nullable|exists:offices,id',
-            'additional_positions.*.division_id' => 'nullable|exists:divisions,id',
-            'additional_positions.*.unit_id' => 'nullable|exists:units,id',
-            'additional_positions.*.subunit_id' => 'nullable|exists:subunits,id',
-            'additional_positions.*.class_id' => 'nullable|exists:class,id',
-            'additional_positions.*.position_role' => 'nullable|in:none,unit_head,division_head,vp,president',
+            'additional_positions.*.division_id' => 'nullable|exists:lib_divisions,id_division',
+            'additional_positions.*.unit_id' => 'nullable|exists:lib_units,id_unit',
+            'additional_positions.*.subunit_id' => 'nullable|exists:lib_subunits,id_subunit',
+            'additional_positions.*.class_id' => 'nullable|exists:lib_class,id_class',
         ]);
 
         // Handle checkbox values properly - always set emp_status to active (1)
         $isActive = 1; // Default to active
-        $selectedRole = $request->input('position_role', ''); // Default to no role for primary position
 
         // Create the user first
         $user = User::create([
@@ -184,17 +186,16 @@ class EmployeeController extends Controller
             'subunit_id' => $request->subunit_id,
             'class_id' => $request->class_id,
             'is_primary' => true,
-            'is_unit_head' => $selectedRole === 'unit_head',
-            'is_division_head' => $selectedRole === 'division_head',
-            'is_vp' => $selectedRole === 'vp',
-            'is_president' => $selectedRole === 'president',
+            'is_unit_head' => false,
+            'is_division_head' => false,
+            'is_vp' => false,
+            'is_president' => false,
         ]);
         
         // Process additional positions if provided
         if ($request->has('additional_positions')) {
             foreach ($request->additional_positions as $position) {
                 if (!empty($position['position_name'])) {
-                    $positionRole = $position['position_role'] ?? 'none';
                     \App\Models\EmpPosition::create([
                         'employee_id' => $employee->id,
                         'position_name' => $position['position_name'],
@@ -204,10 +205,10 @@ class EmployeeController extends Controller
                         'subunit_id' => $position['subunit_id'] ?? null,
                         'class_id' => $position['class_id'] ?? null,
                         'is_primary' => false,
-                        'is_unit_head' => $positionRole === 'unit_head',
-                        'is_division_head' => $positionRole === 'division_head',
-                        'is_vp' => $positionRole === 'vp',
-                        'is_president' => $positionRole === 'president',
+                        'is_unit_head' => false,
+                        'is_division_head' => false,
+                        'is_vp' => false,
+                        'is_president' => false,
                     ]);
                 }
             }
@@ -280,7 +281,7 @@ class EmployeeController extends Controller
         $unitId = $primaryPosition ? $primaryPosition->unit_id : null;
         
         $divisions = $officeId ? Division::where('office_id', $officeId)->get() : collect();
-        $units = $divisionId ? Unit::where('division_id', $divisionId)->get() : collect();
+        $units = $divisionId ? Unit::where('unit_division', $divisionId)->get() : collect();
         $subunits = $unitId ? Subunit::where('unit_id', $unitId)->get() : collect();
         
         $classes = ClassModel::all();
@@ -306,25 +307,22 @@ class EmployeeController extends Controller
             'emp_status' => 'required|boolean',
             'position_name' => 'required|string|max:255',
             'office_id' => 'nullable|exists:offices,id',
-            'division_id' => 'nullable|exists:divisions,id',
-            'unit_id' => 'nullable|exists:units,id',
-            'subunit_id' => 'nullable|exists:subunits,id',
-            'class_id' => 'nullable|exists:class,id',
-            'position_role' => 'nullable|in:none,unit_head,division_head,vp,president',
+            'division_id' => 'nullable|exists:lib_divisions,id_division',
+            'unit_id' => 'nullable|exists:lib_units,id_unit',
+            'subunit_id' => 'nullable|exists:lib_subunits,id_subunit',
+            'class_id' => 'nullable|exists:lib_class,id_class',
             'additional_positions' => 'nullable|array',
             'additional_positions.*.id' => 'nullable|exists:emp_positions,id',
             'additional_positions.*.position_name' => 'nullable|string|max:255',
             'additional_positions.*.office_id' => 'nullable|exists:offices,id',
-            'additional_positions.*.division_id' => 'nullable|exists:divisions,id',
-            'additional_positions.*.unit_id' => 'nullable|exists:units,id',
-            'additional_positions.*.subunit_id' => 'nullable|exists:subunits,id',
-            'additional_positions.*.class_id' => 'nullable|exists:class,id',
-            'additional_positions.*.position_role' => 'nullable|in:none,unit_head,division_head,vp,president',
+            'additional_positions.*.division_id' => 'nullable|exists:lib_divisions,id_division',
+            'additional_positions.*.unit_id' => 'nullable|exists:lib_units,id_unit',
+            'additional_positions.*.subunit_id' => 'nullable|exists:lib_subunits,id_subunit',
+            'additional_positions.*.class_id' => 'nullable|exists:lib_class,id_class',
         ]);
 
         // Handle status properly
         $isActive = $request->emp_status;
-        $selectedRole = $request->input('position_role', ''); // Default to no role for primary position
 
         // Update the user if it exists
         if ($employee->user) {
@@ -375,10 +373,10 @@ class EmployeeController extends Controller
                 'unit_id' => $request->unit_id,
                 'subunit_id' => $request->subunit_id,
                 'class_id' => $request->class_id,
-                'is_unit_head' => $selectedRole === 'unit_head',
-                'is_division_head' => $selectedRole === 'division_head',
-                'is_vp' => $selectedRole === 'vp',
-                'is_president' => $selectedRole === 'president',
+                'is_unit_head' => false,
+                'is_division_head' => false,
+                'is_vp' => false,
+                'is_president' => false,
             ]);
         } else {
             \App\Models\EmpPosition::create([
@@ -390,10 +388,10 @@ class EmployeeController extends Controller
                 'subunit_id' => $request->subunit_id,
                 'class_id' => $request->class_id,
                 'is_primary' => true,
-                'is_unit_head' => $selectedRole === 'unit_head',
-                'is_division_head' => $selectedRole === 'division_head',
-                'is_vp' => $selectedRole === 'vp',
-                'is_president' => $selectedRole === 'president',
+                'is_unit_head' => false,
+                'is_division_head' => false,
+                'is_vp' => false,
+                'is_president' => false,
             ]);
         }
         
@@ -405,8 +403,6 @@ class EmployeeController extends Controller
             // Process each additional position
             foreach ($request->additional_positions as $positionData) {
                 if (!empty($positionData['position_name'])) {
-                    $positionRole = $positionData['position_role'] ?? 'none';
-                    
                     if (isset($positionData['id']) && in_array($positionData['id'], $existingPositionIds)) {
                         // Update existing position
                         $position = \App\Models\EmpPosition::find($positionData['id']);
@@ -418,10 +414,10 @@ class EmployeeController extends Controller
                                 'unit_id' => $positionData['unit_id'] ?? null,
                                 'subunit_id' => $positionData['subunit_id'] ?? null,
                                 'class_id' => $positionData['class_id'] ?? null,
-                                'is_unit_head' => $positionRole === 'unit_head',
-                                'is_division_head' => $positionRole === 'division_head',
-                                'is_vp' => $positionRole === 'vp',
-                                'is_president' => $positionRole === 'president',
+                                'is_unit_head' => false,
+                                'is_division_head' => false,
+                                'is_vp' => false,
+                                'is_president' => false,
                             ]);
                         }
                         // Remove from existing IDs array to track which ones were processed
@@ -437,10 +433,10 @@ class EmployeeController extends Controller
                             'subunit_id' => $positionData['subunit_id'] ?? null,
                             'class_id' => $positionData['class_id'] ?? null,
                             'is_primary' => false,
-                            'is_unit_head' => $positionRole === 'unit_head',
-                            'is_division_head' => $positionRole === 'division_head',
-                            'is_vp' => $positionRole === 'vp',
-                            'is_president' => $positionRole === 'president',
+                            'is_unit_head' => false,
+                            'is_division_head' => false,
+                            'is_vp' => false,
+                            'is_president' => false,
                         ]);
                     }
                 }
@@ -600,8 +596,16 @@ class EmployeeController extends Controller
      */
     public function getUnitsByDivision(Request $request)
     {
-        $units = Unit::where('division_id', $request->division_id)->get();
-        return response()->json($units);
+        try {
+            \Log::info('getUnitsByDivision called with division_id: ' . $request->division_id);
+            // Use unit_division as the column name based on lib_units table structure
+            $units = Unit::where('unit_division', $request->division_id)->get();
+            \Log::info('Found ' . $units->count() . ' units');
+            return response()->json($units);
+        } catch (\Exception $e) {
+            \Log::error('Error in getUnitsByDivision: ' . $e->getMessage());
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
     }
 
     /**

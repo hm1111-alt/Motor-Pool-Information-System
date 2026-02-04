@@ -9,6 +9,18 @@ class Division extends Model
 {
     use HasFactory;
 
+    // Specify the correct table name
+    protected $table = 'lib_divisions';
+    
+    // Specify the primary key
+    protected $primaryKey = 'id_division';
+    
+    // Disable auto-incrementing if needed
+    public $incrementing = true;
+    
+    // Specify the key type
+    protected $keyType = 'int';
+
     /**
      * The attributes that are mass assignable.
      *
@@ -29,6 +41,7 @@ class Division extends Model
      */
     protected $casts = [
         'division_isactive' => 'boolean',
+        'updated_date' => 'datetime',
     ];
 
     /**
@@ -36,7 +49,7 @@ class Division extends Model
      */
     public function office()
     {
-        return $this->belongsTo(Office::class);
+        return $this->belongsTo(Office::class, 'office_id');
     }
 
     /**
@@ -44,7 +57,7 @@ class Division extends Model
      */
     public function employees()
     {
-        return $this->hasManyThrough(Employee::class, EmpPosition::class, 'division_id', 'id', 'id', 'employee_id');
+        return $this->hasManyThrough(Employee::class, EmpPosition::class, 'division_id', 'id', 'id_division', 'employee_id');
     }
 
     /**
@@ -60,6 +73,6 @@ class Division extends Model
      */
     public function units()
     {
-        return $this->hasMany(Unit::class);
+        return $this->hasMany(Unit::class, 'unit_division');
     }
 }

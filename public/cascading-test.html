@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Complete Cascading Dropdown Test</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="p-8 bg-gray-100">
+    <div class="max-w-lg mx-auto bg-white p-6 rounded-lg shadow">
+        <h1 class="text-2xl font-bold mb-6 text-center">Cascading Dropdown Test</h1>
+        <p class="text-center text-gray-600 mb-6">Select office → divisions → units → subunits</p>
+        
+        <div class="space-y-4">
+            <!-- Office Dropdown -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Office *</label>
+                <select id="officeSelect" class="w-full rounded-lg border-gray-300 p-2 focus:ring-2 focus:ring-blue-500">
+                    <option value="">Select Office</option>
+                </select>
+            </div>
+            
+            <!-- Division Dropdown -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Division *</label>
+                <select id="divisionSelect" class="w-full rounded-lg border-gray-300 p-2 focus:ring-2 focus:ring-blue-500" disabled>
+                    <option value="">Select Division</option>
+                </select>
+            </div>
+            
+            <!-- Unit Dropdown -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Unit *</label>
+                <select id="unitSelect" class="w-full rounded-lg border-gray-300 p-2 focus:ring-2 focus:ring-blue-500" disabled>
+                    <option value="">Select Unit</option>
+                </select>
+            </div>
+            
+            <!-- Subunit Dropdown -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Subunit</label>
+                <select id="subunitSelect" class="w-full rounded-lg border-gray-300 p-2 focus:ring-2 focus:ring-blue-500" disabled>
+                    <option value="">Select Subunit</option>
+                </select>
+            </div>
+        </div>
+        
+        <!-- Selection Summary -->
+        <div class="mt-6 p-4 bg-green-50 rounded border border-green-200">
+            <h2 class="font-bold mb-2 text-green-800">Current Selection:</h2>
+            <div id="selectionSummary" class="text-sm text-green-700">
+                No selections made yet
+            </div>
+        </div>
+        
+        <!-- Debug Console -->
+        <div class="mt-6 p-4 bg-gray-800 rounded">
+            <h2 class="font-bold mb-2 text-white">Debug Console:</h2>
+            <div id="debugConsole" class="text-sm font-mono h-40 overflow-y-auto text-green-400"></div>
+        </div>
+    </div>
+
+    <script>
+        // Debug logging function
+        function debug(message) {
+            const console = document.getElementById('debugConsole');
+            const timestamp = new Date().toLocaleTimeString();
+            console.innerHTML += `[${timestamp}] ${message}\n`;
+            console.scrollTop = console.scrollHeight;
+            console.log(message);
+        }
+        
+        // Update selection summary
+        function updateSelection() {
+            const office = document.getElementById('officeSelect');
+            const division = document.getElementById('divisionSelect');
+            const unit = document.getElementById('unitSelect');
+            const subunit = document.getElementById('subunitSelect');
+            const summary = document.getElementById('selectionSummary');
+            
+            const selections = [];
+            if (office.value && office.options[office.selectedIndex]) {
+                selections.push(`Office: ${office.options[office.selectedIndex].text}`);
+            }
+            if (division.value && division.options[division.selectedIndex]) {
+                selections.push(`Division: ${division.options[division.selectedIndex].text}`);
+            }
+            if (unit.value && unit.options[unit.selectedIndex]) {
+                selections.push(`Unit: ${unit.options[unit.selectedIndex].text}`);
+            }
+            if (subunit.value && subunit.options[subunit.selectedIndex]) {
+                selections.push(`Subunit: ${subunit.options[subunit.selectedIndex].text}`);
+            }
+            
+            summary.innerHTML = selections.length > 0 ? 
+                selections.join(' → ') : 'No selections made yet';
+        }
+        
+        // Enable/disable dropdowns
+        function enableDropdown(dropdownId, enable) {
+            const dropdown = document.getElementById(dropdownId);
+            dropdown.disabled = !enable;
+            if (!enable) {
+                dropdown.innerHTML = `<option value="">Select ${dropdown.previousElementSibling.textContent.replace('*', '').trim()}</option>`;
+            }
+        }
+        
+        // Load offices on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            debug('Page loaded, initializing...');
+            
+            // Load offices
+            debug('Loading offices...');
+            fetch('/api/offices')
+                .then(response => {
+                    debug(`Offices response status: ${response.status}`);
+                    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                    return response.json();
+                })
+                .then(offices => {
+                    debug(`Received ${offices.length} offices`);
+                    const officeSelect = document.getElementById('officeSelect');
+                    offices.forEach(office => {
+                        officeSelect.innerHTML += `<option value="${office.id}">${office.office_name}</option>`;
+                    });
+                    debug('Offices loaded successfully');
+                })
+                .catch(error => {
+                    debug(`ERROR loading offices: ${error.message}`);
+                });
+            
+            // Office change handler
+            document.getElementById('officeSelect').addEventListener('change', function() {
+                const officeId = this.value;
+                debug(`Office selected: ${officeId}`);
+                
+                // Reset dependent dropdowns
+                enableDropdown('divisionSelect', false);
+                enableDropdown('unitSelect', false);
+                enableDropdown('subunitSelect', false);
+                updateSelection();
+                
+                if (officeId) {
+                    debug(`Loading divisions for office ${officeId}...`);
+                    enableDropdown('divisionSelect', true);
+                    
+                    fetch(`/test/ajax/divisions/${officeId}`)
+                        .then(response => {
+                            debug(`Divisions response status: ${response.status}`);
+                            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                            return response.json();
+                        })
+                        .then(divisions => {
+                            debug(`Received ${divisions.length} divisions`);
+                            const divisionSelect = document.getElementById('divisionSelect');
+                            divisionSelect.innerHTML = '<option value="">Select Division</option>';
+                            divisions.forEach(division => {
+                                divisionSelect.innerHTML += `<option value="${division.id_division}">${division.division_name}</option>`;
+                            });
+                            debug('Divisions loaded successfully');
+                        })
+                        .catch(error => {
+                            debug(`ERROR loading divisions: ${error.message}`);
+                        });
+                }
+            });
+            
+            // Division change handler
+            document.getElementById('divisionSelect').addEventListener('change', function() {
+                const divisionId = this.value;
+                debug(`Division selected: ${divisionId}`);
+                
+                // Reset dependent dropdowns
+                enableDropdown('unitSelect', false);
+                enableDropdown('subunitSelect', false);
+                updateSelection();
+                
+                if (divisionId) {
+                    debug(`Loading units for division ${divisionId}...`);
+                    enableDropdown('unitSelect', true);
+                    
+                    fetch(`/test/ajax/units/${divisionId}`)
+                        .then(response => {
+                            debug(`Units response status: ${response.status}`);
+                            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                            return response.json();
+                        })
+                        .then(units => {
+                            debug(`Received ${units.length} units`);
+                            const unitSelect = document.getElementById('unitSelect');
+                            unitSelect.innerHTML = '<option value="">Select Unit</option>';
+                            units.forEach(unit => {
+                                unitSelect.innerHTML += `<option value="${unit.id_unit}">${unit.unit_name}</option>`;
+                            });
+                            debug('Units loaded successfully');
+                        })
+                        .catch(error => {
+                            debug(`ERROR loading units: ${error.message}`);
+                        });
+                }
+            });
+            
+            // Unit change handler
+            document.getElementById('unitSelect').addEventListener('change', function() {
+                const unitId = this.value;
+                debug(`Unit selected: ${unitId}`);
+                
+                // Reset dependent dropdown
+                enableDropdown('subunitSelect', false);
+                updateSelection();
+                
+                if (unitId) {
+                    debug(`Loading subunits for unit ${unitId}...`);
+                    enableDropdown('subunitSelect', true);
+                    
+                    fetch(`/test/ajax/subunits/${unitId}`)
+                        .then(response => {
+                            debug(`Subunits response status: ${response.status}`);
+                            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                            return response.json();
+                        })
+                        .then(subunits => {
+                            debug(`Received ${subunits.length} subunits`);
+                            const subunitSelect = document.getElementById('subunitSelect');
+                            subunitSelect.innerHTML = '<option value="">Select Subunit</option>';
+                            subunits.forEach(subunit => {
+                                subunitSelect.innerHTML += `<option value="${subunit.id_subunit}">${subunit.subunit_name}</option>`;
+                            });
+                            debug('Subunits loaded successfully');
+                        })
+                        .catch(error => {
+                            debug(`ERROR loading subunits: ${error.message}`);
+                        });
+                }
+            });
+            
+            // Subunit change handler
+            document.getElementById('subunitSelect').addEventListener('change', function() {
+                debug(`Subunit selected: ${this.value}`);
+                updateSelection();
+            });
+            
+            debug('All event listeners attached');
+        });
+    </script>
+</body>
+</html>

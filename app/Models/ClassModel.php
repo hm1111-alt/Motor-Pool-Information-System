@@ -14,7 +14,28 @@ class ClassModel extends Model
      *
      * @var string
      */
-    protected $table = 'class';
+    protected $table = 'lib_class';
+    
+    /**
+     * The primary key for the model.
+     *
+     * @var string
+     */
+    protected $primaryKey = 'id_class';
+    
+    /**
+     * Indicates if the IDs are auto-incrementing.
+     *
+     * @var bool
+     */
+    public $incrementing = true;
+    
+    /**
+     * The "type" of the primary key ID.
+     *
+     * @var string
+     */
+    protected $keyType = 'int';
 
     /**
      * The attributes that are mass assignable.

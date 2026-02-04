@@ -31,7 +31,7 @@ class UnitController extends Controller
         
         // Handle division filter
         if ($request->has('division') && $request->division !== 'all') {
-            $query->where('division_id', $request->division);
+            $query->where('unit_division', $request->division);
         }
         
         // Handle status filter
@@ -71,7 +71,7 @@ class UnitController extends Controller
         $request->validate([
             'unit_name' => 'required|string|max:255',
             'unit_abbr' => 'required|string|max:100',
-            'division_id' => 'required|exists:divisions,id',
+            'division_id' => 'required|exists:lib_divisions,id_division',
             'unit_code' => 'required|string|max:50',
             'unit_isactive' => 'boolean',
         ]);
@@ -82,7 +82,7 @@ class UnitController extends Controller
         $unit = Unit::create([
             'unit_name' => $request->unit_name,
             'unit_abbr' => $request->unit_abbr,
-            'division_id' => $request->division_id,
+            'unit_division' => $request->division_id,
             'unit_code' => $request->unit_code,
             'unit_isactive' => $isActive,
         ]);
@@ -116,7 +116,7 @@ class UnitController extends Controller
         $request->validate([
             'unit_name' => 'required|string|max:255',
             'unit_abbr' => 'required|string|max:100',
-            'division_id' => 'required|exists:divisions,id',
+            'division_id' => 'required|exists:lib_divisions,id_division',
             'unit_code' => 'required|string|max:50',
             'unit_isactive' => 'boolean',
         ]);
@@ -127,7 +127,7 @@ class UnitController extends Controller
         $unit->update([
             'unit_name' => $request->unit_name,
             'unit_abbr' => $request->unit_abbr,
-            'division_id' => $request->division_id,
+            'unit_division' => $request->division_id,
             'unit_code' => $request->unit_code,
             'unit_isactive' => $isActive,
         ]);
