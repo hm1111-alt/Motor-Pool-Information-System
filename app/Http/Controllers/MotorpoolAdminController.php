@@ -8,6 +8,9 @@ use Illuminate\Support\Facades\Auth;
 use App\Models\TravelOrder;
 use App\Models\TripTicket;
 use App\Models\Employee;
+use App\Models\Itinerary;
+use App\Models\Vehicle;
+use App\Models\Driver;
 
 class MotorpoolAdminController extends Controller
 {
@@ -16,15 +19,95 @@ class MotorpoolAdminController extends Controller
      */
     public function dashboard(): View
     {
-        // Load trip tickets for motorpool admin dashboard
-        $tripTickets = TripTicket::with(
-            'itinerary',
-            'itinerary.driver',
-            'itinerary.vehicle',
-            'itinerary.travelOrder.employee'
-        )->latest()->get();
+        // Get counts for dashboard cards
+        $itinerariesCount = Itinerary::count();
+        $tripTicketsCount = TripTicket::count();
+        $vehiclesCount = Vehicle::count();
+        $driversCount = Driver::count();
         
-        return view('dashboards.motorpool-admin', compact('tripTickets'));
+        // Get trip status counts
+        $pendingCount = TripTicket::where('status', 'Pending')->count();
+        $ongoingCount = TripTicket::where('status', 'On-going')->count();
+        $completedCount = TripTicket::where('status', 'Completed')->count();
+        
+        return view('dashboards.motorpool-admin', compact(
+            'itinerariesCount',
+            'tripTicketsCount', 
+            'vehiclesCount',
+            'driversCount',
+            'pendingCount',
+            'ongoingCount',
+            'completedCount'
+        ));
+    }
+    
+    /**
+     * API endpoint for calendar events
+     */
+    public function calendarEvents(Request $request)
+    {
+        $start = $request->query('start');
+        $end = $request->query('end');
+        
+        $tripTickets = TripTicket::with([
+            'itinerary.driver',
+            'itinerary.vehicle'
+        ])
+        ->whereHas('itinerary', function($query) use ($start, $end) {
+            $query->whereBetween('date_from', [$start, $end]);
+        })
+        ->get()
+        ->map(function($ticket) {
+            return [
+                'id' => $ticket->id,
+                'driver_name' => $ticket->itinerary?->driver?->full_name ?? 'No Driver Assigned',
+                'itinerary' => [
+                    'date_from' => $ticket->itinerary?->date_from,
+                    'date_to' => $ticket->itinerary?->date_to,
+                    'destination' => $ticket->itinerary?->destination,
+                    'vehicle' => [
+                        'make' => $ticket->itinerary?->vehicle?->make,
+                        'model' => $ticket->itinerary?->vehicle?->model
+                    ]
+                ],
+                'status' => $ticket->status,
+                'created_at' => $ticket->created_at
+            ];
+        });
+        
+        return response()->json($tripTickets);
+    }
+    
+    /**
+     * API endpoint for status counts by month
+     */
+    public function statusCounts(Request $request)
+    {
+        $month = $request->query('month');
+        
+        if ($month) {
+            [$year, $monthNum] = explode('-', $month);
+            $startDate = "$year-$monthNum-01";
+            $endDate = date('Y-m-t', strtotime($startDate));
+        } else {
+            $startDate = now()->startOfMonth();
+            $endDate = now()->endOfMonth();
+        }
+        
+        $counts = TripTicket::select('status')
+            ->whereHas('itinerary', function($query) use ($startDate, $endDate) {
+                $query->whereBetween('date_from', [$startDate, $endDate]);
+            })
+            ->groupBy('status')
+            ->selectRaw('status, count(*) as count')
+            ->pluck('count', 'status')
+            ->toArray();
+        
+        return response()->json([
+            'pending' => $counts['Pending'] ?? 0,
+            'ongoing' => $counts['On-going'] ?? 0,
+            'completed' => $counts['Completed'] ?? 0
+        ]);
     }
     
     /**

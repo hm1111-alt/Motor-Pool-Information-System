@@ -393,6 +393,10 @@ Route::middleware('auth')->group(function () {
     // Approved Travel Orders for Motorpool Admin
     Route::get('/approved-travel-orders', [MotorpoolAdminController::class, 'approvedTravelOrders'])->name('approved-travel-orders.index');
     
+    // API Routes for Calendar and Status Counts
+    Route::get('/api/trip-tickets/calendar-events', [MotorpoolAdminController::class, 'calendarEvents'])->name('api.trip-tickets.calendar-events');
+    Route::get('/api/trip-tickets/status-counts', [MotorpoolAdminController::class, 'statusCounts'])->name('api.trip-tickets.status-counts');
+    
     // Vehicle Management Routes for Motorpool Admin
     Route::resource('vehicles', App\Http\Controllers\VehicleController::class);
     
