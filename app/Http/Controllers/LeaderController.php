@@ -33,12 +33,22 @@ class LeaderController extends Controller
             return redirect()->route('dashboard');
         }
         
-        // Get all offices with their VPs
+        // Get all offices with their VPs and related counts
         $offices = Office::with(['positions' => function($query) {
             $query->whereHas('employee.officer', function ($officerQuery) {
                             $officerQuery->where('vp', true);
                         })->with('employee.user');
-        }])->get();
+        }])
+        ->with(['divisions' => function($query) {
+            $query->withCount('units');
+        }])
+        ->withCount(['divisions', 'employees'])
+        ->get();
+        
+        // Add units count manually by calculating from divisions
+        foreach ($offices as $office) {
+            $office->units_count = $office->divisions->sum('units_count');
+        }
         
         return view('admin.leaders.offices', compact('offices'));
     }
@@ -71,12 +81,24 @@ class LeaderController extends Controller
             return redirect()->route('dashboard');
         }
         
-        // Load division with units and their heads
+        // Load division with units and their heads, including subunits for count
         $division->load([
             'units.positions.employee.officer',
+            'units.subunits',  // Add this to load subunits for each unit
             'positions.employee.officer',
             'office'
         ]);
+        
+        // Load counts separately - divisions have units, but subunits are related to units
+        $division->loadCount(['units']);
+        
+        // Count subunits manually by aggregating from units
+        $division->subunits_count = $division->units->sum(function($unit) {
+            return $unit->subunits->count();
+        });
+        
+        // Count employees related to this division through positions
+        $division->employees_count = $division->positions->pluck('employee_id')->unique()->count();
         
         // Get Division Head
         $divisionHead = $division->employees()->whereHas('officer', function ($officerQuery) {
@@ -98,6 +120,12 @@ class LeaderController extends Controller
             'positions.employee.officer',
             'division.office'
         ]);
+        
+        // Load counts separately
+        $unit->loadCount(['subunits']);
+        
+        // Count employees related to this unit through positions
+        $unit->employees_count = $unit->positions->pluck('employee_id')->unique()->count();
         
         // Get Unit Head
         $unitHead = $unit->employees()->whereHas('officer', function ($officerQuery) {

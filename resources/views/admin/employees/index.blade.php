@@ -117,6 +117,9 @@
             const tableBody = document.getElementById('employees-table-body');
             const paginationSection = document.getElementById('pagination-section');
             
+            // Use pre-loaded cascading data
+            const cascadingData = @json($cascadingData);
+            
             let searchTimeout;
             
             // Function to perform server-side search
@@ -205,13 +208,13 @@
                         
                         // Load dependent dropdowns
                         if (officeTerm !== 'all') {
-                            fetchDivisions(officeTerm, divisionTerm);
+                            populateDivisions(officeTerm, divisionTerm);
                         }
                         if (divisionTerm !== 'all') {
-                            fetchUnits(divisionTerm, unitTerm);
+                            populateUnits(divisionTerm, unitTerm);
                         }
                         if (unitTerm !== 'all') {
-                            fetchSubunits(unitTerm, subunitTerm);
+                            populateSubunits(unitTerm, subunitTerm);
                         }
                     })
                     .catch(error => {
@@ -278,13 +281,13 @@
                                 const unitTerm = urlParams.get('unit') || 'all';
                                 
                                 if (officeTerm !== 'all') {
-                                    fetchDivisions(officeTerm, divisionTerm);
+                                    populateDivisions(officeTerm, divisionTerm);
                                 }
                                 if (divisionTerm !== 'all') {
-                                    fetchUnits(divisionTerm, unitTerm);
+                                    populateUnits(divisionTerm, unitTerm);
                                 }
                                 if (unitTerm !== 'all') {
-                                    fetchSubunits(unitTerm, urlParams.get('subunit') || 'all');
+                                    populateSubunits(unitTerm, urlParams.get('subunit') || 'all');
                                 }
                             })
                             .catch(error => {
@@ -312,9 +315,9 @@
                 subunitFilter.innerHTML = '<option value="all">All Subunits</option>';
                 performSearch();
                 
-                // Load divisions if office is selected
+                // Populate divisions if office is selected
                 if (officeId !== 'all') {
-                    fetchDivisions(officeId);
+                    populateDivisions(officeId);
                 }
             });
             
@@ -325,9 +328,9 @@
                 subunitFilter.innerHTML = '<option value="all">All Subunits</option>';
                 performSearch();
                 
-                // Load units if division is selected
+                // Populate units if division is selected
                 if (divisionId !== 'all') {
-                    fetchUnits(divisionId);
+                    populateUnits(divisionId);
                 }
             });
             
@@ -337,9 +340,9 @@
                 subunitFilter.innerHTML = '<option value="all">All Subunits</option>';
                 performSearch();
                 
-                // Load subunits if unit is selected
+                // Populate subunits if unit is selected
                 if (unitId !== 'all') {
-                    fetchSubunits(unitId);
+                    populateSubunits(unitId);
                 }
             });
             
@@ -347,44 +350,38 @@
             classFilter.addEventListener('change', performSearch);
             statusFilter.addEventListener('change', performSearch);
             
-            // Functions to fetch dependent dropdown options
-            function fetchDivisions(officeId, selectedDivision = 'all') {
-                fetch(`{{ route('admin.employees.get-divisions-by-office') }}?office_id=${officeId}`)
-                    .then(response => response.json())
-                    .then(divisions => {
-                        divisionFilter.innerHTML = '<option value="all">All Divisions</option>';
-                        divisions.forEach(division => {
-                            const selected = division.id == selectedDivision ? 'selected' : '';
-                            divisionFilter.innerHTML += `<option value="${division.id}" ${selected}>${division.division_name}</option>`;
-                        });
-                    })
-                    .catch(error => console.error('Error:', error));
+            // Functions to populate dependent dropdown options using pre-loaded data
+            function populateDivisions(officeId, selectedDivision = 'all') {
+                divisionFilter.innerHTML = '<option value="all">All Divisions</option>';
+                
+                if (officeId !== 'all' && cascadingData.divisions[officeId]) {
+                    cascadingData.divisions[officeId].forEach(division => {
+                        const selected = division.id_division == selectedDivision ? 'selected' : '';
+                        divisionFilter.innerHTML += `<option value="${division.id_division}" ${selected}>${division.division_name}</option>`;
+                    });
+                }
             }
             
-            function fetchUnits(divisionId, selectedUnit = 'all') {
-                fetch(`{{ route('admin.employees.get-units-by-division') }}?division_id=${divisionId}`)
-                    .then(response => response.json())
-                    .then(units => {
-                        unitFilter.innerHTML = '<option value="all">All Units</option>';
-                        units.forEach(unit => {
-                            const selected = unit.id == selectedUnit ? 'selected' : '';
-                            unitFilter.innerHTML += `<option value="${unit.id}" ${selected}>${unit.unit_name}</option>`;
-                        });
-                    })
-                    .catch(error => console.error('Error:', error));
+            function populateUnits(divisionId, selectedUnit = 'all') {
+                unitFilter.innerHTML = '<option value="all">All Units</option>';
+                
+                if (divisionId !== 'all' && cascadingData.units[divisionId]) {
+                    cascadingData.units[divisionId].forEach(unit => {
+                        const selected = unit.id_unit == selectedUnit ? 'selected' : '';
+                        unitFilter.innerHTML += `<option value="${unit.id_unit}" ${selected}>${unit.unit_name}</option>`;
+                    });
+                }
             }
             
-            function fetchSubunits(unitId, selectedSubunit = 'all') {
-                fetch(`{{ route('admin.employees.get-subunits-by-unit') }}?unit_id=${unitId}`)
-                    .then(response => response.json())
-                    .then(subunits => {
-                        subunitFilter.innerHTML = '<option value="all">All Subunits</option>';
-                        subunits.forEach(subunit => {
-                            const selected = subunit.id == selectedSubunit ? 'selected' : '';
-                            subunitFilter.innerHTML += `<option value="${subunit.id}" ${selected}>${subunit.subunit_name}</option>`;
-                        });
-                    })
-                    .catch(error => console.error('Error:', error));
+            function populateSubunits(unitId, selectedSubunit = 'all') {
+                subunitFilter.innerHTML = '<option value="all">All Subunits</option>';
+                
+                if (unitId !== 'all' && cascadingData.subunits[unitId]) {
+                    cascadingData.subunits[unitId].forEach(subunit => {
+                        const selected = subunit.id_subunit == selectedSubunit ? 'selected' : '';
+                        subunitFilter.innerHTML += `<option value="${subunit.id_subunit}" ${selected}>${subunit.subunit_name}</option>`;
+                    });
+                }
             }
             
             // Load dependent dropdowns on page load if filters are set
@@ -395,13 +392,13 @@
             const subunitTerm = urlParams.get('subunit') || 'all';
             
             if (officeTerm !== 'all') {
-                fetchDivisions(officeTerm, divisionTerm);
+                populateDivisions(officeTerm, divisionTerm);
             }
             if (divisionTerm !== 'all') {
-                fetchUnits(divisionTerm, unitTerm);
+                populateUnits(divisionTerm, unitTerm);
             }
             if (unitTerm !== 'all') {
-                fetchSubunits(unitTerm, subunitTerm);
+                populateSubunits(unitTerm, subunitTerm);
             }
             
             // Initial attachment of event listeners

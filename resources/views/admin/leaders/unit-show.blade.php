@@ -112,7 +112,7 @@
                     <!-- Additional Information -->
                     <div class="mt-8 pt-6 border-t border-gray-200">
                         <h4 class="text-md font-semibold text-gray-900 mb-4">Unit Information</h4>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                             <div class="bg-blue-50 rounded-lg p-4">
                                 <div class="flex items-center">
                                     <svg class="h-5 w-5 text-blue-500 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -133,6 +133,30 @@
                                     <div>
                                         <div class="text-sm font-medium text-indigo-900">Parent Office</div>
                                         <div class="text-sm text-indigo-700">{{ $unit->division->office->office_name }}</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="bg-green-50 rounded-lg p-4">
+                                <div class="flex items-center">
+                                    <svg class="h-5 w-5 text-green-500 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z" />
+                                    </svg>
+                                    <div>
+                                        <div class="text-sm font-medium text-green-900">Subunits</div>
+                                        <div class="text-sm text-green-700">{{ $unit->subunits_count ?? 0 }} subunits</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="bg-purple-50 rounded-lg p-4">
+                                <div class="flex items-center">
+                                    <svg class="h-5 w-5 text-purple-500 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                    </svg>
+                                    <div>
+                                        <div class="text-sm font-medium text-purple-900">Employees</div>
+                                        <div class="text-sm text-purple-700">{{ $unit->employees_count ?? 0 }} employees</div>
                                     </div>
                                 </div>
                             </div>

@@ -23,7 +23,7 @@ class EmployeeController extends Controller
      */
     public function index(Request $request): View|JsonResponse
     {
-        $query = Employee::with(['position', 'position.office', 'position.division', 'position.unit', 'position.subunit', 'position.class', 'user']); // Load user and position relationships
+        $query = Employee::with(['positions', 'positions.office', 'positions.division', 'positions.unit', 'positions.subunit', 'positions.class', 'user']); // Load user and all positions relationships
         
         // Apply search filter
         if ($request->filled('search')) {
@@ -31,8 +31,8 @@ class EmployeeController extends Controller
             $query->where(function ($q) use ($search) {
                 $q->where('first_name', 'like', "%{$search}%")
                   ->orWhere('last_name', 'like', "%{$search}%")
-                  ->orWhereHas('position', function ($positionQuery) use ($search) {
-                      $positionQuery->where('position_name', 'like', "%{$search}%");
+                  ->orWhereHas('positions', function ($positionsQuery) use ($search) {
+                      $positionsQuery->where('position_name', 'like', "%{$search}%");
                   })
                   ->orWhereHas('user', function ($userQuery) use ($search) {
                       $userQuery->where('email', 'like', "%{$search}%");
@@ -40,37 +40,37 @@ class EmployeeController extends Controller
             });
         }
         
-        // Apply office filter
+        // Apply office filter - check all positions, not just primary
         if ($request->filled('office') && $request->office !== 'all') {
-            $query->whereHas('position', function ($q) use ($request) {
+            $query->whereHas('positions', function ($q) use ($request) {
                 $q->where('office_id', $request->office);
             });
         }
         
-        // Apply division filter
+        // Apply division filter - check all positions, not just primary
         if ($request->filled('division') && $request->division !== 'all') {
-            $query->whereHas('position', function ($q) use ($request) {
+            $query->whereHas('positions', function ($q) use ($request) {
                 $q->where('division_id', $request->division);
             });
         }
         
-        // Apply unit filter
+        // Apply unit filter - check all positions, not just primary
         if ($request->filled('unit') && $request->unit !== 'all') {
-            $query->whereHas('position', function ($q) use ($request) {
+            $query->whereHas('positions', function ($q) use ($request) {
                 $q->where('unit_id', $request->unit);
             });
         }
         
-        // Apply subunit filter
+        // Apply subunit filter - check all positions, not just primary
         if ($request->filled('subunit') && $request->subunit !== 'all') {
-            $query->whereHas('position', function ($q) use ($request) {
+            $query->whereHas('positions', function ($q) use ($request) {
                 $q->where('subunit_id', $request->subunit);
             });
         }
         
-        // Apply class filter
+        // Apply class filter - check all positions, not just primary
         if ($request->filled('class') && $request->class !== 'all') {
-            $query->whereHas('position', function ($q) use ($request) {
+            $query->whereHas('positions', function ($q) use ($request) {
                 $q->where('class_id', $request->class);
             });
         }
@@ -85,6 +85,30 @@ class EmployeeController extends Controller
         $offices = Office::all();
         $classes = ClassModel::all();
         
+        // Pre-load all cascading data for filters
+        $cascadingData = [
+            'divisions' => [],
+            'units' => [],
+            'subunits' => []
+        ];
+        
+        // Load divisions for all offices
+        foreach ($offices as $office) {
+            $cascadingData['divisions'][$office->id] = Division::where('office_id', $office->id)->get();
+        }
+        
+        // Load units for all divisions
+        $allDivisions = Division::all();
+        foreach ($allDivisions as $division) {
+            $cascadingData['units'][$division->id_division] = Unit::where('unit_division', $division->id_division)->get();
+        }
+        
+        // Load subunits for all units
+        $allUnits = Unit::all();
+        foreach ($allUnits as $unit) {
+            $cascadingData['subunits'][$unit->id_unit] = Subunit::where('unit_id', $unit->id_unit)->get();
+        }
+        
         if ($request->wantsJson() || $request->ajax()) {
             return response()->json([
                 'table_body' => view('admin.employees.partials.table-body', compact('employees'))->render(),
@@ -92,7 +116,7 @@ class EmployeeController extends Controller
             ]);
         }
         
-        return view('admin.employees.index', compact('employees', 'offices', 'classes'));
+        return view('admin.employees.index', compact('employees', 'offices', 'classes', 'cascadingData'));
     }
 
     /**
@@ -264,15 +288,36 @@ class EmployeeController extends Controller
      */
     public function show(Employee $employee)
     {
-        // Load all related data
-        $employee->load([
-            'user',
-            'positions.office',
-            'positions.division',
-            'positions.unit',
-            'positions.subunit',
-            'positions.class'
-        ]);
+        // Load employee with user and positions
+        $employee->load(['user', 'positions']);
+        
+        // Manually load related data for each position (same approach as edit page)
+        foreach ($employee->positions as $position) {
+            // Load office
+            if ($position->office_id) {
+                $position->office = Office::find($position->office_id);
+            }
+            
+            // Load division
+            if ($position->division_id) {
+                $position->division = Division::find($position->division_id);
+            }
+            
+            // Load unit
+            if ($position->unit_id) {
+                $position->unit = Unit::find($position->unit_id);
+            }
+            
+            // Load subunit
+            if ($position->subunit_id) {
+                $position->subunit = Subunit::find($position->subunit_id);
+            }
+            
+            // Load class
+            if ($position->class_id) {
+                $position->class = ClassModel::find($position->class_id);
+            }
+        }
         
         return view('admin.employees.show', compact('employee'));
     }
