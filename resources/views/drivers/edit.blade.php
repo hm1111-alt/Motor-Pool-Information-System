@@ -33,10 +33,10 @@
                     <!-- Name Section -->
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <div>
-                            <label for="firsts_name" class="block text-sm font-medium text-gray-700">First Name</label>
-                            <input type="text" name="firsts_name" id="firsts_name" value="{{ old('firsts_name', $driver->firsts_name) }}" 
+                            <label for="first_name" class="block text-sm font-medium text-gray-700">First Name</label>
+                            <input type="text" name="first_name" id="first_name" value="{{ old('first_name', $driver->first_name) }}" 
                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#1e6031] focus:ring-[#1e6031]">
-                            @error('firsts_name')
+                            @error('first_name')
                                 <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                             @enderror
                         </div>
@@ -64,7 +64,7 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
                             <label for="contact_num" class="block text-sm font-medium text-gray-700">Contact Number</label>
-                            <input type="text" name="contact_num" id="contact_num" value="{{ old('contact_num', $driver->contact_num) }}" 
+                            <input type="text" name="contact_num" id="contact_num" value="{{ old('contact_num', $driver->user->contact_num ?? '') }}" 
                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#1e6031] focus:ring-[#1e6031]">
                             @error('contact_num')
                                 <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
@@ -73,7 +73,7 @@
 
                         <div>
                             <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
-                            <input type="email" name="email" id="email" value="{{ old('email', $driver->email) }}" 
+                            <input type="email" name="email" id="email" value="{{ old('email', $driver->user->email ?? '') }}" 
                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#1e6031] focus:ring-[#1e6031]">
                             @error('email')
                                 <p class="mt-1 text-sm text-red-600">{{ $message }}</p>

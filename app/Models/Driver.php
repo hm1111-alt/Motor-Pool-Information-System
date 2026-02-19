@@ -14,7 +14,7 @@ class Driver extends Model
     
     protected $fillable = [
         'user_id',
-        'firsts_name',
+        'first_name',
         'middle_initial',
         'last_name',
         'full_name',
@@ -46,6 +46,22 @@ class Driver extends Model
     }
     
     /**
+     * Get the contact number from the associated user.
+     */
+    public function getContactNumAttribute(): ?string
+    {
+        return $this->user ? $this->user->contact_num : null;
+    }
+    
+    /**
+     * Get the email from the associated user.
+     */
+    public function getEmailAttribute(): ?string
+    {
+        return $this->user ? $this->user->email : null;
+    }
+    
+    /**
      * Get the itineraries for this driver.
      */
     public function itineraries(): HasMany
@@ -58,7 +74,7 @@ class Driver extends Model
      */
     public function getFullNameAttribute(): string
     {
-        return $this->firsts_name . ' ' . $this->last_name;
+        return $this->first_name . ' ' . $this->last_name;
     }
     
     /**
@@ -66,7 +82,7 @@ class Driver extends Model
      */
     public function getFormalNameAttribute(): string
     {
-        $fullName = $this->firsts_name;
+        $fullName = $this->first_name;
         if ($this->middle_initial) {
             $fullName .= ' ' . $this->middle_initial . '.';
         }

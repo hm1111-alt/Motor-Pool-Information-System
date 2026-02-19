@@ -3,247 +3,233 @@
 namespace App\Http\Controllers;
 
 use App\Models\Itinerary;
-use App\Models\Vehicle;
-use App\Models\Driver;
 use App\Models\TravelOrder;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\View\View;
-use Illuminate\Http\RedirectResponse;
-use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
 
 class ItineraryController extends Controller
 {
     /**
-     * Display a listing of the itineraries.
+     * Display a listing of the resource.
      */
-    public function index(Request $request): View
+    public function index(Request $request)
     {
-        $tab = $request->get('tab', 'pending'); // Default to pending tab
+        $tab = $request->get('tab', 'pending');
+        $search = $request->get('search');
         
-        // Base query
-        $query = Itinerary::with(['travelOrder', 'vehicle', 'driver']);
+        // Get all itineraries for all tabs (no filtering here)
+        $query = Itinerary::with(['travelOrder', 'vehicle', 'driver'])
+            ->orderBy('date_from', 'desc')
+            ->orderBy('departure_time', 'asc');
         
-        // Apply tab filtering
-        switch ($tab) {
-            case 'approved':
-                $query->where('unit_head_approved', true)
-                      ->where('vp_approved', true)
-                      ->whereNotNull('vp_approved_at');
-                break;
-            case 'cancelled':
-                $query->where(function($q) {
-                    $q->where('unit_head_approved', false)
-                      ->whereNotNull('unit_head_approved_at')
-                      ->orWhere(function($q2) {
-                          $q2->where('unit_head_approved', true)
-                             ->where('vp_approved', false)
-                             ->whereNotNull('vp_approved_at');
-                      });
-                });
-                break;
-            case 'pending':
-            default:
-                $query->where(function($q) {
-                    $q->where('unit_head_approved', false)
-                      ->whereNull('unit_head_approved_at')
-                      ->orWhere(function($q2) {
-                          $q2->where('unit_head_approved', true)
-                             ->where('vp_approved', false)
-                             ->whereNull('vp_approved_at');
-                      });
-                });
-                break;
+        // Apply search filter if provided
+        if ($search) {
+            $query->where(function($q) use ($search) {
+                $q->where('destination', 'like', "%{$search}%")
+                  ->orWhere('purpose', 'like', "%{$search}%")
+                  ->orWhereHas('driver', function($driverQuery) use ($search) {
+                      $driverQuery->where('first_name', 'like', "%{$search}%")
+                                 ->orWhere('last_name', 'like', "%{$search}%");
+                  })
+                  ->orWhereHas('vehicle', function($vehicleQuery) use ($search) {
+                      $vehicleQuery->where('make', 'like', "%{$search}%")
+                                  ->orWhere('model', 'like', "%{$search}%");
+                  });
+            });
         }
         
-        $itineraries = $query->orderBy('date_from', 'desc')
-            ->orderBy('departure_time', 'asc')
-            ->paginate(10);
+        // Paginate the results
+        $allItineraries = $query->paginate(10);
         
-        // Get counts for each tab
-        $pendingCount = Itinerary::where(function($q) {
-            $q->where('unit_head_approved', false)
-              ->whereNull('unit_head_approved_at')
-              ->orWhere(function($q2) {
-                  $q2->where('unit_head_approved', true)
-                     ->where('vp_approved', false)
-                     ->whereNull('vp_approved_at');
-              });
-        })->count();
+        // Filter the current tab's data for display
+        $currentTabItineraries = $allItineraries->filter(function($itinerary) use ($tab) {
+            switch ($tab) {
+                case 'approved':
+                    return $itinerary->status === 'Approved';
+                case 'cancelled':
+                    return $itinerary->status === 'Cancelled';
+                case 'pending':
+                default:
+                    return $itinerary->status === 'Not yet Approved';
+            }
+        });
         
-        $approvedCount = Itinerary::where('unit_head_approved', true)
-            ->where('vp_approved', true)
-            ->whereNotNull('vp_approved_at')
-            ->count();
+        // Create a new paginator for the filtered results
+        $currentPage = $allItineraries->currentPage();
+        $perPage = $allItineraries->perPage();
+        $filteredItems = $currentTabItineraries->values(); // Reset keys
+        $totalFiltered = $filteredItems->count();
         
-        $cancelledCount = Itinerary::where(function($q) {
-            $q->where('unit_head_approved', false)
-              ->whereNotNull('unit_head_approved_at')
-              ->orWhere(function($q2) {
-                  $q2->where('unit_head_approved', true)
-                     ->where('vp_approved', false)
-                     ->whereNotNull('vp_approved_at');
-              });
-        })->count();
+        // Create a custom paginator for the filtered results
+        $paginatedFiltered = new \Illuminate\Pagination\LengthAwarePaginator(
+            $filteredItems,
+            $totalFiltered,
+            $perPage,
+            $currentPage,
+            ['path' => $request->url(), 'pageName' => 'page']
+        );
+        
+        // Add the search parameter to pagination links
+        $paginatedFiltered->appends(['search' => $search, 'tab' => $tab]);
+        
+        // Get data for the modal
+        $vehicles = \App\Models\Vehicle::whereIn('status', ['Available', 'Active'])->get();
+        $drivers = \App\Models\Driver::where('availability_status', 'Available')->get();
+        $travelOrders = TravelOrder::where('status', 'approved')->get();
 
-        return view('itineraries.index', compact('itineraries', 'tab', 'pendingCount', 'approvedCount', 'cancelledCount'));
+        return view('itineraries.index', [
+            'allItineraries' => $allItineraries,
+            'currentTabItineraries' => $paginatedFiltered,
+            'tab' => $tab,
+            'search' => $search,
+            'vehicles' => $vehicles,
+            'drivers' => $drivers,
+            'travelOrders' => $travelOrders
+        ]);
     }
 
     /**
-     * Show the form for creating a new itinerary.
+     * Show the form for creating a new resource.
      */
-    public function create(): View
+    public function create()
     {
-        $travelOrders = Schema::hasTable('travel_orders') ? TravelOrder::all() : collect([]);
-        $vehicles = Schema::hasTable('vehicles') ? Vehicle::all() : collect([]);
-        $drivers = Schema::hasTable('drivers') ? Driver::all() : collect([]);
+        $vehicles = \App\Models\Vehicle::whereIn('status', ['Available', 'Active'])->get();
+        $drivers = \App\Models\Driver::where('availability_status', 'Available')->get();
+        $travelOrders = TravelOrder::where('status', 'approved')->get();
         
-        return view('itineraries.create', compact('travelOrders', 'vehicles', 'drivers'));
+        // Determine which layout to use based on user's role
+        $user = auth()->user();
+        $isMotorpoolAdmin = $user && $user->hasRole(\App\Models\User::ROLE_MOTORPOOL_ADMIN);
+        $isAdmin = $user && $user->hasRole(\App\Models\User::ROLE_ADMIN);
+        
+        if ($isMotorpoolAdmin || $isAdmin) {
+            $layout = 'itineraries.create-motorpool';
+            $backUrl = route('itinerary.index'); // Back to itinerary index for motorpool admin
+        } else {
+            $layout = 'itineraries.create-employee';
+            $backUrl = auth()->user() && auth()->user()->employee ? 
+                      (auth()->user()->employee->is_vp ? route('vp.travel-orders.index') : 
+                       (auth()->user()->employee->is_head ? route('unithead.travel-orders.index') : 
+                        route('dashboard'))) : route('dashboard');
+        }
+        
+        return view($layout, compact('vehicles', 'drivers', 'travelOrders', 'backUrl'));
+    }
+    
+    /**
+     * Show the itinerary creation modal
+     */
+    public function createModal(): View
+    {
+        $vehicles = \App\Models\Vehicle::whereIn('status', ['Available', 'Active'])->get();
+        $drivers = \App\Models\Driver::where('availability_status', 'Available')->get();
+        $travelOrders = TravelOrder::where('status', 'approved')->get();
+        
+        // Get trip tickets to check availability
+        $tripTickets = \App\Models\TripTicket::with(['itinerary.vehicle', 'itinerary.driver'])->get();
+        
+        return view('itineraries.modals.create-itinerary-modal', compact('vehicles', 'drivers', 'travelOrders', 'tripTickets'));
     }
 
     /**
-     * Store a newly created itinerary in storage.
+     * Store a newly created resource in storage.
      */
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request)
     {
-        $validationRules = [
-            'travel_order_id' => 'nullable',
+        $request->validate([
+            'destination' => 'required|string|max:255',
             'date_from' => 'required|date',
             'date_to' => 'required|date|after_or_equal:date_from',
-            'destination' => 'required|string|max:255',
-            'purpose' => 'required|string|max:500',
             'departure_time' => 'required',
-        ];
-
-        // Conditionally add foreign key validations if tables exist
-        if (Schema::hasTable('vehicles')) {
-            $validationRules['vehicle_id'] = 'nullable|exists:vehicles,id';
-        }
-
-        if (Schema::hasTable('drivers')) {
-            $validationRules['driver_id'] = 'nullable|exists:drivers,id';
-        }
-
-        if (Schema::hasTable('travel_orders')) {
-            $validationRules['travel_order_id'] = 'nullable|exists:travel_orders,id';
-        }
-
-        $request->validate($validationRules);
-
-        Itinerary::create([
-            'travel_order_id' => $request->travel_order_id,
-            'date_from' => $request->date_from,
-            'date_to' => $request->date_to,
-            'destination' => $request->destination,
-            'purpose' => $request->purpose,
-            'departure_time' => $request->departure_time,
-            'status' => 'Not yet Approved', // Default status
-            'vehicle_id' => $request->vehicle_id,
-            'driver_id' => $request->driver_id,
-            'unit_head_approved' => false,
-            'vp_approved' => false,
+            'purpose' => 'required|string',
+            'vehicle_id' => 'required|exists:vehicles,id',
+            'driver_id' => 'required|exists:drivers,id',
         ]);
 
-        return redirect()->route('itinerary.index')
-            ->with('success', 'Itinerary created successfully.');
+        $itinerary = Itinerary::create($request->all());
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Itinerary created successfully!',
+                'itinerary' => $itinerary
+            ]);
+        }
+
+        return redirect()->route('itinerary.index')->with('success', 'Itinerary created successfully.');
     }
 
     /**
-     * Display the specified itinerary.
+     * Display the specified resource.
      */
-    public function show(Itinerary $itinerary): View
+    public function show(Itinerary $itinerary)
     {
-        $itinerary->load(['travelOrder', 'vehicle', 'driver']);
-        
+        $itinerary->load(['vehicle', 'driver', 'travelOrder']);
         return view('itineraries.show', compact('itinerary'));
     }
 
     /**
-     * Show the form for editing the specified itinerary.
+     * Show the form for editing the specified resource.
      */
-    public function edit(Itinerary $itinerary): View
+    public function edit(Itinerary $itinerary)
     {
-        $travelOrders = Schema::hasTable('travel_orders') ? TravelOrder::all() : collect([]);
-        $vehicles = Schema::hasTable('vehicles') ? Vehicle::all() : collect([]);
-        $drivers = Schema::hasTable('drivers') ? Driver::all() : collect([]);
+        $vehicles = \App\Models\Vehicle::whereIn('status', ['Available', 'Active'])->get();
+        $drivers = \App\Models\Driver::where('availability_status', 'Available')->get();
+        $travelOrders = TravelOrder::where('status', 'approved')->get();
         
-        return view('itineraries.edit', compact('itinerary', 'travelOrders', 'vehicles', 'drivers'));
+        // Determine which layout to use based on user's role
+        $user = auth()->user();
+        $isMotorpoolAdmin = $user && $user->hasRole(\App\Models\User::ROLE_MOTORPOOL_ADMIN);
+        $isAdmin = $user && $user->hasRole(\App\Models\User::ROLE_ADMIN);
+        
+        if ($isMotorpoolAdmin || $isAdmin) {
+            $layout = 'itineraries.edit-motorpool';
+            $backUrl = route('itinerary.index'); // Back to itinerary index for motorpool admin
+        } else {
+            $layout = 'itineraries.edit-employee';
+            $backUrl = auth()->user() && auth()->user()->employee ? 
+                      (auth()->user()->employee->is_vp ? route('vp.travel-orders.index') : 
+                       (auth()->user()->employee->is_head ? route('unithead.travel-orders.index') : 
+                        route('dashboard'))) : route('dashboard');
+        }
+        
+        return view($layout, compact('itinerary', 'vehicles', 'drivers', 'travelOrders', 'backUrl'));
     }
 
     /**
-     * Update the specified itinerary in storage.
+     * Update the specified resource in storage.
      */
-    public function update(Request $request, Itinerary $itinerary): RedirectResponse
+    public function update(Request $request, Itinerary $itinerary)
     {
-        $validationRules = [
-            'travel_order_id' => 'nullable',
+        $request->validate([
+            'destination' => 'required|string|max:255',
             'date_from' => 'required|date',
             'date_to' => 'required|date|after_or_equal:date_from',
-            'destination' => 'required|string|max:255',
-            'purpose' => 'required|string|max:500',
             'departure_time' => 'required',
-        ];
-
-        // Conditionally add foreign key validations if tables exist
-        if (Schema::hasTable('vehicles')) {
-            $validationRules['vehicle_id'] = 'nullable|exists:vehicles,id';
-        }
-
-        if (Schema::hasTable('drivers')) {
-            $validationRules['driver_id'] = 'nullable|exists:drivers,id';
-        }
-
-        if (Schema::hasTable('travel_orders')) {
-            $validationRules['travel_order_id'] = 'nullable|exists:travel_orders,id';
-        }
-
-        $request->validate($validationRules);
-
-        $itinerary->update([
-            'travel_order_id' => $request->travel_order_id,
-            'date_from' => $request->date_from,
-            'date_to' => $request->date_to,
-            'destination' => $request->destination,
-            'purpose' => $request->purpose,
-            'departure_time' => $request->departure_time,
-            'status' => $request->status ?? 'Not yet Approved',
-            'vehicle_id' => $request->vehicle_id,
-            'driver_id' => $request->driver_id,
+            'purpose' => 'required|string',
+            'vehicle_id' => 'nullable|exists:vehicles,id',
+            'driver_id' => 'nullable|exists:drivers,id',
         ]);
 
-        return redirect()->route('itinerary.index')
-            ->with('success', 'Itinerary updated successfully.');
+        $itinerary->update($request->all());
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Itinerary updated successfully!',
+                'itinerary' => $itinerary
+            ]);
+        }
+
+        return redirect()->route('itinerary.index')->with('success', 'Itinerary updated successfully.');
     }
 
     /**
-     * Remove the specified itinerary from storage.
+     * Remove the specified resource from storage.
      */
-    public function destroy(Itinerary $itinerary): RedirectResponse
+    public function destroy(Itinerary $itinerary)
     {
         $itinerary->delete();
-
-        return redirect()->route('itinerary.index')
-            ->with('success', 'Itinerary deleted successfully.');
-    }
-    
-    /**
-     * Get the creator of an itinerary (from the associated travel order).
-     */
-    public function getCreator($id): \Illuminate\Http\JsonResponse
-    {
-        $itinerary = Itinerary::with('travelOrder.employee')->find($id);
-        
-        if (!$itinerary) {
-            return response()->json(['error' => 'Itinerary not found'], 404);
-        }
-        
-        $creatorName = '';
-        if ($itinerary->travelOrder && $itinerary->travelOrder->employee) {
-            $creatorName = $itinerary->travelOrder->employee->first_name . ' ' . $itinerary->travelOrder->employee->last_name;
-        }
-        
-        return response()->json([
-            'creator_name' => $creatorName
-        ]);
+        return redirect()->route('itinerary.index')->with('success', 'Itinerary archived successfully.');
     }
 }

@@ -18,15 +18,22 @@ class VehicleController extends Controller
     public function index(Request $request): View|JsonResponse
     {
         $search = $request->get('search');
+        $type = $request->get('type');
         
         $query = Vehicle::when($search, function ($query, $search) {
                 return $query->where('plate_number', 'LIKE', "%{$search}%")
                             ->orWhere('model', 'LIKE', "%{$search}%")
                             ->orWhere('type', 'LIKE', "%{$search}%");
             })
+            ->when($type, function ($query, $type) {
+                return $query->where('type', $type);
+            })
             ->orderBy('created_at', 'desc');
         
         $vehicles = $query->paginate(10)->appends($request->except('page'));
+        
+        // Get all distinct types for the filter dropdown
+        $types = Vehicle::select('type')->distinct()->pluck('type')->filter();
         
         // Check if this is an AJAX request for partial updates
         if ($request->ajax() || $request->get('ajax')) {
@@ -36,7 +43,7 @@ class VehicleController extends Controller
             ]);
         }
 
-        return view('vehicles.index', compact('vehicles', 'search'));
+        return view('vehicles.index', compact('vehicles', 'search', 'type', 'types'));
     }
 
     /**

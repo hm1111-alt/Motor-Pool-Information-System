@@ -8,6 +8,309 @@
             </span>
         </div>
     </div>
+
+                    <!-- Approved Travel Orders Section -->
+                    <div style="margin-top: 30px;">
+                        <h3 style="color:#004d00; font-weight:900; font-size:1.8rem; margin-bottom:20px; text-transform:uppercase; letter-spacing:1px; text-align:center;">
+                            APPROVED TRAVEL ORDERS
+                        </h3>
+                        
+                        <!-- Search Bar -->
+                        <div style="margin-bottom: 20px; display: flex; justify-content: center;">
+                            <div style="position: relative; width: 100%; max-width: 500px;">
+                                <input type="text" 
+                                       id="travelOrderSearch" 
+                                       placeholder="Search travel orders..." 
+                                       style="
+                                           width: 100%;
+                                           padding: 12px 20px;
+                                           border: 2px solid #004d00;
+                                           border-radius: 8px;
+                                           font-size: 16px;
+                                           font-weight: 500;
+                                           color: #004d00;
+                                           background-color: #f2f9f2;
+                                           box-sizing: border-box;
+                                           transition: all 0.3s ease;
+                                       "
+                                       onkeyup="searchTravelOrders()">
+                                <i class="fas fa-search" style="
+                                    position: absolute;
+                                    right: 15px;
+                                    top: 50%;
+                                    transform: translateY(-50%);
+                                    color: #004d00;
+                                    font-size: 18px;
+                                "></i>
+                            </div>
+                        </div>
+                        
+                        <!-- Travel Orders Table -->
+                        <div style="
+                            background: #fff;
+                            border: 2px solid #004d00;
+                            border-radius: 12px;
+                            box-shadow: 0 4px 8px rgba(0,77,0,0.1);
+                            overflow: hidden;
+                            margin-bottom: 20px;
+                        ">
+                            <div style="overflow-x: auto;">
+                                <table style="
+                                    width: 100%;
+                                    border-collapse: collapse;
+                                    font-family: Arial, sans-serif;
+                                ">
+                                    <thead>
+                                        <tr style="background-color: #004d00; color: white;">
+                                            <th style="padding: 15px 12px; text-align: left; font-weight: 700; font-size: 14px; border-right: 1px solid rgba(255,255,255,0.2);">No.</th>
+                                            <th style="padding: 15px 12px; text-align: left; font-weight: 700; font-size: 14px; border-right: 1px solid rgba(255,255,255,0.2);">Employee Name</th>
+                                            <th style="padding: 15px 12px; text-align: left; font-weight: 700; font-size: 14px; border-right: 1px solid rgba(255,255,255,0.2);">Purpose</th>
+                                            <th style="padding: 15px 12px; text-align: left; font-weight: 700; font-size: 14px; border-right: 1px solid rgba(255,255,255,0.2);">Destination</th>
+                                            <th style="padding: 15px 12px; text-align: left; font-weight: 700; font-size: 14px; border-right: 1px solid rgba(255,255,255,0.2);">Date</th>
+                                            <th style="padding: 15px 12px; text-align: left; font-weight: 700; font-size: 14px; border-right: 1px solid rgba(255,255,255,0.2);">Time</th>
+                                            <th style="padding: 15px 12px; text-align: left; font-weight: 700; font-size: 14px; border-right: 1px solid rgba(255,255,255,0.2);">Vehicle</th>
+                                            <th style="padding: 15px 12px; text-align: left; font-weight: 700; font-size: 14px; border-right: 1px solid rgba(255,255,255,0.2);">Driver</th>
+                                            <th style="padding: 15px 12px; text-align: left; font-weight: 700; font-size: 14px; border-right: 1px solid rgba(255,255,255,0.2);">Remarks</th>
+                                            <th style="padding: 15px 12px; text-align: center; font-weight: 700; font-size: 14px;">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="travelOrdersTableBody">
+                                        @if(isset($travelOrders) && $travelOrders->count() > 0)
+                                            @foreach($travelOrders as $index => $order)
+                                                <tr style="border-bottom: 1px solid #e0e0e0; {{ $loop->even ? 'background-color: #f8f9fa;' : '' }}" class="travel-order-row">
+                                                    <td style="padding: 12px; font-size: 14px; color: #333;">{{ $index + 1 }}</td>
+                                                    <td style="padding: 12px; font-size: 14px; color: #333;">{{ $order->employee->full_name ?? 'N/A' }}</td>
+                                                    <td style="padding: 12px; font-size: 14px; color: #333;">{{ $order->purpose ?? 'N/A' }}</td>
+                                                    <td style="padding: 12px; font-size: 14px; color: #333;">{{ $order->destination ?? 'N/A' }}</td>
+                                                    <td style="padding: 12px; font-size: 14px; color: #333;">{{ $order->date_needed ? date('M d, Y', strtotime($order->date_needed)) : 'N/A' }}</td>
+                                                    <td style="padding: 12px; font-size: 14px; color: #333;">{{ $order->time_needed ?? 'N/A' }}</td>
+                                                    <td style="padding: 12px; font-size: 14px; color: #333;">{{ $order->vehicle_assigned ?? 'Not assigned' }}</td>
+                                                    <td style="padding: 12px; font-size: 14px; color: #333;">{{ $order->driver_assigned ?? 'Not assigned' }}</td>
+                                                    <td style="padding: 12px; font-size: 14px; color: #333;">{{ $order->remarks ?? 'None' }}</td>
+                                                    <td style="padding: 12px; text-align: center;">
+                                                        <button onclick="viewTravelOrder({{ $order->id }})" style="
+                                                            background: #004d00;
+                                                            color: white;
+                                                            border: none;
+                                                            padding: 8px 12px;
+                                                            border-radius: 4px;
+                                                            cursor: pointer;
+                                                            font-size: 12px;
+                                                            font-weight: 600;
+                                                            transition: background 0.2s;
+                                                        " onmouseover="this.style.background='#003300'" onmouseout="this.style.background='#004d00'">
+                                                            <i class="fas fa-eye"></i> View
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            @endforeach
+                                        @else
+                                            <tr>
+                                                <td colspan="10" style="padding: 30px; text-align: center; font-size: 16px; color: #666; font-style: italic;">
+                                                    No approved travel orders found.
+                                                </td>
+                                            </tr>
+                                        @endif
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        
+                        <!-- Pagination -->
+                        @if(isset($travelOrders) && $travelOrders->hasPages())
+                            <div style="
+                                display: flex;
+                                justify-content: space-between;
+                                align-items: center;
+                                padding: 15px 20px;
+                                background: #f8f9fa;
+                                border: 1px solid #dee2e6;
+                                border-radius: 8px;
+                                font-size: 14px;
+                                color: #495057;
+                            ">
+                                <div>
+                                    Showing {{ $travelOrders->firstItem() }} to {{ $travelOrders->lastItem() }} of {{ $travelOrders->total() }} entries
+                                </div>
+                                <div style="display: flex; gap: 8px; align-items: center;">
+                                    {{-- Previous Button --}}
+                                    @if($travelOrders->onFirstPage())
+                                        <button disabled style="
+                                            padding: 8px 12px;
+                                            background: #e9ecef;
+                                            color: #6c757d;
+                                            border: 1px solid #dee2e6;
+                                            border-radius: 4px;
+                                            cursor: not-allowed;
+                                            font-size: 13px;
+                                        ">
+                                            <i class="fas fa-chevron-left"></i> Prev
+                                        </button>
+                                    @else
+                                        <a href="{{ $travelOrders->previousPageUrl() }}" style="
+                                            padding: 8px 12px;
+                                            background: #004d00;
+                                            color: white;
+                                            text-decoration: none;
+                                            border: 1px solid #004d00;
+                                            border-radius: 4px;
+                                            font-size: 13px;
+                                            transition: background 0.2s;
+                                        " onmouseover="this.style.background='#003300'" onmouseout="this.style.background='#004d00'">
+                                            <i class="fas fa-chevron-left"></i> Prev
+                                        </a>
+                                    @endif
+                                    
+                                    {{-- Page Numbers --}}
+                                    @for($i = max(1, $travelOrders->currentPage() - 2); $i <= min($travelOrders->lastPage(), $travelOrders->currentPage() + 2); $i++)
+                                        @if($i == $travelOrders->currentPage())
+                                            <span style="
+                                                padding: 8px 12px;
+                                                background: #004d00;
+                                                color: white;
+                                                border: 1px solid #004d00;
+                                                border-radius: 4px;
+                                                font-size: 13px;
+                                                font-weight: 600;
+                                            ">{{ $i }}</span>
+                                        @else
+                                            <a href="{{ $travelOrders->url($i) }}" style="
+                                                padding: 8px 12px;
+                                                background: white;
+                                                color: #004d00;
+                                                text-decoration: none;
+                                                border: 1px solid #004d00;
+                                                border-radius: 4px;
+                                                font-size: 13px;
+                                                transition: all 0.2s;
+                                            " onmouseover="this.style.background='#f2f9f2'" onmouseout="this.style.background='white'">{{ $i }}</a>
+                                        @endif
+                                    @endfor
+                                    
+                                    {{-- Next Button --}}
+                                    @if($travelOrders->hasMorePages())
+                                        <a href="{{ $travelOrders->nextPageUrl() }}" style="
+                                            padding: 8px 12px;
+                                            background: #004d00;
+                                            color: white;
+                                            text-decoration: none;
+                                            border: 1px solid #004d00;
+                                            border-radius: 4px;
+                                            font-size: 13px;
+                                            transition: background 0.2s;
+                                        " onmouseover="this.style.background='#003300'" onmouseout="this.style.background='#004d00'">
+                                            Next <i class="fas fa-chevron-right"></i>
+                                        </a>
+                                    @else
+                                        <button disabled style="
+                                            padding: 8px 12px;
+                                            background: #e9ecef;
+                                            color: #6c757d;
+                                            border: 1px solid #dee2e6;
+                                            border-radius: 4px;
+                                            cursor: not-allowed;
+                                            font-size: 13px;
+                                        ">
+                                            Next <i class="fas fa-chevron-right"></i>
+                                        </button>
+                                    @endif
+                                </div>
+                            </div>
+                        @endif
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Search Script -->
+    <script>
+        let searchTimeout;
+        
+        function searchTravelOrders() {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                const searchTerm = document.getElementById('travelOrderSearch').value.trim();
+                
+                if (searchTerm.length >= 2) {
+                    // Show loading indicator
+                    const tbody = document.getElementById('travelOrdersTableBody');
+                    tbody.innerHTML = `<tr><td colspan="10" style="padding: 30px; text-align: center; font-size: 16px; color: #666;">Searching...</td></tr>`;
+                    
+                    // Make AJAX request
+                    fetch(`/api/travel-orders/search?q=${encodeURIComponent(searchTerm)}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            updateTable(data.data);
+                        })
+                        .catch(error => {
+                            console.error('Search error:', error);
+                            tbody.innerHTML = `<tr><td colspan="10" style="padding: 30px; text-align: center; font-size: 16px; color: #666;">Error searching travel orders.</td></tr>`;
+                        });
+                } else if (searchTerm.length === 0) {
+                    // Reload original data
+                    location.reload();
+                }
+            }, 300); // Debounce for 300ms
+        }
+        
+        function updateTable(orders) {
+            const tbody = document.getElementById('travelOrdersTableBody');
+            
+            if (orders.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="10" style="padding: 30px; text-align: center; font-size: 16px; color: #666; font-style: italic;">No travel orders found matching your search.</td></tr>`;
+                return;
+            }
+            
+            let html = '';
+            orders.forEach((order, index) => {
+                const rowClass = index % 2 === 0 ? '' : 'background-color: #f8f9fa;';
+                const employeeName = order.employee ? `${order.employee.first_name} ${order.employee.last_name}` : 'N/A';
+                const dateNeeded = order.date_needed ? new Date(order.date_needed).toLocaleDateString('en-US', { 
+                    year: 'numeric', 
+                    month: 'short', 
+                    day: 'numeric' 
+                }) : 'N/A';
+                
+                html += `
+                    <tr style="border-bottom: 1px solid #e0e0e0; ${rowClass}" class="travel-order-row">
+                        <td style="padding: 12px; font-size: 14px; color: #333;">${index + 1}</td>
+                        <td style="padding: 12px; font-size: 14px; color: #333;">${employeeName}</td>
+                        <td style="padding: 12px; font-size: 14px; color: #333;">${order.purpose || 'N/A'}</td>
+                        <td style="padding: 12px; font-size: 14px; color: #333;">${order.destination || 'N/A'}</td>
+                        <td style="padding: 12px; font-size: 14px; color: #333;">${dateNeeded}</td>
+                        <td style="padding: 12px; font-size: 14px; color: #333;">${order.time_needed || 'N/A'}</td>
+                        <td style="padding: 12px; font-size: 14px; color: #333;">${order.vehicle_assigned || 'Not assigned'}</td>
+                        <td style="padding: 12px; font-size: 14px; color: #333;">${order.driver_assigned || 'Not assigned'}</td>
+                        <td style="padding: 12px; font-size: 14px; color: #333;">${order.remarks || 'None'}</td>
+                        <td style="padding: 12px; text-align: center;">
+                            <button onclick="viewTravelOrder(${order.id})" style="
+                                background: #004d00;
+                                color: white;
+                                border: none;
+                                padding: 8px 12px;
+                                border-radius: 4px;
+                                cursor: pointer;
+                                font-size: 12px;
+                                font-weight: 600;
+                                transition: background 0.2s;
+                            " onmouseover="this.style.background='#003300'" onmouseout="this.style.background='#004d00'">
+                                <i class="fas fa-eye"></i> View
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+            
+            tbody.innerHTML = html;
+        }
+        
+        function viewTravelOrder(id) {
+            // Placeholder for view functionality
+            alert('View travel order ID: ' + id);
+            // You can implement modal or redirect here
+        }
+    </script>
 @endsection
 
 @section('content')

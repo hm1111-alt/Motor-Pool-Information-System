@@ -40,7 +40,7 @@
                             <div class="grid grid-cols-2 gap-4">
                                 <div>
                                     <label class="block text-sm font-medium text-gray-500">First Name</label>
-                                    <p class="mt-1 text-sm text-gray-900">{{ $driver->firsts_name }}</p>
+                                    <p class="mt-1 text-sm text-gray-900">{{ $driver->first_name }}</p>
                                 </div>
                                 <div>
                                     <label class="block text-sm font-medium text-gray-500">Middle Initial</label>
@@ -82,12 +82,12 @@
                         <div class="bg-gray-50 rounded-lg p-6 space-y-4">
                             <div>
                                 <label class="block text-sm font-medium text-gray-500">Email</label>
-                                <p class="mt-1 text-sm text-gray-900">{{ $driver->email }}</p>
+                                <p class="mt-1 text-sm text-gray-900">{{ $driver->user->email ?? 'N/A' }}</p>
                             </div>
 
                             <div>
                                 <label class="block text-sm font-medium text-gray-500">Contact Number</label>
-                                <p class="mt-1 text-sm text-gray-900">{{ $driver->contact_num }}</p>
+                                <p class="mt-1 text-sm text-gray-900">{{ $driver->user->contact_num ?? 'N/A' }}</p>
                             </div>
 
                             <div>

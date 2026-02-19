@@ -4,15 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\TripTicket;
 use App\Models\Itinerary;
-use App\Models\Driver;
-use App\Models\Vehicle;
 use App\Models\TravelOrder;
-use App\Models\Employee;
-use App\Services\DistanceEstimationService;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
-use Illuminate\Http\RedirectResponse;
-use Illuminate\Support\Facades\DB;
 
 class TripTicketController extends Controller
 {
@@ -22,44 +16,72 @@ class TripTicketController extends Controller
     public function index(Request $request): View
     {
         $search = $request->get('search');
+        $tab = $request->get('tab', 'pending');
         
         // Get pending trip tickets (status: Pending)
         $pendingQuery = TripTicket::with(['itinerary.driver', 'itinerary.vehicle', 'itinerary.travelOrder'])
             ->where('status', 'Pending');
         
         if ($search) {
-            $pendingQuery->whereHas('itinerary.driver', function($q) use ($search) {
-                $q->where('first_name', 'LIKE', '%' . $search . '%')
-                  ->orWhere('last_name', 'LIKE', '%' . $search . '%');
+            $pendingQuery->where(function($q) use ($search) {
+                $q->whereHas('itinerary.driver', function($driverQuery) use ($search) {
+                    $driverQuery->where('first_name', 'LIKE', '%' . $search . '%')
+                              ->orWhere('last_name', 'LIKE', '%' . $search . '%')
+                              ->orWhere('full_name', 'LIKE', '%' . $search . '%');
+                })
+                ->orWhereHas('itinerary.vehicle', function($vehicleQuery) use ($search) {
+                    $vehicleQuery->where('plate_number', 'LIKE', '%' . $search . '%')
+                               ->orWhere('make', 'LIKE', '%' . $search . '%')
+                               ->orWhere('model', 'LIKE', '%' . $search . '%');
+                })
+                ->orWhere('head_of_party', 'LIKE', '%' . $search . '%');
             });
         }
-        $pendingTripTickets = $pendingQuery->paginate(10);
+        $pendingTripTickets = $pendingQuery->paginate(10, ['*'], 'pending_page');
         
         // Get ongoing trip tickets (status: Issued)
         $ongoingQuery = TripTicket::with(['itinerary.driver', 'itinerary.vehicle', 'itinerary.travelOrder'])
             ->where('status', 'Issued');
         
         if ($search) {
-            $ongoingQuery->whereHas('itinerary.driver', function($q) use ($search) {
-                $q->where('first_name', 'LIKE', '%' . $search . '%')
-                  ->orWhere('last_name', 'LIKE', '%' . $search . '%');
+            $ongoingQuery->where(function($q) use ($search) {
+                $q->whereHas('itinerary.driver', function($driverQuery) use ($search) {
+                    $driverQuery->where('first_name', 'LIKE', '%' . $search . '%')
+                              ->orWhere('last_name', 'LIKE', '%' . $search . '%')
+                              ->orWhere('full_name', 'LIKE', '%' . $search . '%');
+                })
+                ->orWhereHas('itinerary.vehicle', function($vehicleQuery) use ($search) {
+                    $vehicleQuery->where('plate_number', 'LIKE', '%' . $search . '%')
+                               ->orWhere('make', 'LIKE', '%' . $search . '%')
+                               ->orWhere('model', 'LIKE', '%' . $search . '%');
+                })
+                ->orWhere('head_of_party', 'LIKE', '%' . $search . '%');
             });
         }
-        $ongoingTripTickets = $ongoingQuery->paginate(10);
+        $ongoingTripTickets = $ongoingQuery->paginate(10, ['*'], 'ongoing_page');
         
         // Get completed trip tickets (status: Completed or Cancelled)
         $completedQuery = TripTicket::with(['itinerary.driver', 'itinerary.vehicle', 'itinerary.travelOrder'])
             ->whereIn('status', ['Completed', 'Cancelled']);
         
         if ($search) {
-            $completedQuery->whereHas('itinerary.driver', function($q) use ($search) {
-                $q->where('first_name', 'LIKE', '%' . $search . '%')
-                  ->orWhere('last_name', 'LIKE', '%' . $search . '%');
+            $completedQuery->where(function($q) use ($search) {
+                $q->whereHas('itinerary.driver', function($driverQuery) use ($search) {
+                    $driverQuery->where('first_name', 'LIKE', '%' . $search . '%')
+                              ->orWhere('last_name', 'LIKE', '%' . $search . '%')
+                              ->orWhere('full_name', 'LIKE', '%' . $search . '%');
+                })
+                ->orWhereHas('itinerary.vehicle', function($vehicleQuery) use ($search) {
+                    $vehicleQuery->where('plate_number', 'LIKE', '%' . $search . '%')
+                               ->orWhere('make', 'LIKE', '%' . $search . '%')
+                               ->orWhere('model', 'LIKE', '%' . $search . '%');
+                })
+                ->orWhere('head_of_party', 'LIKE', '%' . $search . '%');
             });
         }
-        $completedTripTickets = $completedQuery->paginate(10);
+        $completedTripTickets = $completedQuery->paginate(10, ['*'], 'completed_page');
         
-        return view('trip-tickets.index', compact('pendingTripTickets', 'ongoingTripTickets', 'completedTripTickets', 'search'));
+        return view('trip-tickets.index', compact('pendingTripTickets', 'ongoingTripTickets', 'completedTripTickets', 'search', 'tab'));
     }
 
     /**
@@ -67,19 +89,14 @@ class TripTicketController extends Controller
      */
     public function create(): View
     {
-        // Get itineraries that are fully approved (by both unit head and VP) and don't have trip tickets yet
-        $itineraries = Itinerary::with(['driver', 'vehicle', 'travelOrder.employee'])
-            ->leftJoin('trip_tickets', 'itineraries.id', '=', 'trip_tickets.itinerary_id')
-            ->where('itineraries.unit_head_approved', true)
-            ->where('itineraries.vp_approved', true)
-            ->whereNotNull('itineraries.unit_head_approved_at')
-            ->whereNotNull('itineraries.vp_approved_at')
-            ->whereNull('trip_tickets.itinerary_id')
-            ->select('itineraries.*')
+        // Get all approved itineraries that don't have trip tickets yet
+        $itineraries = \App\Models\Itinerary::with(['driver', 'vehicle', 'travelOrder.employee'])
+            ->where('status', 'Approved')
+            ->whereDoesntHave('tripTickets')
             ->get();
         
-        // Get travel orders that don't have itineraries
-        $travelOrdersWithoutItinerary = TravelOrder::with(['employee'])
+        // Get travel orders that don't have itineraries yet
+        $travelOrdersWithoutItinerary = \App\Models\TravelOrder::with(['employee'])
             ->whereDoesntHave('itinerary')
             ->select('travel_orders.*')
             ->get();
@@ -90,7 +107,7 @@ class TripTicketController extends Controller
     /**
      * Store a newly created trip ticket in storage.
      */
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request): RedirectResponse|JsonResponse
     {
         $request->validate([
             'itinerary_id' => 'required|exists:itineraries,id',
@@ -112,6 +129,15 @@ class TripTicketController extends Controller
             'passengers' => $passengers,
             'head_of_party' => $headOfParty,
         ]);
+        
+        // Handle AJAX request
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Trip ticket created successfully!',
+                'trip_ticket' => $tripTicket->load(['itinerary.driver', 'itinerary.vehicle'])
+            ]);
+        }
         
         return redirect()->route('trip-tickets.index')
             ->with('success', 'Trip ticket created successfully.');

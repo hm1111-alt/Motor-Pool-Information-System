@@ -1,6 +1,3 @@
-@extends('layouts.employee')
-
-@section('content')
 <div class="max-w-3xl mx-auto py-6 sm:px-6 lg:px-8">
     <div class="px-4 py-6 sm:px-0">
         <div class="bg-white shadow rounded-lg">
@@ -124,11 +121,10 @@
                         @enderror
                     </div>
                     
-
                 </div>
                 
                 <div class="flex justify-end space-x-3 mt-6 pt-6 border-t border-gray-200">
-                    <a href="{{ auth()->user() && auth()->user()->employee ? (auth()->user()->employee->is_vp ? route('vp.travel-orders.index') : (auth()->user()->employee->is_head ? route('unithead.travel-orders.index') : route('dashboard'))) : route('dashboard') }}" 
+                    <a href="{{ $backUrl ?? (auth()->user() && auth()->user()->employee ? (auth()->user()->employee->is_vp ? route('vp.travel-orders.index') : (auth()->user()->employee->is_head ? route('unithead.travel-orders.index') : route('dashboard'))) : route('dashboard')) }}" 
                        class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500">
                         Back to Dashboard
                     </a>
@@ -141,42 +137,3 @@
         </div>
     </div>
 </div>
-@endsection
-
-@section('scripts')
-<script>
-function prefillTravelOrderData(selectElement) {
-    const selectedOption = selectElement.options[selectElement.selectedIndex];
-    
-    if (selectedOption.value === '') {
-        // Clear date and destination fields if no travel order is selected
-        document.getElementById('date_from').value = '';
-        document.getElementById('date_to').value = '';
-        document.getElementById('destination').value = '';
-        // Purpose should remain unchanged as it's independent
-        return;
-    }
-    
-    // Get data from the selected option
-    const dateFrom = selectedOption.getAttribute('data-date-from');
-    const dateTo = selectedOption.getAttribute('data-date-to');
-    const destination = selectedOption.getAttribute('data-destination');
-    
-    // Prefill only date and destination fields (purpose is independent)
-    if (dateFrom) {
-        document.getElementById('date_from').value = dateFrom;
-    }
-    if (dateTo) {
-        document.getElementById('date_to').value = dateTo;
-    }
-    if (destination) {
-        document.getElementById('destination').value = destination;
-    }
-    // Purpose field is left unchanged as it should be entered independently
-    
-
-}
-
-
-</script>
-@endsection

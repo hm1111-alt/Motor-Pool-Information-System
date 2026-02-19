@@ -18,7 +18,7 @@ class DriverSeeder extends Seeder
         // Driver data array matching the new schema
         $drivers = [
             [
-                'firsts_name' => 'Irwin',
+                'first_name' => 'Irwin',
                 'middle_initial' => 'J',
                 'last_name' => 'Salapare',
                 'contact_num' => '09175107991',
@@ -30,7 +30,7 @@ class DriverSeeder extends Seeder
                 'availability_status' => 'Available',
             ],
             [
-                'firsts_name' => 'Enrico',
+                'first_name' => 'Enrico',
                 'middle_initial' => 'M',
                 'last_name' => 'Baltazar',
                 'contact_num' => '09273685031',
@@ -54,7 +54,7 @@ class DriverSeeder extends Seeder
                 'availability_status' => 'On Duty',
             ],
             [
-                'firsts_name' => 'Alejandro',
+                'first_name' => 'Alejandro',
                 'middle_initial' => 'L',
                 'last_name' => 'Catalma',
                 'contact_num' => '09536943549',
@@ -66,7 +66,7 @@ class DriverSeeder extends Seeder
                 'availability_status' => 'Available',
             ],
             [
-                'firsts_name' => 'Joey',
+                'first_name' => 'Joey',
                 'middle_initial' => 'M',
                 'last_name' => 'Corales',
                 'contact_num' => '09274089758',

@@ -5,6 +5,7 @@
     <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
         <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
             <div class="p-6 text-gray-900">
+
                 <div class="mb-6">
                     <h2 class="text-2xl font-bold text-gray-800">Add New Driver</h2>
                     <p class="mt-1 text-sm text-gray-600">Create a new driver record</p>
@@ -12,155 +13,97 @@
 
                 <form method="POST" action="{{ route('drivers.store') }}" class="space-y-6">
                     @csrf
-                    
-                    <!-- User Selection -->
-                    <div>
-                        <label for="user_id" class="block text-sm font-medium text-gray-700">User Account</label>
-                        <select name="user_id" id="user_id" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#1e6031] focus:ring-[#1e6031]">
-                            <option value="">Select User Account</option>
-                            @foreach($users as $user)
-                                <option value="{{ $user->id }}" {{ old('user_id') == $user->id ? 'selected' : '' }}>
-                                    {{ $user->name }} ({{ $user->email }})
-                                </option>
-                            @endforeach
-                        </select>
-                        @error('user_id')
-                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                        @enderror
-                    </div>
-
-                    <!-- Name Section -->
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <div>
-                            <label for="firsts_name" class="block text-sm font-medium text-gray-700">First Name</label>
-                            <input type="text" name="firsts_name" id="firsts_name" value="{{ old('firsts_name') }}" 
-                                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#1e6031] focus:ring-[#1e6031]">
-                            @error('firsts_name')
-                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                            @enderror
-                        </div>
-
-                        <div>
-                            <label for="middle_initial" class="block text-sm font-medium text-gray-700">Middle Initial</label>
-                            <input type="text" name="middle_initial" id="middle_initial" value="{{ old('middle_initial') }}" 
-                                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#1e6031] focus:ring-[#1e6031]" maxlength="10">
-                            @error('middle_initial')
-                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                            @enderror
-                        </div>
-
-                        <div>
-                            <label for="last_name" class="block text-sm font-medium text-gray-700">Last Name</label>
-                            <input type="text" name="last_name" id="last_name" value="{{ old('last_name') }}" 
-                                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#1e6031] focus:ring-[#1e6031]">
-                            @error('last_name')
-                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                            @enderror
-                        </div>
-                    </div>
 
                     <!-- Contact Information -->
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+                        <!-- CONTACT NUMBER -->
                         <div>
-                            <label for="contact_num" class="block text-sm font-medium text-gray-700">Contact Number</label>
-                            <input type="text" name="contact_num" id="contact_num" value="{{ old('contact_num') }}" 
-                                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#1e6031] focus:ring-[#1e6031]">
+                            <label for="contact_num" class="block text-sm font-medium text-gray-700">
+                                Contact Number
+                            </label>
+
+                            <input type="text"
+                                   name="contact_num"
+                                   id="contact_num"
+                                   value="{{ old('contact_num') }}"
+                                   maxlength="11"
+                                   oninput="validateContact(this)"
+                                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#1e6031] focus:ring-[#1e6031]"
+                                   placeholder="09XXXXXXXXX">
+
+                            <p id="contact_error" class="mt-1 text-sm text-red-600 hidden"></p>
+
                             @error('contact_num')
                                 <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                             @enderror
                         </div>
 
+                        <!-- EMAIL -->
                         <div>
                             <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
-                            <input type="email" name="email" id="email" value="{{ old('email') }}" 
+                            <input type="email"
+                                   name="email"
+                                   id="email"
+                                   value="{{ old('email') }}"
                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#1e6031] focus:ring-[#1e6031]">
                             @error('email')
                                 <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                             @enderror
                         </div>
+
                     </div>
 
-                    <!-- Password -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <label for="password" class="block text-sm font-medium text-gray-700">Password</label>
-                            <input type="password" name="password" id="password" 
-                                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#1e6031] focus:ring-[#1e6031]">
-                            @error('password')
-                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                            @enderror
-                        </div>
-
-                        <div>
-                            <label for="password_confirmation" class="block text-sm font-medium text-gray-700">Confirm Password</label>
-                            <input type="password" name="password_confirmation" id="password_confirmation" 
-                                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#1e6031] focus:ring-[#1e6031]">
-                        </div>
-                    </div>
-
-                    <!-- Address -->
-                    <div>
-                        <label for="address" class="block text-sm font-medium text-gray-700">Address</label>
-                        <textarea name="address" id="address" rows="3" 
-                                  class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#1e6031] focus:ring-[#1e6031]">{{ old('address') }}</textarea>
-                        @error('address')
-                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                        @enderror
-                    </div>
-
-                    <!-- Position and Station -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <label for="position" class="block text-sm font-medium text-gray-700">Position</label>
-                            <input type="text" name="position" id="position" value="{{ old('position') }}" 
-                                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#1e6031] focus:ring-[#1e6031]">
-                            @error('position')
-                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                            @enderror
-                        </div>
-
-                        <div>
-                            <label for="official_station" class="block text-sm font-medium text-gray-700">Official Station</label>
-                            <input type="text" name="official_station" id="official_station" value="{{ old('official_station') }}" 
-                                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#1e6031] focus:ring-[#1e6031]">
-                            @error('official_station')
-                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                            @enderror
-                        </div>
-                    </div>
-
-                    <!-- Availability Status -->
-                    <div>
-                        <label for="availability_status" class="block text-sm font-medium text-gray-700">Availability Status</label>
-                        <select name="availability_status" id="availability_status" 
-                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#1e6031] focus:ring-[#1e6031]">
-                            <option value="Available" {{ old('availability_status') == 'Available' ? 'selected' : '' }}>Available</option>
-                            <option value="Not Available" {{ old('availability_status') == 'Not Available' ? 'selected' : '' }}>Not Available</option>
-                            <option value="On Duty" {{ old('availability_status') == 'On Duty' ? 'selected' : '' }}>On Duty</option>
-                            <option value="Off Duty" {{ old('availability_status') == 'Off Duty' ? 'selected' : '' }}>Off Duty</option>
-                        </select>
-                        @error('availability_status')
-                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                        @enderror
-                    </div>
-
-                    <!-- Form Actions -->
+                    <!-- SUBMIT -->
                     <div class="flex items-center justify-end space-x-4 pt-6 border-t border-gray-200">
-                        <a href="{{ route('drivers.index') }}" 
-                           class="inline-flex items-center px-4 py-2 bg-white border border-gray-300 rounded-md font-semibold text-xs text-gray-700 uppercase tracking-widest shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#1e6031] focus:ring-offset-2 disabled:opacity-25 transition ease-in-out duration-150">
-                            Cancel
-                        </a>
-                        <button type="submit" 
-                                class="inline-flex items-center px-6 py-3 bg-[#1e6031] border border-transparent rounded-md font-bold text-lg text-white uppercase tracking-widest hover:bg-[#164f2a] focus:bg-[#164f2a] active:bg-[#103c1e] focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150">
-                            <svg class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                            </svg>
+                        <button type="submit"
+                                class="inline-flex items-center px-6 py-3 bg-[#1e6031] border border-transparent rounded-md font-bold text-lg text-white uppercase tracking-widest hover:bg-[#164f2a] transition ease-in-out duration-150">
                             Create Driver
                         </button>
                     </div>
+
                 </form>
+
             </div>
         </div>
     </div>
 </div>
+
+<!-- REAL-TIME VALIDATION SCRIPT -->
+<script>
+function validateContact(input) {
+
+    const errorText = document.getElementById("contact_error");
+
+    // Remove non-numbers immediately
+    input.value = input.value.replace(/[^0-9]/g, '');
+
+    const value = input.value;
+
+    if (value.length === 0) {
+        errorText.classList.add("hidden");
+        input.classList.remove("border-red-500");
+        return;
+    }
+
+    if (value.length < 11) {
+        errorText.textContent = "Contact number must be 11 digits.";
+        errorText.classList.remove("hidden");
+        input.classList.add("border-red-500");
+        return;
+    }
+
+    if (!/^09\d{9}$/.test(value)) {
+        errorText.textContent = "Number must start with 09.";
+        errorText.classList.remove("hidden");
+        input.classList.add("border-red-500");
+        return;
+    }
+
+    // VALID
+    errorText.classList.add("hidden");
+    input.classList.remove("border-red-500");
+}
+</script>
+
 @endsection

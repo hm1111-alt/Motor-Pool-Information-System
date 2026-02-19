@@ -28,7 +28,10 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use Illuminate\Support\Facades\Auth;
 
-// PUBLIC TEST ROUTES (NO AUTHENTICATION REQUIRED)
+// PUBLIC API ROUTES FOR VALIDATION (NO AUTHENTICATION REQUIRED)
+Route::get('/api/check-contact-number/{contactNumber}', [DriverController::class, 'checkContactNumber'])->name('api.check-contact-number');
+Route::get('/api/check-email/{email}', [DriverController::class, 'checkEmail'])->name('api.check-email');
+
 Route::get('/api/offices', function() {
     try {
         $offices = \App\Models\Office::all();
@@ -83,17 +86,40 @@ Route::get('/debug-driver-check', function() {
             'id' => $user->id,
             'name' => $user->name,
             'email' => $user->email,
+            'contact_num' => $user->contact_num,
             'role' => $user->role
         ],
         'driver' => $driver ? [
             'id' => $driver->id,
             'user_id' => $driver->user_id,
-            'name' => $driver->firsts_name . ' ' . $driver->last_name,
-            'email' => $driver->email
+            'name' => $driver->first_name . ' ' . $driver->last_name,
+            'driver_contact' => $driver->contact_num,
+            'user_contact' => $driver->user->contact_num ?? 'N/A',
+            'email' => $driver->user->email ?? 'N/A'
         ] : null,
         'message' => $driver ? 'Driver record found' : 'No driver record found'
     ]);
 })->middleware('auth');
+
+// Test route to check all drivers data
+Route::get('/debug-all-drivers', function() {
+    $drivers = \App\Models\Driver::with('user')->get();
+    
+    $result = [];
+    foreach($drivers as $driver) {
+        $result[] = [
+            'driver_id' => $driver->id,
+            'driver_name' => $driver->full_name,
+            'user_id' => $driver->user_id,
+            'user_name' => $driver->user ? $driver->user->name : 'No user',
+            'driver_contact' => $driver->contact_num,
+            'user_contact' => $driver->user ? $driver->user->contact_num : 'No contact',
+            'user_email' => $driver->user ? $driver->user->email : 'No email'
+        ];
+    }
+    
+    return response()->json($result);
+});
 
 // Test route for vehicle add button
 Route::get('/vehicles/test-add-button', function () {
@@ -392,6 +418,7 @@ Route::middleware('auth')->group(function () {
     
     // Approved Travel Orders for Motorpool Admin
     Route::get('/approved-travel-orders', [MotorpoolAdminController::class, 'approvedTravelOrders'])->name('approved-travel-orders.index');
+    Route::get('/api/travel-orders/search', [MotorpoolAdminController::class, 'searchTravelOrders'])->name('api.travel-orders.search');
     
     // API Routes for Calendar and Status Counts
     Route::get('/api/trip-tickets/calendar-events', [MotorpoolAdminController::class, 'calendarEvents'])->name('api.trip-tickets.calendar-events');
@@ -402,16 +429,80 @@ Route::middleware('auth')->group(function () {
     
     // Driver Management Routes for Motorpool Admin
     Route::resource('drivers', DriverController::class);
+    Route::get('/drivers/generate-pdf', [DriverController::class, 'generatePDF'])->name('drivers.generate-pdf');
     
     // Trip Ticket Management Routes for Motorpool Admin
     Route::resource('trip-tickets', App\Http\Controllers\TripTicketController::class);
     Route::patch('/trip-tickets/{id}/status', [App\Http\Controllers\TripTicketController::class, 'updateStatus'])->name('trip-tickets.status.update');
     Route::get('/api/travel-orders/{id}/passengers', [App\Http\Controllers\TripTicketController::class, 'getPassengersForTravelOrder']);
     Route::get('/api/travel-orders/{id}/creator', [App\Http\Controllers\RegularEmployeeTravelOrderController::class, 'getCreator']);
+    Route::get('/api/travel-orders/{id}', function($id) {
+        $travelOrder = \App\Models\TravelOrder::with('employee')->find($id);
+        
+        if (!$travelOrder) {
+            return response()->json(['error' => 'Travel order not found'], 404);
+        }
+        
+        return response()->json([
+            'id' => $travelOrder->id,
+            'date_from' => $travelOrder->date_from,
+            'date_to' => $travelOrder->date_to,
+            'departure_time' => $travelOrder->departure_time,
+            'destination' => $travelOrder->destination,
+            'purpose' => $travelOrder->purpose,
+            'employee' => $travelOrder->employee ? [
+                'first_name' => $travelOrder->employee->first_name,
+                'last_name' => $travelOrder->employee->last_name
+            ] : null
+        ]);
+    });
+    
+    Route::get('/api/available-drivers/{date}', function($date) {
+        $tripTickets = \App\Models\TripTicket::whereHas('itinerary', function($query) use ($date) {
+            $query->whereRaw("DATE(CONCAT(itineraries.date_from, ' ', itineraries.departure_time)) <= ?", [$date])
+                  ->whereRaw("DATE(CONCAT(itineraries.date_to, ' ', '23:59:59')) >= ?", [$date]);
+        })->pluck('itinerary.driver_id');
+        
+        $availableDrivers = \App\Models\Driver::where('availability_status', 'Available')
+            ->whereNotIn('id', $tripTickets)
+            ->get();
+        
+        return response()->json($availableDrivers);
+    });
+    
+    Route::get('/api/available-vehicles/{date}', function($date) {
+        $tripTickets = \App\Models\TripTicket::whereHas('itinerary', function($query) use ($date) {
+            $query->whereRaw("DATE(CONCAT(itineraries.date_from, ' ', itineraries.departure_time)) <= ?", [$date])
+                  ->whereRaw("DATE(CONCAT(itineraries.date_to, ' ', '23:59:59')) >= ?", [$date]);
+        })->pluck('itinerary.vehicle_id');
+        
+        $availableVehicles = \App\Models\Vehicle::whereIn('status', ['Available', 'Active'])
+            ->whereNotIn('id', $tripTickets)
+            ->get();
+        
+        return response()->json($availableVehicles);
+    });
+    
+    Route::get('/api/itineraries/{id}', function($id) {
+        $itinerary = \App\Models\Itinerary::with(['driver', 'vehicle', 'travelOrder'])->find($id);
+        
+        if (!$itinerary) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Itinerary not found'
+            ], 404);
+        }
+        
+        return response()->json([
+            'success' => true,
+            'itinerary' => $itinerary
+        ]);
+    });
     Route::get('/api/itineraries/{id}/creator', [App\Http\Controllers\ItineraryController::class, 'getCreator']);
 
     // Itinerary Management Routes for Motorpool Admin
     Route::resource('itinerary', App\Http\Controllers\ItineraryController::class);
+    Route::get('/itinerary/create/modal', [App\Http\Controllers\ItineraryController::class, 'createModal'])->name('itinerary.create.modal');
     
     // Itinerary Approval Routes
     Route::prefix('itinerary/approvals')->name('itinerary.approvals.')->group(function () {
@@ -457,6 +548,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/dashboard', [MotorpoolAdminController::class, 'dashboard'])->name('dashboard');
         Route::resource('travel-orders', App\Http\Controllers\MotorpoolAdminTravelOrderController::class)->only(['index', 'show']);
     });
+    
+
     
     // Test route for travel order creation
     Route::get('/test-create-travel-order', function () {

@@ -30,6 +30,12 @@ class MotorpoolAdminController extends Controller
         $ongoingCount = TripTicket::where('status', 'On-going')->count();
         $completedCount = TripTicket::where('status', 'Completed')->count();
         
+        // Get approved travel orders for the table
+        $travelOrders = TravelOrder::where('status', 'approved')
+            ->with('employee')
+            ->orderBy('created_at', 'desc')
+            ->paginate(10);
+        
         return view('dashboards.motorpool-admin', compact(
             'itinerariesCount',
             'tripTicketsCount', 
@@ -37,7 +43,8 @@ class MotorpoolAdminController extends Controller
             'driversCount',
             'pendingCount',
             'ongoingCount',
-            'completedCount'
+            'completedCount',
+            'travelOrders'
         ));
     }
     
@@ -143,5 +150,37 @@ class MotorpoolAdminController extends Controller
         $travelOrders = $query->orderBy('created_at', 'desc')->paginate(10);
         
         return view('travel-orders.approvals.motorpool-index', compact('travelOrders', 'search'));
+    }
+    
+    /**
+     * API endpoint for searching travel orders in dashboard
+     */
+    public function searchTravelOrders(Request $request)
+    {
+        $search = $request->get('q', '');
+        
+        $query = TravelOrder::where('status', 'approved')
+            ->with('employee');
+            
+        if (!empty($search)) {
+            $query->where(function($q) use ($search) {
+                $q->where('destination', 'LIKE', "%{$search}%")
+                  ->orWhere('purpose', 'LIKE', "%{$search}%")
+                  ->orWhereHas('employee', function($q) use ($search) {
+                      $q->where('first_name', 'LIKE', "%{$search}%")
+                        ->orWhere('last_name', 'LIKE', "%{$search}%");
+                  });
+            });
+        }
+        
+        $travelOrders = $query->orderBy('created_at', 'desc')->paginate(10);
+        
+        return response()->json([
+            'data' => $travelOrders->items(),
+            'current_page' => $travelOrders->currentPage(),
+            'last_page' => $travelOrders->lastPage(),
+            'total' => $travelOrders->total(),
+            'per_page' => $travelOrders->perPage()
+        ]);
     }
 }

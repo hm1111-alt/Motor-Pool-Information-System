@@ -395,6 +395,7 @@
                 <!-- Page Content -->
                 <main class="overflow-y-auto h-[calc(100vh-4rem)]">
                     @yield('content')
+                    
                 </main>
             </div>
         </div>
