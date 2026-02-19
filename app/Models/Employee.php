@@ -132,7 +132,7 @@ class Employee extends Model
      */
     public function division()
     {
-        return $this->hasOneThrough(Division::class, EmpPosition::class, 'employee_id', 'id', 'id', 'division_id');
+        return $this->hasOneThrough(Division::class, EmpPosition::class, 'employee_id', 'id_division', 'id', 'division_id');
     }
 
     /**
@@ -140,7 +140,7 @@ class Employee extends Model
      */
     public function unit()
     {
-        return $this->hasOneThrough(Unit::class, EmpPosition::class, 'employee_id', 'id', 'id', 'unit_id');
+        return $this->hasOneThrough(Unit::class, EmpPosition::class, 'employee_id', 'id_unit', 'id', 'unit_id');
     }
 
     /**
@@ -148,7 +148,7 @@ class Employee extends Model
      */
     public function subunit()
     {
-        return $this->hasOneThrough(Subunit::class, EmpPosition::class, 'employee_id', 'id', 'id', 'subunit_id');
+        return $this->hasOneThrough(Subunit::class, EmpPosition::class, 'employee_id', 'id_subunit', 'id', 'subunit_id');
     }
 
     /**
@@ -156,7 +156,7 @@ class Employee extends Model
      */
     public function class()
     {
-        return $this->hasOneThrough(ClassModel::class, EmpPosition::class, 'employee_id', 'id', 'id', 'class_id');
+        return $this->hasOneThrough(ClassModel::class, EmpPosition::class, 'employee_id', 'id_class', 'id', 'class_id');
     }
 
     /**

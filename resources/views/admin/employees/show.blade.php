@@ -133,6 +133,65 @@
                 </div>
                 @endif
 
+                <!-- Position Information -->
+                <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                    <dt class="text-sm font-medium text-gray-500">Primary Position</dt>
+                    <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                        {{ $employee->position_name ?? 'N/A' }}
+                    </dd>
+                </div>
+                
+                <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                    <dt class="text-sm font-medium text-gray-500">Office</dt>
+                    <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                        @php
+                            $primaryPosition = $employee->positions->where('is_primary', true)->first();
+                            $office = $primaryPosition ? $primaryPosition->office : null;
+                        @endphp
+                        {{ $office ? $office->office_name : 'N/A' }}
+                    </dd>
+                </div>
+                
+                <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                    <dt class="text-sm font-medium text-gray-500">Division</dt>
+                    <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                        @php
+                            $division = $primaryPosition ? $primaryPosition->division : null;
+                        @endphp
+                        {{ $division ? $division->division_name : 'N/A' }}
+                    </dd>
+                </div>
+                
+                <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                    <dt class="text-sm font-medium text-gray-500">Unit</dt>
+                    <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                        @php
+                            $unit = $primaryPosition ? $primaryPosition->unit : null;
+                        @endphp
+                        {{ $unit ? $unit->unit_name : 'N/A' }}
+                    </dd>
+                </div>
+                
+                <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                    <dt class="text-sm font-medium text-gray-500">Subunit</dt>
+                    <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                        @php
+                            $subunit = $primaryPosition ? $primaryPosition->subunit : null;
+                        @endphp
+                        {{ $subunit ? $subunit->subunit_name : 'N/A' }}
+                    </dd>
+                </div>
+                
+                <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                    <dt class="text-sm font-medium text-gray-500">Class</dt>
+                    <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                        @php
+                            $class = $primaryPosition ? $primaryPosition->class : null;
+                        @endphp
+                        {{ $class ? $class->class_name : 'N/A' }}
+                    </dd>
+                </div>
+                
                 <!-- Role Information -->
                 <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
                     <dt class="text-sm font-medium text-gray-500">Roles</dt>
@@ -179,7 +238,7 @@
     @if($employee->positions->count() > 0)
     <div class="mt-8 bg-white shadow overflow-hidden sm:rounded-lg">
         <div class="px-4 py-5 sm:px-6">
-            <h3 class="text-lg leading-6 font-medium text-gray-900">Positions</h3>
+            <h3 class="text-lg leading-6 font-medium text-gray-900">All Positions</h3>
             <p class="mt-1 max-w-2xl text-sm text-gray-500">All positions assigned to this employee</p>
         </div>
         <div class="border-t border-gray-200">
@@ -202,19 +261,19 @@
                             {{ $position->position_name }}
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {{ $position->office->office_name ?? 'N/A' }}
+                            {{ $position->office ? $position->office->office_name : 'N/A' }}
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {{ $position->division->division_name ?? 'N/A' }}
+                            {{ $position->division ? $position->division->division_name : 'N/A' }}
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {{ $position->unit->unit_name ?? 'N/A' }}
+                            {{ $position->unit ? $position->unit->unit_name : 'N/A' }}
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {{ $position->subunit->subunit_name ?? 'N/A' }}
+                            {{ $position->subunit ? $position->subunit->subunit_name : 'N/A' }}
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {{ $position->class->class_name ?? 'N/A' }}
+                            {{ $position->class ? $position->class->class_name : 'N/A' }}
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">
                             @if($position->is_primary)

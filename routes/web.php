@@ -41,33 +41,6 @@ Route::get('/api/offices', function() {
     }
 })->name('api.offices');
 
-Route::get('/test/ajax/divisions/{office_id}', function($office_id) {
-    try {
-        $divisions = \App\Models\Division::where('office_id', $office_id)->get();
-        return response()->json($divisions);
-    } catch (\Exception $e) {
-        return response()->json(['error' => $e->getMessage()], 500);
-    }
-})->name('test.ajax.divisions');
-
-Route::get('/test/ajax/units/{division_id}', function($division_id) {
-    try {
-        $units = \App\Models\Unit::where('unit_division', $division_id)->get();
-        return response()->json($units);
-    } catch (\Exception $e) {
-        return response()->json(['error' => $e->getMessage()], 500);
-    }
-})->name('test.ajax.units');
-
-Route::get('/test/ajax/subunits/{unit_id}', function($unit_id) {
-    try {
-        $subunits = \App\Models\Subunit::where('unit_id', $unit_id)->get();
-        return response()->json($subunits);
-    } catch (\Exception $e) {
-        return response()->json(['error' => $e->getMessage()], 500);
-    }
-})->name('test.ajax.subunits');
-
 Route::get('/', function () {
     return view('welcome');
 });
@@ -126,9 +99,6 @@ Route::get('/vehicles/test-add-button', function () {
     return view('vehicles.test-add-button');
 })->name('vehicles.test-add-button');
 
-// Simple vehicle index route
-Route::get('/vehicles/simple-index', [VehicleController::class, 'simpleIndex'])->name('vehicles.simple-index');
-
 // Driver Dashboard Routes (Accessible only to drivers)
 Route::middleware(['auth', 'role:driver'])->prefix('driver')->name('driver.')->group(function () {
     Route::get('/dashboard', [DriverDashboardController::class, 'index'])->name('dashboard');
@@ -145,7 +115,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-    
+
     // Admin Routes
     // Organization Structure Management
     Route::get('/admin/offices', [OfficeController::class, 'index'])->name('admin.offices.index');
@@ -186,27 +156,6 @@ Route::middleware('auth')->group(function () {
     Route::get('/admin/employees', [EmployeeController::class, 'index'])->name('admin.employees.index');
     Route::get('/admin/employees/create', [EmployeeController::class, 'create'])->name('admin.employees.create');
     Route::get('/admin/employees/{employee}', [EmployeeController::class, 'show'])->name('admin.employees.show');
-    Route::get('/admin/employees/test-form', function () {
-        return view('admin.employees.test-form');
-    })->name('admin.employees.test-form');
-    Route::get('/admin/employees/debug-form', function () {
-        return view('admin.employees.debug-form');
-    })->name('admin.employees.debug-form');
-    Route::get('/admin/employees/create-fixed', function () {
-        $offices = \App\Models\Office::all();
-        $classes = \App\Models\ClassModel::all();
-        $divisions = \App\Models\Division::all();
-        $units = \App\Models\Unit::all();
-        $subunits = \App\Models\Subunit::all();
-        $roles = collect([
-            (object)['id' => 0, 'name' => 'none'],
-            (object)['id' => 1, 'name' => 'unit_head'],
-            (object)['id' => 2, 'name' => 'division_head'],
-            (object)['id' => 3, 'name' => 'vp'],
-            (object)['id' => 4, 'name' => 'president'],
-        ]);
-        return view('admin.employees.create-fixed', compact('offices', 'classes', 'divisions', 'units', 'subunits', 'roles'));
-    })->name('admin.employees.create-fixed');
     Route::post('/admin/employees', [EmployeeController::class, 'store'])->name('admin.employees.store');
     Route::get('/admin/employees/{employee}/edit', [EmployeeController::class, 'edit'])->name('admin.employees.edit');
     Route::put('/admin/employees/{employee}', [EmployeeController::class, 'update'])->name('admin.employees.update');
@@ -217,113 +166,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/admin/employees/get-units-by-division', [EmployeeController::class, 'getUnitsByDivision'])->name('admin.employees.get-units-by-division');
     Route::get('/admin/employees/get-subunits-by-unit', [EmployeeController::class, 'getSubunitsByUnit'])->name('admin.employees.get-subunits-by-unit');
     
-    // Debug route for testing
-    Route::get('/admin/employees/debug-divisions/{office_id}', function($office_id) {
-        try {
-            $divisions = \App\Models\Division::where('office_id', $office_id)->get();
-            return response()->json([
-                'success' => true,
-                'office_id' => $office_id,
-                'divisions' => $divisions,
-                'count' => $divisions->count()
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'error' => $e->getMessage(),
-                'office_id' => $office_id
-            ], 500);
-        }
-    })->name('admin.employees.debug-divisions');
-    
-    // Test route for cascading dropdowns
-    Route::get('/admin/employees/test-dropdowns', function() {
-        $offices = \App\Models\Office::all();
-        return view('admin.employees.test-dropdowns', compact('offices'));
-    })->name('admin.employees.test-dropdowns');
-    
-    // Test route for cascading dropdown debugging
-    Route::get('/admin/employees/test-cascading', function() {
-        $offices = \App\Models\Office::all();
-        return view('admin.employees.test-cascading', compact('offices'));
-    })->name('admin.employees.test-cascading');
-    
-    // Test route for edit employee functionality
-    Route::get('/admin/employees/test-edit/{id}', function($id) {
-        $employee = \App\Models\Employee::with(['user', 'positions'])->findOrFail($id);
-        $offices = \App\Models\Office::all();
-        $classes = \App\Models\ClassModel::all();
-        
-        // Get related divisions, units, and subunits based on primary position
-        $primaryPosition = $employee->positions()->where('is_primary', true)->first();
-        $officeId = $primaryPosition ? $primaryPosition->office_id : null;
-        $divisionId = $primaryPosition ? $primaryPosition->division_id : null;
-        $unitId = $primaryPosition ? $primaryPosition->unit_id : null;
-        
-        $divisions = $officeId ? \App\Models\Division::where('office_id', $officeId)->get() : collect();
-        $units = $divisionId ? \App\Models\Unit::where('division_id', $divisionId)->get() : collect();
-        $subunits = $unitId ? \App\Models\Subunit::where('unit_id', $unitId)->get() : collect();
-        
-        return view('admin.employees.edit', compact('employee', 'offices', 'divisions', 'units', 'subunits', 'classes'));
-    })->name('admin.employees.test-edit');
-    
-    // Test form route
-    Route::get('/admin/employees/test-edit-form', function() {
-        return view('admin.employees.test-edit-form');
-    })->name('admin.employees.test-edit-form');
-    
-    // Simple test update route
-    Route::post('/admin/employees/test-update/{id}', function(Request $request, $id) {
-        $employee = \App\Models\Employee::findOrFail($id);
-        \Log::info('Test update request received', [
-            'employee_id' => $id,
-            'request_data' => $request->all()
-        ]);
-        
-        try {
-            // Simple update test
-            $employee->update([
-                'first_name' => $request->first_name,
-                'last_name' => $request->last_name,
-                'sex' => $request->sex,
-            ]);
-            
-            \Log::info('Test update successful', [
-                'employee_id' => $id
-            ]);
-            
-            return response()->json([
-                'success' => true,
-                'message' => 'Employee updated successfully',
-                'employee' => $employee
-            ]);
-        } catch (\Exception $e) {
-            \Log::error('Test update failed', [
-                'employee_id' => $id,
-                'error' => $e->getMessage()
-            ]);
-            
-            return response()->json([
-                'success' => false,
-                'message' => 'Update failed: ' . $e->getMessage()
-            ], 500);
-        }
-    })->name('admin.employees.test-update');
-    
-    // Test route for AJAX authentication
-    Route::get('/admin/employees/test-ajax-auth', function() {
-        if (Auth::check()) {
-            return response()->json([
-                'authenticated' => true,
-                'user' => Auth::user()->name
-            ]);
-        } else {
-            return response()->json([
-                'authenticated' => false,
-                'message' => 'Not authenticated'
-            ], 401);
-        }
-    })->name('admin.employees.test-ajax-auth');
+
     
     // Leadership Routes
     Route::get('/admin/leaders', [LeaderController::class, 'index'])->name('admin.leaders.index');
@@ -548,9 +391,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/dashboard', [MotorpoolAdminController::class, 'dashboard'])->name('dashboard');
         Route::resource('travel-orders', App\Http\Controllers\MotorpoolAdminTravelOrderController::class)->only(['index', 'show']);
     });
-    
 
-    
     // Test route for travel order creation
     Route::get('/test-create-travel-order', function () {
         $user = \Illuminate\Support\Facades\Auth::user();
@@ -571,9 +412,6 @@ Route::get('/login', function () {
     return view('auth.login');
 })->name('login');
 
-Route::get('/about', function () {
-    return view('about');
-})->name('about');
 
 Route::post('/login', [AuthenticatedSessionController::class, 'store']);
 
@@ -582,4 +420,3 @@ Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])
     ->name('logout');
 
 require __DIR__.'/auth.php';
-
