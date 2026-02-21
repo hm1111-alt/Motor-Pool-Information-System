@@ -1,218 +1,401 @@
 @extends('layouts.motorpool-admin')
 
 @section('content')
-    <!-- Header Section -->
-    <div class="bg-white shadow">
-        <div class="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8">
-            <div class="flex items-center justify-between">
-                <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-                    VEHICLE DETAILS
-                </h2>
-            </div>
+<div class="py-6">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Back Button and View Maintenance Button -->
+        <div class="mb-6 flex justify-between items-center">
+            <a href="{{ route('vehicles.index') }}" class="inline-flex items-center px-4 py-2 bg-[#1e6031] border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-wider hover:bg-[#164f2a] focus:bg-[#164f2a] active:bg-[#103c1e] focus:outline-none focus:ring-2 focus:ring-[#1e6031] focus:ring-offset-2 transition ease-in-out duration-150">
+                <i class="fas fa-arrow-left mr-2"></i> Back to Vehicles
+            </a>
+            <a href="{{ route('vehicles.maintenance', $vehicle) }}" class="inline-flex items-center px-4 py-2 bg-[#1e6031] border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-wider hover:bg-[#164f2a] focus:bg-[#164f2a] active:bg-[#103c1e] focus:outline-none focus:ring-2 focus:ring-[#1e6031] focus:ring-offset-2 transition ease-in-out duration-150">
+                <i class="fas fa-wrench mr-2"></i> View Maintenance
+            </a>
         </div>
-    </div>
 
-    <div class="py-6">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <!-- Vehicle Information Section -->
-            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg mb-6">
-                <div class="p-6">
-                    <h3 class="text-lg font-medium text-gray-900 mb-4">Vehicle Information</h3>
-                    
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <!-- Vehicle Image -->
-                        <div class="md:col-span-1">
-                            <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
-                                @if($vehicle->picture)
-                                    <img src="{{ asset('storage/' . $vehicle->picture) }}" alt="Vehicle Image" class="w-full h-48 object-cover rounded-md" onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\'w-full h-48 bg-gray-200 rounded-md flex items-center justify-center\'><svg class=\'h-16 w-16 text-gray-400\' fill=\'none\' viewBox=\'0 0 24 24\' stroke=\'currentColor\'><path stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'2\' d=\'M5 13l4 4L19 7\' /></svg></div>';
-                                @else
-                                    <div class="w-full h-48 bg-gray-200 rounded-md flex items-center justify-center">
-                                        <svg class="h-16 w-16 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                                        </svg>
-                                    </div>
-                                @endif
-                            </div>
+        <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg border border-green-300">
+            <div class="p-6">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <!-- Left Column - Vehicle Image -->
+                    <div class="lg:col-span-1">
+                        <div class="mb-6">
+                            @php
+                                $imagePath = $vehicle->picture && file_exists(public_path($vehicle->picture))
+                                    ? asset($vehicle->picture)
+                                    : asset('storage/vehicles/images/vehicle_default.png');
+                            @endphp
+                            <img src="{{ $imagePath }}" 
+                                 alt="{{ $vehicle->model }}" 
+                                 class="w-full rounded-lg border border-gray-200 shadow-sm"
+                                 onerror="this.src='{{ asset('storage/vehicles/images/vehicle_default.png') }}'">
                         </div>
-                        
-                        <!-- Vehicle Details -->
-                        <div class="md:col-span-2">
-                            <div class="space-y-4">
-                                <dl class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                                    <div>
-                                        <dt class="text-sm font-medium text-gray-500">Plate Number</dt>
-                                        <dd class="mt-1 text-sm text-gray-900">{{ $vehicle->plate_number }}</dd>
-                                    </div>
-                                    <div>
-                                        <dt class="text-sm font-medium text-gray-500">Model</dt>
-                                        <dd class="mt-1 text-sm text-gray-900">{{ $vehicle->model }}</dd>
-                                    </div>
-                                    <div>
-                                        <dt class="text-sm font-medium text-gray-500">Type</dt>
-                                        <dd class="mt-1 text-sm text-gray-900">{{ $vehicle->type }}</dd>
-                                    </div>
-                                    <div>
-                                        <dt class="text-sm font-medium text-gray-500">Fuel Type</dt>
-                                        <dd class="mt-1 text-sm text-gray-900">{{ $vehicle->fuel_type ?? 'N/A' }}</dd>
-                                    </div>
-                                    <div>
-                                        <dt class="text-sm font-medium text-gray-500">Seating Capacity</dt>
-                                        <dd class="mt-1 text-sm text-gray-900">{{ $vehicle->seating_capacity }}</dd>
-                                    </div>
-                                    <div>
-                                        <dt class="text-sm font-medium text-gray-500">Mileage</dt>
-                                        <dd class="mt-1 text-sm text-gray-900">{{ number_format($vehicle->mileage) }} km</dd>
-                                    </div>
-                                    <div>
-                                        <dt class="text-sm font-medium text-gray-500">Status</dt>
-                                        <dd class="mt-1">
-                                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
-                                                @if($vehicle->status === 'Available') bg-green-100 text-green-800
-                                                @elseif($vehicle->status === 'Not Available') bg-red-100 text-red-800
-                                                @elseif($vehicle->status === 'Active') bg-blue-100 text-blue-800
-                                                @elseif($vehicle->status === 'Under Maintenance') bg-yellow-100 text-yellow-800
-                                                @endif">
-                                                {{ $vehicle->status }}
-                                            </span>
-                                            @if($vehicle->needsMaintenance())
-                                            <div class="mt-2">
-                                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-orange-100 text-orange-800">
-                                                    Needs Maintenance (Overdue by {{ $vehicle->mileage - $vehicle->getNextMaintenanceDue() }} km)
-                                                </span>
-                                            </div>
-                                            @endif
-                                        </dd>
-                                    </div>
-                                </dl>
+                    </div>
+
+                    <!-- Right Column - Vehicle Information -->
+                    <div class="lg:col-span-2">
+                        <!-- Vehicle Information Header -->
+                        <div class="flex items-center mb-6">
+                            <i class="fas fa-car text-[#1e6031] text-xl mr-3"></i>
+                            <h3 class="text-xl font-semibold text-gray-900">Vehicle Information</h3>
+                        </div>
+
+                        <!-- Vehicle Details in 2 Columns -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-1">
+                            <div>
+                                <span class="font-bold text-gray-800">Model:</span>
+                                <span class="text-gray-900 ml-2">{{ $vehicle->model }}</span>
+                            </div>
+                            <div>
+                                <span class="font-bold text-gray-800">Plate Number:</span>
+                                <span class="text-gray-900 ml-2">{{ $vehicle->plate_number }}</span>
+                            </div>
+                            <div>
+                                <span class="font-bold text-gray-800">Fuel Type:</span>
+                                <span class="text-gray-900 ml-2">{{ $vehicle->fuel_type ?? 'N/A' }}</span>
+                            </div>
+                            <div>
+                                <span class="font-bold text-gray-800">Seating Capacity:</span>
+                                <span class="text-gray-900 ml-2">{{ $vehicle->seating_capacity }}</span>
+                            </div>
+                            <div>
+                                <span class="font-bold text-gray-800">Mileage:</span>
+                                <span class="text-gray-900 ml-2">{{ number_format($vehicle->mileage) }} km</span>
+                            </div>
+                            <div>
+                                <span class="font-bold text-gray-800">Type:</span>
+                                <span class="text-gray-900 ml-2">{{ $vehicle->type }}</span>
+                            </div>
+                            <div>
+                                <span class="font-bold text-gray-800">Status:</span>
+                                <span class="px-2 py-1 rounded-full text-xs font-semibold ml-2
+                                    @if($vehicle->status === 'Available') bg-green-100 text-green-800
+                                    @elseif($vehicle->status === 'Not Available') bg-red-100 text-red-800
+                                    @elseif($vehicle->status === 'Active') bg-blue-100 text-blue-800
+                                    @elseif($vehicle->status === 'Under Maintenance') bg-yellow-100 text-yellow-800
+                                    @endif">
+                                    {{ $vehicle->status }}
+                                </span>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
+        </div>
 
-            <!-- Vehicle Travel History Section -->
-            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                <div class="p-6">
-                    <div class="flex items-center justify-between mb-4">
-                        <h3 class="text-lg font-medium text-gray-900">Vehicle Travel History</h3>
-                        <a href="{{ route('vehicles.travel-history') }}" class="text-sm text-[#1e6031] hover:text-[#007d31] font-medium">
-                            View All Travel History
-                        </a>
-                    </div>
-                    
-                    @if($travelHistory->isEmpty())
-                        <div class="text-center py-8">
-                            <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
-                            </svg>
-                            <h3 class="mt-2 text-sm font-medium text-gray-900">No travel history</h3>
-                            <p class="mt-1 text-sm text-gray-500">This vehicle has no recorded travel history yet.</p>
+        <!-- Travel History Section -->
+        <div class="mt-6 bg-white overflow-hidden shadow-sm sm:rounded-lg">
+            <div class="p-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-xl font-semibold text-gray-900">
+                        {{ $vehicle->model }} {{ $vehicle->plate_number }} - Travel History
+                    </h3>
+                    <div class="flex items-center gap-2">
+                        <!-- Search Bar -->
+                        <div class="flex">
+                            <input type="text" placeholder="Search history..." 
+                                   style="height: 32px; width: 200px; font-size: 0.85rem; border: 1px solid #1e6031; border-radius: 0.375rem 0 0 0.375rem; padding: 0 12px;">
+                            <button type="button" 
+                                    style="background-color: #1e6031; color: #ffffff; border: 1px solid #1e6031; height: 32px; width: 40px; border-radius: 0 0.375rem 0.375rem 0; cursor:pointer;">
+                                <i class="fas fa-search"></i>
+                            </button>
                         </div>
-                    @else
-                        <div class="overflow-x-auto">
-                            <table class="min-w-full divide-y divide-gray-200">
-                                <thead class="bg-gray-50">
-                                    <tr>
-                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Trip #</th>
-                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Driver</th>
-                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Head of Party</th>
-                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Destination</th>
-                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Departure</th>
-                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Distance</th>
+                        
+                        <!-- Generate PDF Button -->
+                        <button type="button" id="generateVehicleTravelHistoryPDFBtn" class="inline-flex items-center justify-center bg-red-600 border border-red-600 rounded text-xs text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition ease-in-out duration-150" style="height: 32px; padding: 0 12px; font-size: 0.80rem;">
+                            <i class="fas fa-file-pdf mr-1 text-xs"></i> Generate PDF
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Travel History Table -->
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead style="background-color: #1e6031; color: white;">
+                            <tr>
+                                <th style="padding: 10px; text-align: left; font-weight: bold; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.05em;">No.</th>
+                                <th style="padding: 10px; text-align: left; font-weight: bold; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.05em;">Driver</th>
+                                <th style="padding: 10px; text-align: left; font-weight: bold; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.05em;">Head of Party</th>
+                                <th style="padding: 10px; text-align: left; font-weight: bold; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.05em;">Destination</th>
+                                <th style="padding: 10px; text-align: left; font-weight: bold; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.05em;">Departure Date</th>
+                                <th style="padding: 10px; text-align: left; font-weight: bold; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.05em;">Arrival Date</th>
+                                <th style="padding: 10px; text-align: left; font-weight: bold; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.05em;">Distance (km)</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            @if($travelHistory->isEmpty())
+                                <tr>
+                                    <td colspan="7" class="px-6 py-12 text-center">
+                                        <div class="flex flex-col items-center">
+                                            <i class="fas fa-car text-gray-300 text-4xl mb-3"></i>
+                                            <h4 class="text-lg font-medium text-gray-900 mb-1">No Completed Travel History</h4>
+                                            <p class="text-gray-500">This vehicle has no recorded travel history yet.</p>
+                                        </div>
+                                    </td>
+                                </tr>
+                            @else
+                                @foreach($travelHistory as $index => $history)
+                                    <tr class="hover:bg-gray-50">
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $travelHistory->firstItem() + $index }}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                            {{ $history->driver->first_name ?? '' }} {{ $history->driver->last_name ?? 'N/A' }}
+                                        </td>
+                                        <td class="px-6 py-4 text-sm text-gray-900">{{ $history->head_of_party }}</td>
+                                        <td class="px-6 py-4 text-sm text-gray-900">{{ $history->destination }}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                            {{ $history->departure_date->format('M d, Y') }}
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                            {{ $history->arrival_date ? $history->arrival_date->format('M d, Y') : 'N/A' }}
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                            {{ $history->distance_km ? number_format($history->distance_km) : 'N/A' }}
+                                        </td>
                                     </tr>
-                                </thead>
-                                <tbody class="bg-white divide-y divide-gray-200">
-                                    @foreach($travelHistory as $history)
-                                        <tr>
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                                #{{ str_pad($history->tripTicket->id ?? 'N/A', 5, '0', STR_PAD_LEFT) }}
-                                            </td>
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                {{ $history->driver->first_name ?? '' }} {{ $history->driver->last_name ?? 'N/A' }}
-                                            </td>
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                {{ $history->head_of_party }}
-                                            </td>
-                                            <td class="px-6 py-4 text-sm text-gray-500">
-                                                {{ $history->destination }}
-                                            </td>
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                {{ $history->departure_date->format('M d, Y') }}
-                                                @if($history->departure_time)
-                                                    @php
-                                                        $departureTime = $history->departure_time;
-                                                        if (is_string($departureTime)) {
-                                                            $departureTime = \Illuminate\Support\Carbon::createFromFormat('H:i:s', $departureTime);
-                                                        }
-                                                    @endphp
-                                                    <br><span class="text-xs">{{ $departureTime->format('h:i A') }}</span>
-                                                @endif
-                                            </td>
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                {{ $history->distance_km ? $history->distance_km . ' km' : 'N/A' }}
-                                            </td>
-                                        </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
-                        </div>
-                        
-                        <!-- Pagination -->
-                        <div class="mt-4">
-                            {{ $travelHistory->links() }}
-                        </div>
-                    @endif
+                                @endforeach
+                            @endif
+                        </tbody>
+                    </table>
                 </div>
-            </div>
-            
-            <!-- Action Buttons -->
-            <div class="mt-6 flex items-center justify-end space-x-3">
-                <a href="{{ route('vehicles.maintenance', $vehicle) }}" class="inline-flex items-center px-4 py-2 bg-[#1e6031] border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-[#164f2a] focus:bg-[#164f2a] active:bg-[#103c1e] focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150">
-                    <svg class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                    </svg>
-                    Vehicle Maintenance
-                </a>
-                <a href="{{ route('vehicles.index') }}" class="inline-flex items-center px-4 py-2 bg-white border border-gray-300 rounded-md font-semibold text-xs text-gray-700 uppercase tracking-widest shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-25 transition ease-in-out duration-150">
-                    Back to List
-                </a>
-                <a href="{{ route('vehicles.edit', $vehicle) }}" class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 focus:bg-blue-700 active:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150">
-                    Edit Vehicle
-                </a>
-                <form action="{{ route('vehicles.destroy', $vehicle) }}" method="POST" class="inline delete-form">
-                    @csrf
-                    @method('DELETE')
-                    <button type="button" class="delete-btn inline-flex items-center px-4 py-2 bg-red-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-red-700 focus:bg-red-700 active:bg-red-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150">
-                        Delete Vehicle
-                    </button>
-                </form>
+
+                <!-- Pagination -->
+                @if(!$travelHistory->isEmpty())
+                    <div class="flex justify-between items-center mt-4">
+                        <div class="text-sm text-gray-600">
+                            Showing {{ $travelHistory->firstItem() }} to {{ $travelHistory->lastItem() }} of {{ $travelHistory->total() }} records
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <nav>
+                                <ul class="pagination">
+                                    <li class="page-item {{ $travelHistory->currentPage() <= 1 ? 'disabled' : '' }}">
+                                        <a class="page-link {{ $travelHistory->currentPage() <= 1 ? 'disabled-link' : '' }}" href="{{ $travelHistory->previousPageUrl() }}" {{ $travelHistory->currentPage() <= 1 ? 'aria-disabled="true"' : '' }}>Prev</a>
+                                    </li>
+                                    <li class="page-item active">
+                                        <span class="page-link">{{ $travelHistory->currentPage() }}</span>
+                                    </li>
+                                    <li class="page-item {{ $travelHistory->currentPage() >= $travelHistory->lastPage() ? 'disabled' : '' }}">
+                                        <a class="page-link {{ $travelHistory->currentPage() >= $travelHistory->lastPage() ? 'disabled-link' : '' }}" href="{{ $travelHistory->nextPageUrl() }}" {{ $travelHistory->currentPage() >= $travelHistory->lastPage() ? 'aria-disabled="true"' : '' }}>Next</a>
+                                    </li>
+                                </ul>
+                            </nav>
+                        </div>
+                    </div>
+                @endif
             </div>
         </div>
     </div>
-    
-    <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Handle delete button clicks for vehicles in show page
-        document.querySelectorAll('.delete-btn').forEach(button => {
-            button.addEventListener('click', function() {
-                const form = this.closest('.delete-form');
-                Swal.fire({
-                    title: 'Are you sure?',
-                    text: 'Are you sure you want to delete this vehicle? This action cannot be undone.',
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonColor: '#d33',
-                    cancelButtonColor: '#6c757d',
-                    confirmButtonText: 'Yes, delete it!',
-                    cancelButtonText: 'Cancel'
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        form.submit();
-                    }
-                });
+</div>
+@endsection
+
+<style>
+/* Pagination Styles */
+.pagination {
+    display: flex;
+    padding-left: 0;
+    list-style: none;
+    border-radius: 0.375rem;
+}
+
+.page-item {
+    margin: 0 2px;
+}
+
+.page-link {
+    position: relative;
+    display: block;
+    padding: 0.375rem 0.75rem;
+    font-size: 0.875rem;
+    color: #1e6031;
+    text-decoration: none;
+    background-color: #fff;
+    border: 1px solid #1e6031;
+    border-radius: 0.375rem;
+    transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out;
+}
+
+.page-link:hover {
+    color: #fff;
+    background-color: #1e6031;
+    border-color: #1e6031;
+}
+
+.page-item.active .page-link {
+    color: #fff;
+    background-color: #1e6031;
+    border-color: #1e6031;
+}
+
+.page-item.disabled .page-link {
+    color: #6c757d;
+    pointer-events: none;
+    background-color: #fff;
+    border-color: #dee2e6;
+}
+
+.disabled-link {
+    color: #6c757d !important;
+    pointer-events: none;
+    cursor: not-allowed;
+}
+</style>
+
+<!-- Hidden data container for PDF generation -->
+<div id="js-vehicle-travel-history-data" data-vehicle="@json(['id' => $vehicle->id, 'model' => $vehicle->model, 'plate_number' => $vehicle->plate_number])" data-travel-history="@json($travelHistory->items())"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const btn = document.getElementById('generateVehicleTravelHistoryPDFBtn');
+        if (!btn) return;
+
+        btn.addEventListener('click', function () {
+            // Show loading alert
+            Swal.fire({
+                title: 'Generating PDF...',
+                text: 'Please wait while we prepare your vehicle travel history',
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                showConfirmButton: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
             });
+
+            // Wait 2 seconds then generate PDF and close loading
+            setTimeout(function() {
+                // Close the loading alert
+                Swal.close();
+                
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF();
+                const pageWidth = doc.internal.pageSize.getWidth();
+                const pageHeight = doc.internal.pageSize.getHeight();
+
+                const vehicleData = JSON.parse(document.getElementById('js-vehicle-travel-history-data').dataset.vehicle);
+                const travelHistory = JSON.parse(document.getElementById('js-vehicle-travel-history-data').dataset.travelHistory);
+                
+                // Even if there's no travel history data, we can still generate a PDF with the header and a note
+
+                const logo = new Image();
+                logo.src = "{{ asset('assets/images/clsu-logo.png') }}";
+
+                logo.onload = function () {
+                    const logoSize = 30;  // Increased from 20 to 30 for better visibility
+                    const marginTop = 12;
+                    const logoX = pageWidth / 2 - 70;  // Adjusted position for larger logo
+
+                    // Header
+                    doc.addImage(logo, "PNG", logoX, marginTop, logoSize, logoSize);
+                    doc.setFont("helvetica", "normal").setFontSize(10);
+                    doc.text("Republic of the Philippines", pageWidth / 2, marginTop + 2, { align: "center" });
+                    doc.setFont("helvetica", "bold").setFontSize(14);
+                    doc.text("CENTRAL LUZON STATE UNIVERSITY", pageWidth / 2, marginTop + 8, { align: "center" });
+                    doc.setFont("helvetica", "normal").setFontSize(10);
+                    doc.text("Science City of Muñoz, Nueva Ecija", pageWidth / 2, marginTop + 14, { align: "center" });
+                    doc.setFont("helvetica", "bold").setFontSize(11);
+                    doc.text("TRANSPORTATION SERVICES", pageWidth / 2, marginTop + 20, { align: "center" });
+
+                    // Line under header
+                    doc.setDrawColor(0, 77, 0);
+                    doc.setLineWidth(0.5);
+                    doc.line(15, marginTop + 33, pageWidth - 15, marginTop + 33);
+
+                    // Title
+                    doc.setFontSize(12);
+                    doc.setFont("helvetica", "bold");
+                    doc.text(`${vehicleData.model} ${vehicleData.plate_number} - TRAVEL HISTORY`, pageWidth / 2, marginTop + 42, { align: 'center' });
+
+                    // Prepare table data
+                    let tableData = [];
+                    if (travelHistory.length > 0) {
+                        tableData = travelHistory.map((record, index) => [
+                            index + 1,
+                            `${record.driver?.first_name || ''} ${record.driver?.last_name || ''}`.trim() || 'N/A',
+                            record.head_of_party || 'N/A',
+                            record.destination || 'N/A',
+                            record.departure_date ? new Date(record.departure_date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : 'N/A',
+                            record.arrival_date ? new Date(record.arrival_date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : 'N/A',
+                            record.distance_km ? parseFloat(record.distance_km).toFixed(1) : 'N/A'
+                        ]);
+                    } else {
+                        // Add a row indicating no data
+                        tableData = [['', 'No Completed Travel History', 'This vehicle has no recorded travel history yet.', '', '', '', '']];
+                    }
+
+                    // Add table
+                    doc.autoTable({
+                        head: [['No.', 'Driver', 'Head of the Party', 'Destination', 'Departure Date', 'Arrival Date', 'Distance (km)']],
+                        body: tableData,
+                        startY: marginTop + 50,
+                        styles: {
+                            fontSize: 10,
+                            cellPadding: 5
+                        },
+                        headStyles: {
+                            fillColor: [30, 96, 49], // Green color
+                            textColor: [255, 255, 255],
+                            fontStyle: 'bold'
+                        },
+                        alternateRowStyles: {
+                            fillColor: [245, 245, 245]
+                        },
+                        margin: { left: 15, right: 15 }
+                    });
+
+                    // Save the PDF
+                    doc.save(`Vehicle_${vehicleData.plate_number}_Travel_History.pdf`);
+                };
+
+                logo.onerror = function () {
+                    console.error('Failed to load logo image');
+                    // Continue with PDF generation without logo
+                    // Title
+                    doc.setFontSize(12);
+                    doc.setFont("helvetica", "bold");
+                    doc.text(`${vehicleData.model} ${vehicleData.plate_number} - TRAVEL HISTORY`, pageWidth / 2, marginTop + 20, { align: 'center' });
+
+                    // Prepare table data
+                    let tableData = [];
+                    if (travelHistory.length > 0) {
+                        tableData = travelHistory.map((record, index) => [
+                            index + 1,
+                            `${record.driver?.first_name || ''} ${record.driver?.last_name || ''}`.trim() || 'N/A',
+                            record.head_of_party || 'N/A',
+                            record.destination || 'N/A',
+                            record.departure_date ? new Date(record.departure_date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : 'N/A',
+                            record.arrival_date ? new Date(record.arrival_date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : 'N/A',
+                            record.distance_km ? parseFloat(record.distance_km).toFixed(1) : 'N/A'
+                        ]);
+                    } else {
+                        // Add a row indicating no data
+                        tableData = [['', 'No Completed Travel History', 'This vehicle has no recorded travel history yet.', '', '', '', '']];
+                    }
+
+                    // Add table
+                    doc.autoTable({
+                        head: [['No.', 'Driver', 'Head of the Party', 'Destination', 'Departure Date', 'Arrival Date', 'Distance (km)']],
+                        body: tableData,
+                        startY: marginTop + 30,
+                        styles: {
+                            fontSize: 10,
+                            cellPadding: 5
+                        },
+                        headStyles: {
+                            fillColor: [30, 96, 49], // Green color
+                            textColor: [255, 255, 255],
+                            fontStyle: 'bold'
+                        },
+                        alternateRowStyles: {
+                            fillColor: [245, 245, 245]
+                        },
+                        margin: { left: 15, right: 15 }
+                    });
+
+                    // Save the PDF
+                    doc.save(`Vehicle_${vehicleData.plate_number}_Travel_History.pdf`);
+                };
+            }, 500); // 500ms delay to ensure data is ready
         });
     });
-    </script>
-@endsection
+</script>

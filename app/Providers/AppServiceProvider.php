@@ -2,7 +2,9 @@
 
 namespace App\Providers;
 
+use App\Models\TripTicket;
 use App\Models\VehicleMaintenance;
+use App\Observers\TripTicketObserver;
 use App\Observers\VehicleMaintenanceObserver;
 use Illuminate\Support\ServiceProvider;
 
@@ -22,5 +24,6 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         VehicleMaintenance::observe(VehicleMaintenanceObserver::class);
+        TripTicket::observe(TripTicketObserver::class);
     }
 }

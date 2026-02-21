@@ -1274,15 +1274,31 @@
       
       // Handle Edit form submission
       const editForm = document.getElementById('editDriverForm');
+      let isEditSubmitting = false; // Prevent multiple submissions
+      
       if (editForm) {
         editForm.addEventListener('submit', function(e) {
-          e.preventDefault();
+          e.preventDefault(); // Always prevent default form submission since we're using AJAX
           
-          // Get form elements
-          const submitBtn = editForm.querySelector('button[type="submit"]');
-          const originalBtnText = submitBtn.innerHTML;
-          submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Saving...';
-          submitBtn.disabled = true;
+          // Prevent multiple submissions
+          if (isEditSubmitting) {
+            return false;
+          }
+          
+          isEditSubmitting = true; // Set flag to prevent multiple submissions
+          
+          // Show loading state with SweetAlert for 2 seconds
+          Swal.fire({
+            title: 'Saving...',
+            text: 'Please wait while we save the driver information.',
+            allowOutsideClick: false,
+            allowEscapeKey: false,
+            showConfirmButton: false,
+            timer: 2000,
+            didOpen: () => {
+              Swal.showLoading();
+            }
+          });
           
           // Submit form via AJAX
           const formData = new FormData(editForm);
@@ -1303,44 +1319,79 @@
           })
           .then(data => {
             if (data.success) {
-              // Show success message
-              const successDiv = document.createElement('div');
-              successDiv.className = 'alert alert-success mt-3';
-              successDiv.innerHTML = '<strong>Success!</strong> Driver has been updated successfully!';
+              // Close the loading SweetAlert and show success message for 2 seconds
+              Swal.fire({
+                icon: 'success',
+                title: 'Success!',
+                text: 'Driver has been updated successfully!',
+                showConfirmButton: false,
+                timer: 2000,
+
+              });
               
-              // Insert success message in modal
-              const modalBody = document.querySelector('#editDriverModal .modal-body');
-              modalBody.insertBefore(successDiv, modalBody.firstChild);
-              
-              // Reload the page after a delay
+              // Close the modal and reload the page after 2 seconds
               setTimeout(() => {
+                // Close the modal if it's open
+                const modalElement = document.getElementById('editDriverModal');
+                if (modalElement) {
+                  const modalInstance = bootstrap.Modal.getInstance(modalElement);
+                  if (modalInstance) {
+                    modalInstance.hide();
+                  }
+                }
+                
+                // Reset submitting flag
+                isEditSubmitting = false;
+                
+                // Reload the page after showing success message
                 window.location.reload();
-              }, 1500);
+              }, 2000);
             } else {
-              // Show error message
-              const errorDiv = document.createElement('div');
-              errorDiv.className = 'alert alert-danger mt-3';
-              errorDiv.innerHTML = '<strong>Error!</strong> ' + (data.message || 'Failed to update driver. Please try again.');
+              // Close the loading SweetAlert and show error message
+              Swal.close();
               
-              // Insert error message in modal
-              const modalBody = document.querySelector('#editDriverModal .modal-body');
-              modalBody.insertBefore(errorDiv, modalBody.firstChild);
+              Swal.fire({
+                icon: 'error',
+                title: 'Error!',
+                text: data.message || 'Failed to update driver. Please try again.',
+                showConfirmButton: true,
+                confirmButtonText: 'OK'
+              });
             }
           })
           .catch(error => {
             console.error('Error updating driver:', error);
             
-            // Restore button
-            submitBtn.innerHTML = originalBtnText;
-            submitBtn.disabled = false;
+            // Close the loading SweetAlert and show error message
+            Swal.close();
+            
+            // Reset submitting flag
+            isEditSubmitting = false;
+            
+            Swal.fire({
+              icon: 'error',
+              title: 'Error!',
+              text: 'An unexpected error occurred. Please try again.',
+              showConfirmButton: true,
+              confirmButtonText: 'OK'
+            });
           });
         });
       }
       
       // Form submission validation
       const form = document.getElementById('addDriverForm');
+      let isSubmitting = false; // Prevent multiple submissions
+      
       if (form) {
         form.addEventListener('submit', function(e) {
+          e.preventDefault(); // Always prevent default form submission since we're using AJAX
+          
+          // Prevent multiple submissions
+          if (isSubmitting) {
+            return false;
+          }
+          
           const passwordInput = document.getElementById('password');
           const confirmPasswordInput = document.getElementById('password_confirmation');
           const contactInput = document.getElementById('contactNumber');
@@ -1357,7 +1408,6 @@
           
           // Validate contact number
           if (contactNumber.length !== 11) {
-            e.preventDefault();
             contactInput.classList.remove('is-valid');
             contactInput.classList.add('is-invalid');
             const lengthHelper = contactInput.parentNode.querySelector('.invalid-feedback:not(#contactDuplicateError)');
@@ -1370,7 +1420,6 @@
           
           // Validate contact number is unique
           if (contactNumber.length === 11 && !contactInput.classList.contains('is-valid')) {
-            e.preventDefault();
             contactInput.classList.remove('is-valid');
             contactInput.classList.add('is-invalid');
             const helperText = contactInput.parentNode.querySelector('.invalid-feedback');
@@ -1384,7 +1433,6 @@
           // Validate email
           const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
           if (!emailRegex.test(email)) {
-            e.preventDefault();
             emailInput.classList.remove('is-valid');
             emailInput.classList.add('is-invalid');
             const formatHelper = emailInput.parentNode.querySelector('.invalid-feedback:not(#emailDuplicateError)');
@@ -1397,7 +1445,6 @@
           
           // Validate password length
           if (password.length < 8) {
-            e.preventDefault();
             passwordInput.classList.remove('is-valid');
             passwordInput.classList.add('is-invalid');
             const helper = passwordInput.parentNode.querySelector('.invalid-feedback');
@@ -1410,7 +1457,6 @@
           
           // Validate passwords match
           if (password !== confirmPassword) {
-            e.preventDefault();
             confirmPasswordInput.classList.remove('is-valid');
             confirmPasswordInput.classList.add('is-invalid');
             const helper = confirmPasswordInput.parentNode.querySelector('.invalid-feedback');
@@ -1426,11 +1472,20 @@
           }
           
           // If all validation passes, submit form
-          // Show loading state
-          const submitBtn = form.querySelector('button[type="submit"]');
-          const originalBtnText = submitBtn.innerHTML;
-          submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Saving...';
-          submitBtn.disabled = true;
+          isSubmitting = true; // Set flag to prevent multiple submissions
+          
+          // Show loading state with SweetAlert for 2 seconds
+          Swal.fire({
+            title: 'Saving...',
+            text: 'Please wait while we save the driver information.',
+            allowOutsideClick: false,
+            allowEscapeKey: false,
+            showConfirmButton: false,
+            timer: 2000,
+            didOpen: () => {
+              Swal.showLoading();
+            }
+          });
           
           // Submit form via AJAX to show success message
           const formData = new FormData(form);
@@ -1500,36 +1555,65 @@
             console.log('Response data:', data);
             
             if (data.success) {
-              // Show success message
-              const successDiv = document.createElement('div');
-              successDiv.className = 'alert alert-success mt-3';
-              successDiv.innerHTML = '<strong>Success!</strong> Driver has been added successfully!';
+              // Close the loading SweetAlert and show success message for 2 seconds
+              Swal.fire({
+                icon: 'success',
+                title: 'Success!',
+                text: 'Driver has been added successfully!',
+                showConfirmButton: false,
+                timer: 2000,
+
+              });
               
-              // Insert success message in modal
-              const modalBody = document.querySelector('#addDriverModal .modal-body');
-              modalBody.insertBefore(successDiv, modalBody.firstChild);
-              
-              // Reload the page after a delay
+              // Close the modal and reload the page after 2 seconds
               setTimeout(() => {
+                // Close the modal if it's open
+                const modalElement = document.getElementById('addDriverModal');
+                if (modalElement) {
+                  const modalInstance = bootstrap.Modal.getInstance(modalElement);
+                  if (modalInstance) {
+                    modalInstance.hide();
+                  }
+                }
+                
+                // Clear the form
+                form.reset();
+                
+                // Reset submitting flag
+                isSubmitting = false;
+                
+                // Reload the page after showing success message
                 window.location.reload();
-              }, 1500);
+              }, 2000);
             } else {
-              // Show error message
-              const errorDiv = document.createElement('div');
-              errorDiv.className = 'alert alert-danger mt-3';
-              errorDiv.innerHTML = '<strong>Error!</strong> ' + (data.message || 'Failed to add driver. Please try again.');
+              // Close the loading SweetAlert and show error message
+              Swal.close();
               
-              // Insert error message in modal
-              const modalBody = document.querySelector('#addDriverModal .modal-body');
-              modalBody.insertBefore(errorDiv, modalBody.firstChild);
+              Swal.fire({
+                icon: 'error',
+                title: 'Error!',
+                text: data.message || 'Failed to add driver. Please try again.',
+                showConfirmButton: true,
+                confirmButtonText: 'OK'
+              });
             }
           })
           .catch(error => {
             console.error('Error details:', error);
             
-            // Restore button
-            submitBtn.innerHTML = originalBtnText;
-            submitBtn.disabled = false;
+            // Close the loading SweetAlert and show error message
+            Swal.close();
+            
+            // Reset submitting flag
+            isSubmitting = false;
+            
+            Swal.fire({
+              icon: 'error',
+              title: 'Error!',
+              text: 'An unexpected error occurred. Please try again.',
+              showConfirmButton: true,
+              confirmButtonText: 'OK'
+            });
           });
         });
       }

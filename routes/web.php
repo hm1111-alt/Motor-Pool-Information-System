@@ -99,6 +99,40 @@ Route::get('/vehicles/test-add-button', function () {
     return view('vehicles.test-add-button');
 })->name('vehicles.test-add-button');
 
+// Test route for vehicle picture display
+Route::get('/test-vehicle-picture/{id}', function($id) {
+    $vehicle = \App\Models\Vehicle::find($id);
+    if (!$vehicle) {
+        return 'Vehicle not found';
+    }
+    
+    return response()->json([
+        'vehicle_id' => $vehicle->id,
+        'picture_field' => $vehicle->picture,
+        'picture_url' => $vehicle->getPictureUrl(),
+        'asset_path' => asset('storage/' . $vehicle->picture),
+        'default_exists' => file_exists(storage_path('app/public/vehicles/images/vehicle_default.png'))
+    ]);
+})->name('test.vehicle.picture');
+
+// Debug route for vehicle 18
+Route::get('/debug-vehicle-18', function() {
+    $vehicle = \App\Models\Vehicle::find(18);
+    if (!$vehicle) {
+        return 'Vehicle 18 not found';
+    }
+    
+    return response()->json([
+        'id' => $vehicle->id,
+        'plate_number' => $vehicle->plate_number,
+        'picture' => $vehicle->picture,
+        'picture_url' => $vehicle->getPictureUrl(),
+        'storage_path' => storage_path('app/public/' . $vehicle->picture),
+        'file_exists' => $vehicle->picture ? file_exists(storage_path('app/public/' . $vehicle->picture)) : false,
+        'default_file_exists' => file_exists(storage_path('app/public/vehicles/images/vehicle_default.png'))
+    ]);
+});
+
 // Driver Dashboard Routes (Accessible only to drivers)
 Route::middleware(['auth', 'role:driver'])->prefix('driver')->name('driver.')->group(function () {
     Route::get('/dashboard', [DriverDashboardController::class, 'index'])->name('dashboard');

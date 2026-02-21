@@ -105,4 +105,22 @@ class Vehicle extends Model
         $remaining = $nextMaintenance - $this->mileage;
         return max(0, $remaining);
     }
+    
+    /**
+     * Get the picture URL for the vehicle
+     */
+    public function getPictureUrl(): string
+    {
+        if ($this->picture) {
+            // Check if it's a direct public path
+            if (str_starts_with($this->picture, 'vehicles/')) {
+                return asset($this->picture);
+            }
+            // Otherwise assume it's in storage
+            return asset('storage/' . $this->picture);
+        }
+        
+        // Return default image if no picture
+        return asset('vehicles/images/vehicle_default.png');
+    }
 }

@@ -30,7 +30,7 @@ class VehicleController extends Controller
             })
             ->orderBy('created_at', 'desc');
         
-        $vehicles = $query->paginate(10)->appends($request->except('page'));
+        $vehicles = $query->paginate(10);
         
         // Get all distinct types for the filter dropdown
         $types = Vehicle::select('type')->distinct()->pluck('type')->filter();
@@ -38,12 +38,21 @@ class VehicleController extends Controller
         // Check if this is an AJAX request for partial updates
         if ($request->ajax() || $request->get('ajax')) {
             return response()->json([
-                'table_body' => view('vehicles.partials.table-rows', compact('vehicles'))->render(),
-                'pagination' => (string) $vehicles->withQueryString()->links()
+                'table_body' => view('vehicles.partials.table-rows', compact('vehicles', 'search', 'type', 'types'))->render(),
+                'pagination_info' => [
+                    'current_page' => $vehicles->currentPage(),
+                    'last_page' => $vehicles->lastPage(),
+                    'first_item' => $vehicles->firstItem() ?? 0,
+                    'last_item' => $vehicles->lastItem() ?? 0,
+                    'total' => $vehicles->total(),
+                ]
             ]);
         }
 
-        return view('vehicles.index', compact('vehicles', 'search', 'type', 'types'));
+        // Get all vehicles for PDF export
+        $activeVehicles = Vehicle::orderBy('created_at', 'desc')->get();
+        
+        return view('vehicles.index', compact('vehicles', 'search', 'type', 'types', 'activeVehicles'));
     }
 
     /**
@@ -75,11 +84,11 @@ class VehicleController extends Controller
     /**
      * Store a newly created vehicle in storage.
      */
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request): RedirectResponse|JsonResponse
     {
         $request->validate([
             'picture' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
-            'plate_number' => 'required|string|max:50|unique:vehicle,plate_number',
+            'plate_number' => 'required|string|max:50|unique:vehicles,plate_number',
             'model' => 'required|string|max:255',
             'type' => 'required|string|max:255',
             'fuel_type' => 'required|string|max:255',
@@ -92,9 +101,21 @@ class VehicleController extends Controller
         
         if ($request->hasFile('picture')) {
             $data['picture'] = $request->file('picture')->store('vehicles', 'public');
+        } else {
+            // Use default image when no picture is uploaded
+            $data['picture'] = 'vehicles/images/vehicle_default.png';
         }
 
-        Vehicle::create($data);
+        $vehicle = Vehicle::create($data);
+
+        // Handle AJAX request for modal submission
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Vehicle created successfully!',
+                'vehicle' => $vehicle
+            ]);
+        }
 
         return redirect()->route('vehicles.index')
             ->with('success', 'Vehicle created successfully.');
@@ -145,7 +166,7 @@ class VehicleController extends Controller
                 'required',
                 'string',
                 'max:50',
-                Rule::unique('vehicle', 'plate_number')->ignore($vehicle->id)
+                Rule::unique('vehicles', 'plate_number')->ignore($vehicle->id)
             ],
             'model' => 'required|string|max:255',
             'type' => 'required|string|max:255',
@@ -158,11 +179,16 @@ class VehicleController extends Controller
         $data = $request->except('picture');
         
         if ($request->hasFile('picture')) {
-            // Delete old picture if exists
-            if ($vehicle->picture) {
+            // Delete old picture if exists (but not the default image)
+            if ($vehicle->picture && $vehicle->picture !== 'vehicles/images/vehicle_default.png') {
                 Storage::disk('public')->delete($vehicle->picture);
             }
             $data['picture'] = $request->file('picture')->store('vehicles', 'public');
+        } else {
+            // If no new picture uploaded, keep existing picture or set default
+            if (!$vehicle->picture) {
+                $data['picture'] = 'vehicles/images/vehicle_default.png';
+            }
         }
 
         $vehicle->update($data);
