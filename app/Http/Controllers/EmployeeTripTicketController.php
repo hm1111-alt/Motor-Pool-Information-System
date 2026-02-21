@@ -26,7 +26,7 @@ class EmployeeTripTicketController extends Controller
         // Build query based on the selected tab
         $query = TripTicket::with(['itinerary', 'itinerary.travelOrder.employee']);
         
-        // Filter by employee - show trip tickets where the employee is a passenger or head of party
+        // Filter by employee - show trip tickets where the employee is a passenger, head of party, or the original travel order creator
         $query->where(function ($subQuery) use ($employee) {
             // Check if employee is head of party
             $subQuery->where('head_of_party', 'LIKE', "%{$employee->first_name}%{$employee->last_name}%")
@@ -35,6 +35,10 @@ class EmployeeTripTicketController extends Controller
                      ->orWhere(function ($passengerQuery) use ($employee) {
                          $passengerQuery->where('passengers', 'LIKE', "%{$employee->first_name}%{$employee->last_name}%")
                                         ->orWhere('passengers', 'LIKE', "%{$employee->last_name}%{$employee->first_name}%");
+                     })
+                     // Check if employee is the original travel order creator
+                     ->orWhereHas('itinerary.travelOrder', function ($travelOrderQuery) use ($employee) {
+                         $travelOrderQuery->where('employee_id', $employee->id);
                      });
         });
         
@@ -63,8 +67,8 @@ class EmployeeTripTicketController extends Controller
                 break;
             case 'approved':
             default:
-                // Approved trip tickets (Issued status)
-                $query->where('status', 'Issued');
+                // Approved trip tickets (Approved status)
+                $query->where('status', 'Approved');
                 break;
         }
         
@@ -102,7 +106,10 @@ class EmployeeTripTicketController extends Controller
         $isHeadOfParty = str_contains($tripTicket->head_of_party, $employee->first_name) && 
                         str_contains($tripTicket->head_of_party, $employee->last_name);
         
-        if (!$isPassenger && !$isHeadOfParty) {
+        // Check if employee is the original travel order creator
+        $isTravelOrderCreator = $tripTicket->itinerary->travelOrder->employee_id === $employee->id;
+        
+        if (!$isPassenger && !$isHeadOfParty && !$isTravelOrderCreator) {
             abort(403);
         }
         

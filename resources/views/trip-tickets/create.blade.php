@@ -89,6 +89,24 @@
                                 </div>
                             </div>
                             
+                            <!-- Trip Ticket Number -->
+                            <div class="md:col-span-2 bg-gray-50 p-4 rounded-lg">
+                                <h3 class="text-lg font-medium text-gray-900 mb-4">Trip Ticket Information</h3>
+                                
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                                    <div>
+                                        <label for="ticket_number" class="block text-sm font-medium text-gray-700 mb-1">Trip Ticket Number *</label>
+                                        <input type="text" name="ticket_number" id="ticket_number" 
+                                               class="w-full rounded-lg border-gray-300 shadow-sm focus:border-[#1e6031] focus:ring focus:ring-[#1e6031] focus:ring-opacity-50"
+                                               placeholder="Enter trip ticket number (e.g., TT-000001)"
+                                               required>
+                                        @error('ticket_number')
+                                            <span class="text-red-500 text-sm">{{ $message }}</span>
+                                        @enderror
+                                    </div>
+                                </div>
+                            </div>
+                            
                             <!-- Add Passengers Section -->
                             <div class="md:col-span-2 bg-gray-50 p-4 rounded-lg">
                                 <h3 class="text-lg font-medium text-gray-900 mb-4">Add Passengers</h3>
@@ -106,10 +124,7 @@
                                         </select>
                                     </div>
                                     
-
                                 </div>
-                                
-
                                 
                                 <div id="passenger-list" class="mt-4">
                                     <div class="flex justify-between items-center mb-2">

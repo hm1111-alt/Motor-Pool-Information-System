@@ -120,11 +120,18 @@
                                         </td>
                                         <td class="px-3 py-2 whitespace-nowrap text-center text-xs">
                                             <div class="action-buttons flex justify-center space-x-1">
-                                                <a href="{{ route('trip-tickets.show', $ticket) }}" 
-                                                   class="btn view-btn border inline-flex items-center justify-center"
-                                                   title="View Trip Ticket">
+                                                <button type="button" 
+                                                        class="btn view-btn border inline-flex items-center justify-center"
+                                                        title="View Itinerary PDF"
+                                                        onclick="viewItineraryPDF({{ $ticket->itinerary->id ?? 0 }})">
                                                     <i class="fas fa-eye"></i> View
-                                                </a>
+                                                </button>
+                                                <button type="button" 
+                                                        class="btn pdf-btn border inline-flex items-center justify-center"
+                                                        title="View as PDF"
+                                                        onclick="viewTripTicketPDF({{ $ticket->id }})">
+                                                    <i class="fas fa-file-pdf"></i> PDF
+                                                </button>
                                                 <a href="{{ route('trip-tickets.edit', $ticket) }}" 
                                                    class="btn edit-btn border inline-flex items-center justify-center"
                                                    title="Edit Trip Ticket">
@@ -234,11 +241,18 @@
                                         </td>
                                         <td class="px-3 py-2 whitespace-nowrap text-center text-xs">
                                             <div class="action-buttons flex justify-center space-x-1">
-                                                <a href="{{ route('trip-tickets.show', $ticket) }}" 
-                                                   class="btn view-btn border inline-flex items-center justify-center"
-                                                   title="View Trip Ticket">
+                                                <button type="button" 
+                                                        class="btn view-btn border inline-flex items-center justify-center"
+                                                        title="View Itinerary PDF"
+                                                        onclick="viewItineraryPDF({{ $ticket->itinerary->id ?? 0 }})">
                                                     <i class="fas fa-eye"></i> View
-                                                </a>
+                                                </button>
+                                                <button type="button" 
+                                                        class="btn pdf-btn border inline-flex items-center justify-center"
+                                                        title="View as PDF"
+                                                        onclick="viewTripTicketPDF({{ $ticket->id }})">
+                                                    <i class="fas fa-file-pdf"></i> PDF
+                                                </button>
                                                 <a href="{{ route('trip-tickets.edit', $ticket) }}" 
                                                    class="btn edit-btn border inline-flex items-center justify-center"
                                                    title="Edit Trip Ticket">
@@ -348,11 +362,18 @@
                                         </td>
                                         <td class="px-3 py-2 whitespace-nowrap text-center text-xs">
                                             <div class="action-buttons flex justify-center space-x-1">
-                                                <a href="{{ route('trip-tickets.show', $ticket) }}" 
-                                                   class="btn view-btn border inline-flex items-center justify-center"
-                                                   title="View Trip Ticket">
+                                                <button type="button" 
+                                                        class="btn view-btn border inline-flex items-center justify-center"
+                                                        title="View Itinerary PDF"
+                                                        onclick="viewItineraryPDF({{ $ticket->itinerary->id ?? 0 }})">
                                                     <i class="fas fa-eye"></i> View
-                                                </a>
+                                                </button>
+                                                <button type="button" 
+                                                        class="btn pdf-btn border inline-flex items-center justify-center"
+                                                        title="View as PDF"
+                                                        onclick="viewTripTicketPDF({{ $ticket->id }})">
+                                                    <i class="fas fa-file-pdf"></i> PDF
+                                                </button>
                                                 <button type="button" 
                                                         class="btn archive-btn border inline-flex items-center justify-center"
                                                         title="Archive Trip"
@@ -480,6 +501,18 @@
 }
 
 .action-buttons .archive-btn:hover {
+    background-color: #dc3545 !important;
+    color: #fff !important;
+    border-color: #dc3545 !important;
+}
+
+.action-buttons .pdf-btn {
+    color: #dc3545 !important;
+    border: 1px solid #dc3545 !important;
+    background-color: transparent !important;
+}
+
+.action-buttons .pdf-btn:hover {
     background-color: #dc3545 !important;
     color: #fff !important;
     border-color: #dc3545 !important;
@@ -634,7 +667,7 @@ function startTrip(ticketId) {
         const statusInput = document.createElement('input');
         statusInput.type = 'hidden';
         statusInput.name = 'status';
-        statusInput.value = 'Issued';
+        statusInput.value = 'Approved';
         form.appendChild(statusInput);
         
         document.body.appendChild(form);
@@ -702,6 +735,22 @@ function archiveTrip(ticketId) {
         document.body.appendChild(form);
         form.submit();
     }
+}
+
+// Function to view itinerary as PDF
+function viewItineraryPDF(itineraryId) {
+    if (!itineraryId) {
+        alert('No itinerary found for this trip ticket.');
+        return;
+    }
+    // Open the PDF in a new tab
+    window.open(`/itinerary/${itineraryId}/pdf`, '_blank');
+}
+
+// Function to view trip ticket as PDF
+function viewTripTicketPDF(ticketId) {
+    // Open the PDF in a new tab
+    window.open(`/trip-tickets/${ticketId}/pdf`, '_blank');
 }
 </script>
 @endsection

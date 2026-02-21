@@ -383,40 +383,247 @@
                 unitSelect.innerHTML = '<option value="">Select Unit</option>';
                 subunitSelect.innerHTML = '<option value="">Select Subunit</option>';
                 
-                if (officeId && cascadingData.divisions[officeId]) {
-                    cascadingData.divisions[officeId].forEach(division => {
-                        const selected = division.id_division == {{ $employee->division_id ?? 'null' }} ? 'selected' : '';
-                        divisionSelect.innerHTML += '<option value="' + division.id_division + '" ' + selected + '>' + division.division_name + '</option>';
-                    });
+                if (officeId) {
+                    // First check if we have pre-loaded data for this office
+                    if (cascadingData && cascadingData.divisions && cascadingData.divisions[officeId]) {
+                        // Use pre-loaded data
+                        const divisions = cascadingData.divisions[officeId];
+                        divisionSelect.innerHTML = '<option value="">Select Division</option>';
+                        divisions.forEach(division => {
+                            const selected = division.id_division == {{ $employee->division_id ?? 'null' }} ? 'selected' : '';
+                            divisionSelect.innerHTML += '<option value="' + division.id_division + '" ' + selected + '>' + division.division_name + '</option>';
+                        });
+                    } else {
+                        // Fallback to AJAX request
+                        fetch('{{ route('admin.employees.get-divisions-by-office') }}?office_id=' + officeId, {
+                            method: 'GET',
+                            headers: {
+                                'X-Requested-With': 'XMLHttpRequest',
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]') ? document.querySelector('meta[name="csrf-token"]').getAttribute('content') : '',
+                                'Content-Type': 'application/json',
+                            },
+                            credentials: 'include'
+                        })
+                        .then(response => {
+                            // Check if the response is HTML (redirect/error page)
+                            const contentType = response.headers.get('content-type');
+                            if (contentType && contentType.includes('text/html')) {
+                                // If it's an HTML response, redirect to login
+                                if (response.status === 401 || response.status === 419) {
+                                    window.location.href = '/login';
+                                    return Promise.reject(new Error('Authentication required'));
+                                }
+                            }
+                            
+                            if (!response.ok) {
+                                // Try to get JSON error response, fallback to text if not JSON
+                                return response.text().then(text => {
+                                    try {
+                                        const errorData = JSON.parse(text);
+                                        throw new Error(errorData.message || 'Network response was not ok');
+                                    } catch (e) {
+                                        // If response is not JSON, use the status text
+                                        throw new Error(response.statusText || 'Network response was not ok');
+                                    }
+                                });
+                            }
+                            
+                            return response.json();
+                        })
+                        .then(data => {
+                            // Check if the response contains an error property
+                            if (data.error) {
+                                console.error('API Error:', data.error);
+                                divisionSelect.innerHTML = '<option value="">Error: ' + data.error + '</option>';
+                                return;
+                            }
+                            
+                            divisionSelect.innerHTML = '<option value="">Select Division</option>';
+                            data.forEach(division => {
+                                const selected = division.id_division == {{ $employee->division_id ?? 'null' }} ? 'selected' : '';
+                                divisionSelect.innerHTML += '<option value="' + division.id_division + '" ' + selected + '>' + division.division_name + '</option>';
+                            });
+                        })
+                        .catch(error => {
+                            console.error('Error loading divisions:', error);
+                            // Check if it's an authentication error
+                            if (error.message.includes('Authentication required') || error.message.includes('401') || error.message.includes('419')) {
+                                divisionSelect.innerHTML = '<option value="">Please log in to continue</option>';
+                                setTimeout(() => {
+                                    window.location.href = '/login';
+                                }, 2000);
+                            } else {
+                                divisionSelect.innerHTML = '<option value="">Error loading divisions: ' + error.message + '</option>';
+                            }
+                        });
+                    }
                 }
             });
             
-            // Load units when division is selected (using pre-loaded data)
+            // Load units when division is selected (using AJAX)
             divisionSelect.addEventListener('change', function() {
                 const divisionId = this.value;
                 unitSelect.innerHTML = '<option value="">Select Unit</option>';
                 subunitSelect.innerHTML = '<option value="">Select Subunit</option>';
                 
-                if (divisionId && cascadingData.units[divisionId]) {
-                    cascadingData.units[divisionId].forEach(unit => {
-                        const selected = unit.id_unit == {{ $employee->unit_id ?? 'null' }} ? 'selected' : '';
-                        unitSelect.innerHTML += '<option value="' + unit.id_unit + '" ' + selected + '>' + unit.unit_name + '</option>';
-                    });
+                if (divisionId) {
+                    // First check if we have pre-loaded data for this division
+                    if (cascadingData && cascadingData.units && cascadingData.units[divisionId]) {
+                        // Use pre-loaded data
+                        const units = cascadingData.units[divisionId];
+                        unitSelect.innerHTML = '<option value="">Select Unit</option>';
+                        units.forEach(unit => {
+                            const selected = unit.id_unit == {{ $employee->unit_id ?? 'null' }} ? 'selected' : '';
+                            unitSelect.innerHTML += '<option value="' + unit.id_unit + '" ' + selected + '>' + unit.unit_name + '</option>';
+                        });
+                    } else {
+                        // Fallback to AJAX request
+                        fetch('{{ route('admin.employees.get-units-by-division') }}?division_id=' + divisionId, {
+                            method: 'GET',
+                            headers: {
+                                'X-Requested-With': 'XMLHttpRequest',
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]') ? document.querySelector('meta[name="csrf-token"]').getAttribute('content') : '',
+                                'Content-Type': 'application/json',
+                            },
+                            credentials: 'include'
+                        })
+                        .then(response => {
+                            // Check if the response is HTML (redirect/error page)
+                            const contentType = response.headers.get('content-type');
+                            if (contentType && contentType.includes('text/html')) {
+                                // If it's an HTML response, redirect to login
+                                if (response.status === 401 || response.status === 419) {
+                                    window.location.href = '/login';
+                                    return Promise.reject(new Error('Authentication required'));
+                                }
+                            }
+                            
+                            if (!response.ok) {
+                                // Try to get JSON error response, fallback to text if not JSON
+                                return response.text().then(text => {
+                                    try {
+                                        const errorData = JSON.parse(text);
+                                        throw new Error(errorData.message || 'Network response was not ok');
+                                    } catch (e) {
+                                        // If response is not JSON, use the status text
+                                        throw new Error(response.statusText || 'Network response was not ok');
+                                    }
+                                });
+                            }
+                            
+                            return response.json();
+                        })
+                        .then(data => {
+                            // Check if the response contains an error property
+                            if (data.error) {
+                                console.error('API Error:', data.error);
+                                unitSelect.innerHTML = '<option value="">Error: ' + data.error + '</option>';
+                                return;
+                            }
+                            
+                            unitSelect.innerHTML = '<option value="">Select Unit</option>';
+                            data.forEach(unit => {
+                                const selected = unit.id_unit == {{ $employee->unit_id ?? 'null' }} ? 'selected' : '';
+                                unitSelect.innerHTML += '<option value="' + unit.id_unit + '" ' + selected + '>' + unit.unit_name + '</option>';
+                            });
+                        })
+                        .catch(error => {
+                            console.error('Error loading units:', error);
+                            // Check if it's an authentication error
+                            if (error.message.includes('Authentication required') || error.message.includes('401') || error.message.includes('419')) {
+                                unitSelect.innerHTML = '<option value="">Please log in to continue</option>';
+                                setTimeout(() => {
+                                    window.location.href = '/login';
+                                }, 2000);
+                            } else {
+                                unitSelect.innerHTML = '<option value="">Error loading units: ' + error.message + '</option>';
+                            }
+                        });
+                    }
                 } else {
-                    unitSelect.innerHTML = '<option value="">No units available</option>';
+                    unitSelect.innerHTML = '<option value="">Select Unit</option>';
                 }
             });
             
-            // Load subunits when unit is selected (using pre-loaded data)
+            // Load subunits when unit is selected (using AJAX)
             unitSelect.addEventListener('change', function() {
                 const unitId = this.value;
                 subunitSelect.innerHTML = '<option value="">Select Subunit</option>';
                 
-                if (unitId && cascadingData.subunits[unitId]) {
-                    cascadingData.subunits[unitId].forEach(subunit => {
-                        const selected = subunit.id_subunit == {{ $employee->subunit_id ?? 'null' }} ? 'selected' : '';
-                        subunitSelect.innerHTML += '<option value="' + subunit.id_subunit + '" ' + selected + '>' + subunit.subunit_name + '</option>';
-                    });
+                if (unitId) {
+                    // First check if we have pre-loaded data for this unit
+                    if (cascadingData && cascadingData.subunits && cascadingData.subunits[unitId]) {
+                        // Use pre-loaded data
+                        const subunits = cascadingData.subunits[unitId];
+                        subunitSelect.innerHTML = '<option value="">Select Subunit</option>';
+                        subunits.forEach(subunit => {
+                            const selected = subunit.id_subunit == {{ $employee->subunit_id ?? 'null' }} ? 'selected' : '';
+                            subunitSelect.innerHTML += '<option value="' + subunit.id_subunit + '" ' + selected + '>' + subunit.subunit_name + '</option>';
+                        });
+                    } else {
+                        // Fallback to AJAX request
+                        fetch('{{ route('admin.employees.get-subunits-by-unit') }}?unit_id=' + unitId, {
+                            method: 'GET',
+                            headers: {
+                                'X-Requested-With': 'XMLHttpRequest',
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]') ? document.querySelector('meta[name="csrf-token"]').getAttribute('content') : '',
+                                'Content-Type': 'application/json',
+                            },
+                            credentials: 'include'
+                        })
+                        .then(response => {
+                            // Check if the response is HTML (redirect/error page)
+                            const contentType = response.headers.get('content-type');
+                            if (contentType && contentType.includes('text/html')) {
+                                // If it's an HTML response, redirect to login
+                                if (response.status === 401 || response.status === 419) {
+                                    window.location.href = '/login';
+                                    return Promise.reject(new Error('Authentication required'));
+                                }
+                            }
+                            
+                            if (!response.ok) {
+                                // Try to get JSON error response, fallback to text if not JSON
+                                return response.text().then(text => {
+                                    try {
+                                        const errorData = JSON.parse(text);
+                                        throw new Error(errorData.message || 'Network response was not ok');
+                                    } catch (e) {
+                                        // If response is not JSON, use the status text
+                                        throw new Error(response.statusText || 'Network response was not ok');
+                                    }
+                                });
+                            }
+                            
+                            return response.json();
+                        })
+                        .then(data => {
+                            // Check if the response contains an error property
+                            if (data.error) {
+                                console.error('API Error:', data.error);
+                                subunitSelect.innerHTML = '<option value="">Error: ' + data.error + '</option>';
+                                return;
+                            }
+                            
+                            subunitSelect.innerHTML = '<option value="">Select Subunit</option>';
+                            data.forEach(subunit => {
+                                const selected = subunit.id_subunit == {{ $employee->subunit_id ?? 'null' }} ? 'selected' : '';
+                                subunitSelect.innerHTML += '<option value="' + subunit.id_subunit + '" ' + selected + '>' + subunit.subunit_name + '</option>';
+                            });
+                        })
+                        .catch(error => {
+                            console.error('Error loading subunits:', error);
+                            // Check if it's an authentication error
+                            if (error.message.includes('Authentication required') || error.message.includes('401') || error.message.includes('419')) {
+                                subunitSelect.innerHTML = '<option value="">Please log in to continue</option>';
+                                setTimeout(() => {
+                                    window.location.href = '/login';
+                                }, 2000);
+                            } else {
+                                subunitSelect.innerHTML = '<option value="">Error loading subunits: ' + error.message + '</option>';
+                            }
+                        });
+                    }
                 }
             });
             
@@ -527,24 +734,92 @@
                     divisionSelect.innerHTML = '<option value="">Select Division</option>';
                     unitSelect.innerHTML = '<option value="">Select Unit</option>';
                     subunitSelect.innerHTML = '<option value="">Select Subunit</option>';
-
+                
                     if (officeId && data.divisions[officeId]) {
                         data.divisions[officeId].forEach(division => {
-                            divisionSelect.innerHTML += '<option value="' + division.id_division + '">' + division.division_name + '</option>';
+                            divisionSelect.innerHTML += '<option value="' + division.id_division + '" >' + division.division_name + '</option>';
                         });
                     }
                 });
-
+                
                 // Load units when division is selected for this group
                 divisionSelect.addEventListener('change', function() {
                     const divisionId = this.value;
                     unitSelect.innerHTML = '<option value="">Select Unit</option>';
                     subunitSelect.innerHTML = '<option value="">Select Subunit</option>';
-
-                    if (divisionId && data.units[divisionId]) {
-                        data.units[divisionId].forEach(unit => {
-                            unitSelect.innerHTML += '<option value="' + unit.id_unit + '">' + unit.unit_name + '</option>';
-                        });
+                                
+                    if (divisionId) {
+                        // First check if we have pre-loaded data for this division
+                        if (data && data.units && data.units[divisionId]) {
+                            // Use pre-loaded data
+                            const units = data.units[divisionId];
+                            unitSelect.innerHTML = '<option value="">Select Unit</option>';
+                            units.forEach(unit => {
+                                unitSelect.innerHTML += '<option value="' + unit.id_unit + '" >' + unit.unit_name + '</option>';
+                            });
+                        } else {
+                            // Fallback to AJAX request
+                            fetch('{{ route('admin.employees.get-units-by-division') }}?division_id=' + divisionId, {
+                                method: 'GET',
+                                headers: {
+                                    'X-Requested-With': 'XMLHttpRequest',
+                                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]') ? document.querySelector('meta[name="csrf-token"]').getAttribute('content') : '',
+                                    'Content-Type': 'application/json',
+                                },
+                                credentials: 'include'
+                            })
+                            .then(response => {
+                                // Check if the response is HTML (redirect/error page)
+                                const contentType = response.headers.get('content-type');
+                                if (contentType && contentType.includes('text/html')) {
+                                    // If it's an HTML response, redirect to login
+                                    if (response.status === 401 || response.status === 419) {
+                                        window.location.href = '/login';
+                                        return Promise.reject(new Error('Authentication required'));
+                                    }
+                                }
+                                                
+                                if (!response.ok) {
+                                    // Try to get JSON error response, fallback to text if not JSON
+                                    return response.text().then(text => {
+                                        try {
+                                            const errorData = JSON.parse(text);
+                                            throw new Error(errorData.message || 'Network response was not ok');
+                                        } catch (e) {
+                                            // If response is not JSON, use the status text
+                                            throw new Error(response.statusText || 'Network response was not ok');
+                                        }
+                                    });
+                                }
+                                                
+                                return response.json();
+                            })
+                            .then(data => {
+                                // Check if the response contains an error property
+                                if (data.error) {
+                                    console.error('API Error:', data.error);
+                                    unitSelect.innerHTML = '<option value="">Error: ' + data.error + '</option>';
+                                    return;
+                                }
+                                                
+                                unitSelect.innerHTML = '<option value="">Select Unit</option>';
+                                data.forEach(unit => {
+                                    unitSelect.innerHTML += '<option value="' + unit.id_unit + '" >' + unit.unit_name + '</option>';
+                                });
+                            })
+                            .catch(error => {
+                                console.error('Error loading units:', error);
+                                // Check if it's an authentication error
+                                if (error.message.includes('Authentication required') || error.message.includes('401') || error.message.includes('419')) {
+                                    unitSelect.innerHTML = '<option value="">Please log in to continue</option>';
+                                    setTimeout(() => {
+                                        window.location.href = '/login';
+                                    }, 2000);
+                                } else {
+                                    unitSelect.innerHTML = '<option value="">Error loading units: ' + error.message + '</option>';
+                                }
+                            });
+                        }
                     }
                 });
 
@@ -552,11 +827,76 @@
                 unitSelect.addEventListener('change', function() {
                     const unitId = this.value;
                     subunitSelect.innerHTML = '<option value="">Select Subunit</option>';
-
-                    if (unitId && data.subunits[unitId]) {
-                        data.subunits[unitId].forEach(subunit => {
-                            subunitSelect.innerHTML += '<option value="' + subunit.id_subunit + '">' + subunit.subunit_name + '</option>';
-                        });
+                
+                    if (unitId) {
+                        // First check if we have pre-loaded data for this unit
+                        if (data && data.subunits && data.subunits[unitId]) {
+                            // Use pre-loaded data
+                            const subunits = data.subunits[unitId];
+                            subunitSelect.innerHTML = '<option value="">Select Subunit</option>';
+                            subunits.forEach(subunit => {
+                                subunitSelect.innerHTML += '<option value="' + subunit.id_subunit + '" >' + subunit.subunit_name + '</option>';
+                            });
+                        } else {
+                            // Fallback to AJAX request
+                            fetch('{{ route('admin.employees.get-subunits-by-unit') }}?unit_id=' + unitId, {
+                                method: 'GET',
+                                headers: {
+                                    'X-Requested-With': 'XMLHttpRequest',
+                                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]') ? document.querySelector('meta[name="csrf-token"]').getAttribute('content') : '',
+                                    'Content-Type': 'application/json',
+                                },
+                                credentials: 'include'
+                            })
+                            .then(response => {
+                                // Check if the response is HTML (redirect/error page)
+                                const contentType = response.headers.get('content-type');
+                                if (contentType && contentType.includes('text/html')) {
+                                    // If it's an HTML response, redirect to login
+                                    if (response.status === 401 || response.status === 419) {
+                                        window.location.href = '/login';
+                                        return Promise.reject(new Error('Authentication required'));
+                                    }
+                                }
+                                
+                                if (!response.ok) {
+                                    // Try to get JSON error response, fallback to text if not JSON
+                                    return response.text().then(text => {
+                                        try {
+                                            const errorData = JSON.parse(text);
+                                            throw new Error(errorData.message || 'Network response was not ok');
+                                        } catch (e) {
+                                            // If response is not JSON, use the status text
+                                            throw new Error(response.statusText || 'Network response was not ok');
+                                        }
+                                    });
+                                }
+                                
+                                return response.json();
+                            })
+                            .then(data => {
+                                // Check if the response contains an error property
+                                if (data.error) {
+                                    console.error('API Error:', data.error);
+                                    subunitSelect.innerHTML = '<option value="">Error: ' + data.error + '</option>';
+                                    return;
+                                }
+                                
+                                subunitSelect.innerHTML = '<option value="">Select Subunit</option>';
+                                data.forEach(subunit => {
+                                    subunitSelect.innerHTML += '<option value="' + subunit.id_subunit + '" >' + subunit.subunit_name + '</option>';
+                                });
+                            })
+                            .catch(error => {
+                                console.error('Error loading subunits:', error);
+                                // Check if it's an authentication error
+                                if (error.message.includes('Authentication required') || error.message.includes('401') || error.message.includes('419')) {
+                                    subunitSelect.innerHTML = '<option value="">Please log in to continue</option>';
+                                } else {
+                                    subunitSelect.innerHTML = '<option value="">Error loading subunits: ' + error.message + '</option>';
+                                }
+                            });
+                        }
                     }
                 });
             }

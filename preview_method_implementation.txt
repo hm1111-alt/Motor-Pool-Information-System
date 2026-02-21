@@ -1,0 +1,60 @@
+<?php
+// Add this method to your VpOwnTravelOrderController.php
+
+/**
+ * Preview travel order in browser (no download)
+ */
+public function preview(TravelOrder $travelOrder)
+{
+    // Ensure the VP can only preview their own travel orders
+    $user = Auth::user();
+    $employee = $user->employee;
+    
+    if ($travelOrder->employee_id !== $employee->id) {
+        abort(403);
+    }
+    
+    // Get employee details
+    $fullName = $employee->first_name . ' ' . $employee->last_name;
+    $positionName = $employee->positions->first()->position_name;
+    
+    // Get organizational unit
+    $orgUnitName = '';
+    if ($employee->division) {
+        $orgUnitName = $employee->division->division_name;
+    } elseif ($employee->unit) {
+        $orgUnitName = $employee->unit->unit_name;
+    } elseif ($employee->office) {
+        $orgUnitName = $employee->office->office_name;
+    }
+    
+    // Get President information
+    $president = \App\Models\Employee::whereHas('officer', function($query) {
+        $query->where('president', true);
+    })->first();
+    
+    $presidentName = $president ? $president->first_name . ' ' . $president->last_name : 'N/A';
+    $presidentPosition = $president && $president->position ? $president->position->position_name : 'University President';
+    
+    // Prepare data for view
+    $travelOrderData = [
+        'employee_name' => $fullName,
+        'position' => $positionName,
+        'org_unit' => $orgUnitName,
+        'destination' => $travelOrder->destination,
+        'purpose' => $travelOrder->purpose,
+        'date_from' => $travelOrder->date_from ? $travelOrder->date_from->format('F j, Y') : '',
+        'date_to' => $travelOrder->date_to ? $travelOrder->date_to->format('F j, Y') : '',
+        'departure_time' => $travelOrder->departure_time ?? '',
+        'president_name' => $presidentName,
+        'president_position' => $presidentPosition,
+        'president_approved' => $travelOrder->president_approved,
+        'president_approved_at' => $travelOrder->president_approved_at ? 
+            $travelOrder->president_approved_at->format('M j, Y g:i A') : null,
+        'approval_status' => $travelOrder->president_approved_at ? 
+            ($travelOrder->president_approved ? 'APPROVED' : 'DECLINED') : 'PENDING'
+    ];
+    
+    // Return browser preview view
+    return view('vp.own-travel-orders.preview', compact('travelOrderData', 'travelOrder'));
+}

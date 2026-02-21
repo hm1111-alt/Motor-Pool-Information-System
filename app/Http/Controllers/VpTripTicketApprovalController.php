@@ -12,6 +12,57 @@ use App\Models\Employee;
 class VpTripTicketApprovalController extends Controller
 {
     /**
+     * Display pending trip tickets for VP approval in motorpool dashboard.
+     */
+    public function vpPending(Request $request)
+    {
+        $user = Auth::user();
+        $tab = $request->get('tab', 'pending'); // Default to pending tab
+        
+        // Check if user is authorized (VP, admin, or motorpool admin)
+        if (!$user->isVp() && !$user->isAdmin() && !$user->isMotorpoolAdmin()) {
+            abort(403, 'Unauthorized to view VP trip ticket approvals');
+        }
+        
+        // Additional check: Only VPs from Office of the Vice President for Administration can access
+        if ($user->isVp() && !$user->isAdmin() && !$user->isMotorpoolAdmin()) {
+            $isVpOfAdministration = $user->employee->positions()->whereHas('office', function($query) {
+                $query->where('office_name', 'Office of the Vice President for Administration');
+            })->exists();
+            
+            if (!$isVpOfAdministration) {
+                abort(403, 'Only VP of Office of the Vice President for Administration can approve trip tickets');
+            }
+        }
+        
+        // Base query
+        $query = TripTicket::with(['itinerary.travelOrder.employee', 'itinerary.vehicle', 'itinerary.driver']);
+            
+        // Apply tab filtering
+        switch ($tab) {
+            case 'approved':
+                $query->where('status', 'Approved');
+                break;
+            case 'cancelled':
+                $query->where('status', 'Cancelled');
+                break;
+            case 'pending':
+            default:
+                $query->where('status', 'Pending');
+                break;
+        }
+        
+        $tripTickets = $query->get();
+        
+        // Get counts for each tab
+        $pendingCount = TripTicket::where('status', 'Pending')->count();
+        $approvedCount = TripTicket::where('status', 'Approved')->count();
+        $cancelledCount = TripTicket::where('status', 'Cancelled')->count();
+            
+        return view('trip-tickets.approvals.vp-pending', compact('tripTickets', 'tab', 'pendingCount', 'approvedCount', 'cancelledCount'));
+    }
+    
+    /**
      * Display a listing of trip tickets for VP approval with tab support.
      */
     public function index(Request $request): View
@@ -47,8 +98,8 @@ class VpTripTicketApprovalController extends Controller
         
         switch ($tab) {
             case 'approved':
-                // Trip tickets that have been issued (approved by VP)
-                $query->whereIn('status', ['Issued', 'Completed']);
+                // Trip tickets that have been approved by VP
+                $query->whereIn('status', ['Approved', 'Completed']);
                 break;
             case 'cancelled':
                 // Cancelled trip tickets
@@ -56,7 +107,7 @@ class VpTripTicketApprovalController extends Controller
                 break;
             case 'pending':
             default:
-                // Pending trip tickets that need VP approval to be issued
+                // Pending trip tickets that need VP approval
                 $query->where('status', 'Pending');
                 break;
         }
@@ -67,7 +118,7 @@ class VpTripTicketApprovalController extends Controller
     }
     
     /**
-     * Approve a trip ticket (change status to Issued).
+     * Approve a trip ticket (change status to Approved).
      */
     public function approve(TripTicket $tripTicket): RedirectResponse
     {
@@ -79,14 +130,23 @@ class VpTripTicketApprovalController extends Controller
             abort(403);
         }
         
+        // Additional check: Only VPs from Office of the Vice President for Administration can approve
+        $isVpOfAdministration = $employee->positions()->whereHas('office', function($query) {
+            $query->where('office_name', 'Office of the Vice President for Administration');
+        })->exists();
+        
+        if (!$isVpOfAdministration) {
+            abort(403, 'Only VP of Office of the Vice President for Administration can approve trip tickets');
+        }
+        
         // Only allow approving if status is currently Pending
         if ($tripTicket->status !== 'Pending') {
             abort(403);
         }
         
-        // Update status to Issued
+        // Update status to Approved
         $tripTicket->update([
-            'status' => 'Issued',
+            'status' => 'Approved',
         ]);
         
         return redirect()->back()
@@ -104,6 +164,15 @@ class VpTripTicketApprovalController extends Controller
         // Ensure the user is a VP
         if (!$employee->is_vp) {
             abort(403);
+        }
+        
+        // Additional check: Only VPs from Office of the Vice President for Administration can reject
+        $isVpOfAdministration = $employee->positions()->whereHas('office', function($query) {
+            $query->where('office_name', 'Office of the Vice President for Administration');
+        })->exists();
+        
+        if (!$isVpOfAdministration) {
+            abort(403, 'Only VP of Office of the Vice President for Administration can reject trip tickets');
         }
         
         // Only allow rejecting if status is currently Pending

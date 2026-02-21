@@ -90,10 +90,10 @@
                                         </span>
                                     </td>
                                     <td class="px-3 py-2 whitespace-nowrap text-center text-xs">
-                                        <div class="action-buttons flex justify-center space-x-1">
-                                            <a href="{{ route('motorpool.travel-orders.show', $travelOrder) }}" 
+                                        <div class="action-buttons flex justify-center">
+                                            <a href="{{ route('motorpool.travel-orders.pdf', $travelOrder) }}" 
                                                class="btn view-btn border inline-flex items-center justify-center"
-                                               title="View Travel Order">
+                                               title="View Travel Order PDF" target="_blank">
                                                 <i class="fas fa-eye"></i> View
                                             </a>
                                         </div>

@@ -7,8 +7,12 @@
             <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
                 <h2 class="text-xl font-semibold text-gray-800">Travel Order #{{ $travelOrder->id }}</h2>
                 <div>
+                    <a href="{{ route('motorpool.travel-orders.pdf', $travelOrder) }}" 
+                       class="px-4 py-2 text-sm font-medium text-white bg-red-600 border border-red-600 rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 mr-2" target="_blank">
+                        <i class="fas fa-file-pdf mr-1"></i> Download PDF
+                    </a>
                     <a href="{{ route('motorpool.travel-orders.index') }}" 
-                       class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 mr-2">
+                       class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500">
                         Back to Travel Orders
                     </a>
                 </div>

@@ -30,9 +30,9 @@ return new class extends Migration
             
             // Update status column if it exists but has wrong values
             if (Schema::hasColumn('trip_tickets', 'status')) {
-                $table->enum('status', ['Pending', 'Issued', 'Completed', 'Cancelled'])->default('Pending')->change();
+                $table->enum('status', ['Pending', 'Approved', 'Completed', 'Cancelled'])->default('Pending')->change();
             } else {
-                $table->enum('status', ['Pending', 'Issued', 'Completed', 'Cancelled'])->default('Pending');
+                $table->enum('status', ['Pending', 'Approved', 'Completed', 'Cancelled'])->default('Pending');
             }
         });
     }

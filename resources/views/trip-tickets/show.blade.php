@@ -26,7 +26,7 @@
                                         <dd class="mt-1">
                                             <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
                                                 @if($tripTicket->status === 'Pending') bg-yellow-100 text-yellow-800
-                                                @elseif($tripTicket->status === 'Issued') bg-blue-100 text-blue-800
+                                                @elseif($tripTicket->status === 'Approved') bg-blue-100 text-blue-800
                                                 @elseif($tripTicket->status === 'Completed') bg-green-100 text-green-800
                                                 @elseif($tripTicket->status === 'Cancelled') bg-red-100 text-red-800
                                                 @endif">

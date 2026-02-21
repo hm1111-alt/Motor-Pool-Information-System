@@ -89,18 +89,150 @@ class DashboardController extends Controller
             if ($employee) {
                 // Determine which dashboard to show based on specific role
                 if ($employee->is_president) {
-                    return view('dashboards.president');
+                    // Get trip tickets for president
+                    $myTripTickets = \App\Models\TripTicket::with(['itinerary.vehicle', 'itinerary.driver', 'itinerary.travelOrder'])
+                        ->where('status', 'Approved')
+                        ->where(function ($query) use ($employee) {
+                            $query->where('head_of_party', 'LIKE', "%{$employee->first_name}%{$employee->last_name}%")
+                                  ->orWhere('head_of_party', 'LIKE', "%{$employee->last_name}%{$employee->first_name}%")
+                                  ->orWhere(function ($passengerQuery) use ($employee) {
+                                      $passengerQuery->where('passengers', 'LIKE', "%{$employee->first_name}%{$employee->last_name}%")
+                                                     ->orWhere('passengers', 'LIKE', "%{$employee->last_name}%{$employee->first_name}%");
+                                  })
+                                  // Check if employee is the original travel order creator
+                                  ->orWhereHas('itinerary.travelOrder', function ($travelOrderQuery) use ($employee) {
+                                      $travelOrderQuery->where('employee_id', $employee->id);
+                                  });
+                        })
+                        ->orderBy('created_at', 'desc')
+                        ->take(5)
+                        ->get();
+                    
+                    return view('dashboards.president', compact('myTripTickets'));
                 } elseif ($employee->is_vp) {
-                    return view('dashboards.vp');
+                    // Check if this VP belongs to the Office of the Vice President for Administration
+                    $isVpOfAdministration = $employee->positions()->whereHas('office', function($query) {
+                        $query->where('office_name', 'Office of the Vice President for Administration');
+                    })->exists();
+                    
+                    // Pass approval data to VP dashboard
+                    $pendingItineraries = \App\Models\Itinerary::where('unit_head_approved', true)
+                        ->where('vp_approved', false)
+                        ->whereNull('vp_approved_at')
+                        ->count();
+                        
+                    $pendingTripTickets = \App\Models\TripTicket::where('status', 'Pending')
+                        ->count();
+                    
+                    // Get trip tickets for VP
+                    $myTripTickets = \App\Models\TripTicket::with(['itinerary.vehicle', 'itinerary.driver', 'itinerary.travelOrder'])
+                        ->where('status', 'Approved')
+                        ->where(function ($query) use ($employee) {
+                            $query->where('head_of_party', 'LIKE', "%{$employee->first_name}%{$employee->last_name}%")
+                                  ->orWhere('head_of_party', 'LIKE', "%{$employee->last_name}%{$employee->first_name}%")
+                                  ->orWhere(function ($passengerQuery) use ($employee) {
+                                      $passengerQuery->where('passengers', 'LIKE', "%{$employee->first_name}%{$employee->last_name}%")
+                                                     ->orWhere('passengers', 'LIKE', "%{$employee->last_name}%{$employee->first_name}%");
+                                  })
+                                  // Check if employee is the original travel order creator
+                                  ->orWhereHas('itinerary.travelOrder', function ($travelOrderQuery) use ($employee) {
+                                      $travelOrderQuery->where('employee_id', $employee->id);
+                                  });
+                        })
+                        ->orderBy('created_at', 'desc')
+                        ->take(5)
+                        ->get();
+                    
+                    return view('dashboards.vp', compact('isVpOfAdministration', 'pendingItineraries', 'pendingTripTickets', 'myTripTickets'));
                 } elseif ($employee->is_divisionhead) {
-                    return view('dashboards.divisionhead');
+                    // Get trip tickets for division head
+                    $myTripTickets = \App\Models\TripTicket::with(['itinerary.vehicle', 'itinerary.driver', 'itinerary.travelOrder'])
+                        ->where('status', 'Approved')
+                        ->where(function ($query) use ($employee) {
+                            $query->where('head_of_party', 'LIKE', "%{$employee->first_name}%{$employee->last_name}%")
+                                  ->orWhere('head_of_party', 'LIKE', "%{$employee->last_name}%{$employee->first_name}%")
+                                  ->orWhere(function ($passengerQuery) use ($employee) {
+                                      $passengerQuery->where('passengers', 'LIKE', "%{$employee->first_name}%{$employee->last_name}%")
+                                                     ->orWhere('passengers', 'LIKE', "%{$employee->last_name}%{$employee->first_name}%");
+                                  })
+                                  // Check if employee is the original travel order creator
+                                  ->orWhereHas('itinerary.travelOrder', function ($travelOrderQuery) use ($employee) {
+                                      $travelOrderQuery->where('employee_id', $employee->id);
+                                  });
+                        })
+                        ->orderBy('created_at', 'desc')
+                        ->take(5)
+                        ->get();
+                    
+                    return view('dashboards.divisionhead', compact('myTripTickets'));
                 } elseif ($employee->is_head && !$employee->is_divisionhead && !$employee->is_vp) {
-                    return view('dashboards.unithead');
+                    // Get trip tickets for unit head
+                    $myTripTickets = \App\Models\TripTicket::with(['itinerary.vehicle', 'itinerary.driver', 'itinerary.travelOrder'])
+                        ->where('status', 'Approved')
+                        ->where(function ($query) use ($employee) {
+                            $query->where('head_of_party', 'LIKE', "%{$employee->first_name}%{$employee->last_name}%")
+                                  ->orWhere('head_of_party', 'LIKE', "%{$employee->last_name}%{$employee->first_name}%")
+                                  ->orWhere(function ($passengerQuery) use ($employee) {
+                                      $passengerQuery->where('passengers', 'LIKE', "%{$employee->first_name}%{$employee->last_name}%")
+                                                     ->orWhere('passengers', 'LIKE', "%{$employee->last_name}%{$employee->first_name}%");
+                                  })
+                                  // Check if employee is the original travel order creator
+                                  ->orWhereHas('itinerary.travelOrder', function ($travelOrderQuery) use ($employee) {
+                                      $travelOrderQuery->where('employee_id', $employee->id);
+                                  });
+                        })
+                        ->orderBy('created_at', 'desc')
+                        ->take(5)
+                        ->get();
+                    
+                    return view('dashboards.unithead', compact('myTripTickets'));
                 } elseif ($employee->is_head) {
-                    return view('dashboards.head');
+                    // Get trip tickets for head
+                    $myTripTickets = \App\Models\TripTicket::with(['itinerary.vehicle', 'itinerary.driver', 'itinerary.travelOrder'])
+                        ->where('status', 'Approved')
+                        ->where(function ($query) use ($employee) {
+                            $query->where('head_of_party', 'LIKE', "%{$employee->first_name}%{$employee->last_name}%")
+                                  ->orWhere('head_of_party', 'LIKE', "%{$employee->last_name}%{$employee->first_name}%")
+                                  ->orWhere(function ($passengerQuery) use ($employee) {
+                                      $passengerQuery->where('passengers', 'LIKE', "%{$employee->first_name}%{$employee->last_name}%")
+                                                     ->orWhere('passengers', 'LIKE', "%{$employee->last_name}%{$employee->first_name}%");
+                                  })
+                                  // Check if employee is the original travel order creator
+                                  ->orWhereHas('itinerary.travelOrder', function ($travelOrderQuery) use ($employee) {
+                                      $travelOrderQuery->where('employee_id', $employee->id);
+                                  });
+                        })
+                        ->orderBy('created_at', 'desc')
+                        ->take(5)
+                        ->get();
+                    
+                    return view('dashboards.head', compact('myTripTickets'));
                 } else {
                     // Regular employee dashboard
-                    return view('dashboards.employee');
+                    $employee = $user->employee;
+                    
+                    // Get trip tickets where employee is passenger, head of party, or the original travel order creator
+                    $myTripTickets = \App\Models\TripTicket::with(['itinerary.vehicle', 'itinerary.driver', 'itinerary.travelOrder'])
+                        ->where('status', 'Approved') // Only approved trip tickets
+                        ->where(function ($query) use ($employee) {
+                            // Check if employee is head of party
+                            $query->where('head_of_party', 'LIKE', "%{$employee->first_name}%{$employee->last_name}%")
+                                  ->orWhere('head_of_party', 'LIKE', "%{$employee->last_name}%{$employee->first_name}%")
+                                  // Check if employee is a passenger
+                                  ->orWhere(function ($passengerQuery) use ($employee) {
+                                      $passengerQuery->where('passengers', 'LIKE', "%{$employee->first_name}%{$employee->last_name}%")
+                                                     ->orWhere('passengers', 'LIKE', "%{$employee->last_name}%{$employee->first_name}%");
+                                  })
+                                  // Check if employee is the original travel order creator
+                                  ->orWhereHas('itinerary.travelOrder', function ($travelOrderQuery) use ($employee) {
+                                      $travelOrderQuery->where('employee_id', $employee->id);
+                                  });
+                        })
+                        ->orderBy('created_at', 'desc')
+                        ->take(5)
+                        ->get();
+                    
+                    return view('dashboards.employee', compact('myTripTickets'));
                 }
             } else {
                 // Regular employee dashboard

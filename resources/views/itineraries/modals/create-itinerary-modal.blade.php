@@ -149,7 +149,7 @@ function prefillTravelOrderDataModal(selectElement) {
         document.getElementById('departure_time').value = '';
         document.getElementById('arrival_time').value = '';
         document.getElementById('destination').value = '';
-        document.getElementById('purpose').value = '';
+        // Purpose should remain unchanged as it's independent and required to be manually entered
         // Reset driver and vehicle options to show all available
         resetDriverAndVehicleOptions();
         return;
@@ -160,9 +160,9 @@ function prefillTravelOrderDataModal(selectElement) {
     const dateTo = selectedOption.getAttribute('data-date-to');
     const departureTime = selectedOption.getAttribute('data-departure-time');
     const destination = selectedOption.getAttribute('data-destination');
-    const purpose = selectedOption.getAttribute('data-purpose');
+    // Note: Purpose is intentionally NOT pre-filled - it should be manually entered by the user
     
-    // Prefill fields
+    // Prefill fields (excluding purpose)
     if (dateFrom) {
         document.getElementById('date_from').value = dateFrom;
     }
@@ -180,9 +180,7 @@ function prefillTravelOrderDataModal(selectElement) {
     if (destination) {
         document.getElementById('destination').value = destination;
     }
-    if (purpose) {
-        document.getElementById('purpose').value = purpose;
-    }
+    // Purpose field is intentionally NOT pre-filled - it remains empty for user input
     
     // Update available drivers and vehicles based on the selected date
     if (dateFrom) {

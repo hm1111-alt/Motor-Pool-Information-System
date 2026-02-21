@@ -332,6 +332,14 @@
                                 <span :class="sidebarOpen ? 'block' : 'hidden'" class="font-medium truncate">Travel History</span>
                             </a>
                             
+                            <!-- Approval Links - Only for VP of Office of the Vice President for Administration -->
+                            @php
+                                $isVpOfAdministration = auth()->user()->employee->positions()->whereHas('office', function($query) {
+                                    $query->where('office_name', 'Office of the Vice President for Administration');
+                                })->exists();
+                            @endphp
+                            
+                            @if($isVpOfAdministration)
                             <!-- Travel Order Approvals -->
                             <a href="{{ route('travel-orders.approvals.vp') }}" class="flex items-center px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors duration-200 mb-1">
                                 <div class="rounded-lg bg-[#1e6031] p-2 mr-3 flex-shrink-0">
@@ -361,6 +369,7 @@
                                 </div>
                                 <span :class="sidebarOpen ? 'block' : 'hidden'" class="font-medium truncate">Trip Ticket Approvals</span>
                             </a>
+                            @endif
                         @endif
 
                     </nav>

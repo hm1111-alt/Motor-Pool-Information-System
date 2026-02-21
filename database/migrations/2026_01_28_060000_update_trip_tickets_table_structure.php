@@ -30,7 +30,7 @@ return new class extends Migration
             
             // Ensure only required columns remain: id, itinerary_id, status
             if (!Schema::hasColumn('trip_tickets', 'status')) {
-                $table->enum('status', ['Pending', 'Issued', 'Completed', 'Cancelled'])->default('Pending');
+                $table->enum('status', ['Pending', 'Approved', 'Completed', 'Cancelled'])->default('Pending');
             }
         });
     }

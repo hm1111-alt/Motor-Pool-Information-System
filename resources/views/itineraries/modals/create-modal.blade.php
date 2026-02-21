@@ -199,6 +199,7 @@ function loadTravelOrderDetails(travelOrderId) {
         document.getElementById('date_to_modal').value = '';
         document.getElementById('departure_time_modal').value = '';
         document.getElementById('destination_modal').value = '';
+        // Purpose should remain unchanged as it's independent and required to be manually entered
         return;
     }
     
@@ -210,12 +211,12 @@ function loadTravelOrderDetails(travelOrderId) {
             const dateFrom = data.date_from ? formatDateForInput(data.date_from) : '';
             const dateTo = data.date_to ? formatDateForInput(data.date_to) : '';
             
-            // Set the values in the form
+            // Set the values in the form (excluding purpose)
             document.getElementById('date_from_modal').value = dateFrom;
             document.getElementById('date_to_modal').value = dateTo;
             document.getElementById('departure_time_modal').value = data.departure_time || '';
             document.getElementById('destination_modal').value = data.destination || '';
-            document.getElementById('purpose_modal').value = data.purpose || '';
+            // Purpose field is intentionally NOT pre-filled - it remains empty for user input
         })
         .catch(error => console.error('Error loading travel order details:', error));
 }
