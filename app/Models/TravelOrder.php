@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class TravelOrder extends Model
 {
@@ -67,11 +68,11 @@ class TravelOrder extends Model
     }
     
     /**
-     * Get the itineraries associated with the travel order.
+     * Get the itinerary associated with the travel order.
      */
-    public function itinerary(): HasMany
+    public function itinerary(): HasOne
     {
-        return $this->hasMany(Itinerary::class, 'travel_order_id');
+        return $this->hasOne(Itinerary::class, 'travel_order_id');
     }
 
     /**

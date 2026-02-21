@@ -11,8 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // Update the status enum values to use the correct ones
-        \DB::statement("ALTER TABLE trip_tickets MODIFY status ENUM('Pending', 'Approved', 'Completed', 'Cancelled') DEFAULT 'Pending'");
+        Schema::table('trip_tickets', function (Blueprint $table) {
+            //
+        });
     }
 
     /**

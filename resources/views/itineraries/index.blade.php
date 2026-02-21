@@ -114,7 +114,7 @@
                                                 <div class="action-buttons flex justify-center space-x-1">
                                                     <button type="button"
                                                             class="btn view-btn border inline-flex items-center justify-center"
-                                                            title="View Itinerary"
+                                                            title="View Itinerary Details"
                                                             onclick="loadAndShowItinerary({{ $itinerary->id }})">
                                                         <i class="fas fa-eye"></i> View
                                                     </button>
@@ -362,6 +362,12 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 });
+
+// Function to view itinerary as PDF
+function viewItineraryPDF(itineraryId) {
+    // Open the PDF in a new tab
+    window.open(`/itinerary/${itineraryId}/pdf`, '_blank');
+}
 
 // Function to load and show itinerary details in modal
 function loadAndShowItinerary(itineraryId) {

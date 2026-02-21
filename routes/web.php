@@ -223,6 +223,12 @@ Route::middleware('auth')->group(function () {
     Route::get('/travel-orders/{travelOrder}/edit', [RegularEmployeeTravelOrderController::class, 'edit'])->name('travel-orders.edit');
     Route::put('/travel-orders/{travelOrder}', [RegularEmployeeTravelOrderController::class, 'update'])->name('travel-orders.update');
     Route::delete('/travel-orders/{travelOrder}', [RegularEmployeeTravelOrderController::class, 'destroy'])->name('travel-orders.destroy');
+    Route::get('/travel-orders/{travelOrder}/pdf', [RegularEmployeeTravelOrderController::class, 'generatePDF'])->name('travel-orders.pdf');
+    Route::get('/api/travel-orders/{travelOrder}', [RegularEmployeeTravelOrderController::class, 'showDetails'])->name('travel-orders.details');
+    Route::get('/api/head/travel-orders/{travelOrder}', [HeadTravelOrderController::class, 'showDetails'])->name('head.travel-orders.details');
+    Route::get('/api/divisionhead/travel-orders/{travelOrder}', [DivisionHeadTravelOrderController::class, 'showDetails'])->name('divisionhead.travel-orders.details');
+    Route::get('/api/vp/travel-orders/{travelOrder}', [VpTravelOrderController::class, 'showDetails'])->name('vp.travel-orders.details');
+    Route::get('/api/president/travel-orders/{travelOrder}', [PresidentTravelOrderController::class, 'showDetails'])->name('president.travel-orders.details');
     
     // Travel Order Routes for Heads (own travel orders)
     Route::get('/head/travel-orders', [HeadOwnTravelOrderController::class, 'index'])->name('head.travel-orders.index');
@@ -236,6 +242,7 @@ Route::middleware('auth')->group(function () {
     // Travel Order Approval Routes for Heads
     Route::get('/travel-orders/approvals/head', [HeadTravelOrderController::class, 'index'])->name('travel-orders.approvals.head');
     Route::get('/travel-orders/{travelOrder}/approval-show/head', [HeadTravelOrderController::class, 'show'])->name('travel-orders.approval-show.head');
+    Route::get('/travel-orders/{travelOrder}/approval-pdf/head', [HeadTravelOrderController::class, 'generatePDF'])->name('travel-orders.approval-pdf.head');
     Route::put('/travel-orders/{travelOrder}/approve/head', [HeadTravelOrderController::class, 'approve'])->name('travel-orders.approve.head');
     Route::put('/travel-orders/{travelOrder}/reject/head', [HeadTravelOrderController::class, 'reject'])->name('travel-orders.reject.head');
     
@@ -247,6 +254,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/unithead/travel-orders/{travelOrder}/edit', [UnitHeadOwnTravelOrderController::class, 'edit'])->name('unithead.travel-orders.edit');
     Route::put('/unithead/travel-orders/{travelOrder}', [UnitHeadOwnTravelOrderController::class, 'update'])->name('unithead.travel-orders.update');
     Route::delete('/unithead/travel-orders/{travelOrder}', [UnitHeadOwnTravelOrderController::class, 'destroy'])->name('unithead.travel-orders.destroy');
+    Route::get('/unithead/travel-orders/{travelOrder}/pdf', [UnitHeadOwnTravelOrderController::class, 'generatePDF'])->name('unithead.travel-orders.pdf');
     
     // Travel Order Routes for Division Heads (own travel orders)
     Route::get('/divisionhead/travel-orders', [DivisionHeadOwnTravelOrderController::class, 'index'])->name('divisionhead.travel-orders.index');
@@ -256,10 +264,12 @@ Route::middleware('auth')->group(function () {
     Route::get('/divisionhead/travel-orders/{travelOrder}/edit', [DivisionHeadOwnTravelOrderController::class, 'edit'])->name('divisionhead.travel-orders.edit');
     Route::put('/divisionhead/travel-orders/{travelOrder}', [DivisionHeadOwnTravelOrderController::class, 'update'])->name('divisionhead.travel-orders.update');
     Route::delete('/divisionhead/travel-orders/{travelOrder}', [DivisionHeadOwnTravelOrderController::class, 'destroy'])->name('divisionhead.travel-orders.destroy');
+    Route::get('/divisionhead/travel-orders/{travelOrder}/pdf', [DivisionHeadOwnTravelOrderController::class, 'generatePDF'])->name('divisionhead.travel-orders.pdf');
     
     // Travel Order Approval Routes for Division Heads
     Route::get('/travel-orders/approvals/divisionhead', [DivisionHeadTravelOrderController::class, 'index'])->name('travel-orders.approvals.divisionhead');
     Route::get('/travel-orders/{travelOrder}/approval-show/divisionhead', [DivisionHeadTravelOrderController::class, 'show'])->name('travel-orders.approval-show.divisionhead');
+    Route::get('/travel-orders/{travelOrder}/approval-pdf/divisionhead', [DivisionHeadTravelOrderController::class, 'generatePDF'])->name('travel-orders.approval-pdf.divisionhead');
     Route::put('/travel-orders/{travelOrder}/approve/divisionhead', [DivisionHeadTravelOrderController::class, 'approve'])->name('travel-orders.approve.divisionhead');
     Route::put('/travel-orders/{travelOrder}/reject/divisionhead', [DivisionHeadTravelOrderController::class, 'reject'])->name('travel-orders.reject.divisionhead');
     
@@ -271,10 +281,12 @@ Route::middleware('auth')->group(function () {
     Route::get('/vp/travel-orders/{travelOrder}/edit', [VpOwnTravelOrderController::class, 'edit'])->name('vp.travel-orders.edit');
     Route::put('/vp/travel-orders/{travelOrder}', [VpOwnTravelOrderController::class, 'update'])->name('vp.travel-orders.update');
     Route::delete('/vp/travel-orders/{travelOrder}', [VpOwnTravelOrderController::class, 'destroy'])->name('vp.travel-orders.destroy');
+    Route::get('/vp/travel-orders/{travelOrder}/pdf', [VpOwnTravelOrderController::class, 'generatePDF'])->name('vp.travel-orders.pdf');
     
     // Travel Order Approval Routes for VPs
     Route::get('/travel-orders/approvals/vp', [VpTravelOrderController::class, 'index'])->name('travel-orders.approvals.vp');
     Route::get('/travel-orders/{travelOrder}/approval-show/vp', [VpTravelOrderController::class, 'show'])->name('travel-orders.approval-show.vp');
+    Route::get('/travel-orders/{travelOrder}/approval-pdf/vp', [VpTravelOrderController::class, 'generatePDF'])->name('travel-orders.approval-pdf.vp');
     Route::put('/travel-orders/{travelOrder}/approve/vp', [VpTravelOrderController::class, 'approve'])->name('travel-orders.approve.vp');
     Route::put('/travel-orders/{travelOrder}/reject/vp', [VpTravelOrderController::class, 'reject'])->name('travel-orders.reject.vp');
     
@@ -286,10 +298,12 @@ Route::middleware('auth')->group(function () {
     Route::get('/president/travel-orders/{travelOrder}/edit', [PresidentOwnTravelOrderController::class, 'edit'])->name('president.travel-orders.edit');
     Route::put('/president/travel-orders/{travelOrder}', [PresidentOwnTravelOrderController::class, 'update'])->name('president.travel-orders.update');
     Route::delete('/president/travel-orders/{travelOrder}', [PresidentOwnTravelOrderController::class, 'destroy'])->name('president.travel-orders.destroy');
+    Route::get('/president/travel-orders/{travelOrder}/pdf', [PresidentOwnTravelOrderController::class, 'generatePDF'])->name('president.travel-orders.pdf');
     
     // Travel Order Approval Routes for Presidents
     Route::get('/travel-orders/approvals/president', [PresidentTravelOrderController::class, 'index'])->name('travel-orders.approvals.president');
     Route::get('/travel-orders/{travelOrder}/approval-show/president', [PresidentTravelOrderController::class, 'show'])->name('travel-orders.approval-show.president');
+    Route::get('/travel-orders/{travelOrder}/approval-pdf/president', [PresidentTravelOrderController::class, 'generatePDF'])->name('travel-orders.approval-pdf.president');
     Route::put('/travel-orders/{travelOrder}/approve/president', [PresidentTravelOrderController::class, 'approve'])->name('travel-orders.approve.president');
     Route::put('/travel-orders/{travelOrder}/reject/president', [PresidentTravelOrderController::class, 'reject'])->name('travel-orders.reject.president');
     
@@ -312,6 +326,8 @@ Route::middleware('auth')->group(function () {
     Route::resource('trip-tickets', App\Http\Controllers\TripTicketController::class);
     Route::patch('/trip-tickets/{id}/status', [App\Http\Controllers\TripTicketController::class, 'updateStatus'])->name('trip-tickets.status.update');
     Route::get('/api/travel-orders/{id}/passengers', [App\Http\Controllers\TripTicketController::class, 'getPassengersForTravelOrder']);
+    Route::get('/trip-tickets/{id}/pdf', [App\Http\Controllers\TripTicketController::class, 'generatePDF'])->name('trip-tickets.pdf');
+    Route::get('/api/trip-tickets/{id}', [App\Http\Controllers\TripTicketController::class, 'getDetails'])->name('api.trip-tickets.details');
     Route::get('/api/travel-orders/{id}/creator', [App\Http\Controllers\RegularEmployeeTravelOrderController::class, 'getCreator']);
     Route::get('/api/travel-orders/{id}', function($id) {
         $travelOrder = \App\Models\TravelOrder::with('employee')->find($id);
@@ -380,6 +396,7 @@ Route::middleware('auth')->group(function () {
     // Itinerary Management Routes for Motorpool Admin
     Route::resource('itinerary', App\Http\Controllers\ItineraryController::class);
     Route::get('/itinerary/create/modal', [App\Http\Controllers\ItineraryController::class, 'createModal'])->name('itinerary.create.modal');
+    Route::get('/itinerary/{itinerary}/pdf', [App\Http\Controllers\ItineraryController::class, 'generatePDF'])->name('itinerary.pdf');
     
     // Itinerary Approval Routes
     Route::prefix('itinerary/approvals')->name('itinerary.approvals.')->group(function () {
@@ -396,6 +413,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/motorpool/approvals/itineraries/unit-head', [App\Http\Controllers\ItineraryApprovalController::class, 'unitHeadPending'])->name('motorpool.approvals.itineraries.unit-head');
     Route::get('/motorpool/approvals/itineraries/vp', [App\Http\Controllers\ItineraryApprovalController::class, 'vpPending'])->name('motorpool.approvals.itineraries.vp');
     Route::get('/motorpool/approvals/itineraries/approved', [App\Http\Controllers\ItineraryApprovalController::class, 'approved'])->name('motorpool.approvals.itineraries.approved');
+    Route::get('/motorpool/approvals/trip-tickets/vp', [App\Http\Controllers\VpTripTicketApprovalController::class, 'vpPending'])->name('motorpool.approvals.triptickets.vp');
     
     // VP Trip Ticket Approval Routes
     Route::prefix('vp/approvals/trip-tickets')->name('vp.trip-tickets.approvals.')->group(function () {
@@ -424,6 +442,7 @@ Route::middleware('auth')->group(function () {
     Route::prefix('motorpool')->name('motorpool.')->group(function () {
         Route::get('/dashboard', [MotorpoolAdminController::class, 'dashboard'])->name('dashboard');
         Route::resource('travel-orders', App\Http\Controllers\MotorpoolAdminTravelOrderController::class)->only(['index', 'show']);
+        Route::get('/travel-orders/{travelOrder}/pdf', [App\Http\Controllers\MotorpoolAdminTravelOrderController::class, 'generatePDF'])->name('travel-orders.pdf');
     });
 
     // Test route for travel order creation
@@ -440,6 +459,17 @@ Route::middleware('auth')->group(function () {
         
         return 'User: ' . $user->name . ', Employee: ' . $employee->first_name . ' ' . $employee->last_name;
     })->name('test-create-travel-order');
+    
+    // Test route for itinerary modal
+    Route::get('/test-itinerary-modal', function () {
+        $vehicles = \App\Models\Vehicle::whereIn('status', ['Available', 'Active'])->get();
+        $drivers = \App\Models\Driver::where('availability_status', 'Available')->get();
+        $travelOrders = \App\Models\TravelOrder::where('status', 'approved')
+            ->whereDoesntHave('itinerary')
+            ->get();
+        
+        return view('test-modal', compact('vehicles', 'drivers', 'travelOrders'));
+    })->name('test-itinerary-modal');
 });
 
 Route::get('/login', function () {

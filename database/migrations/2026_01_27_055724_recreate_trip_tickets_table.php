@@ -22,7 +22,7 @@ return new class extends Migration
         Schema::create('trip_tickets', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('itinerary_id')->nullable();
-            $table->enum('status', ['Pending', 'Issued', 'Completed', 'Cancelled'])->default('Pending');
+            $table->enum('status', ['Pending', 'Approved', 'Completed', 'Cancelled'])->default('Pending');
             $table->json('passengers')->nullable();
             $table->timestamps();
             

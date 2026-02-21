@@ -102,7 +102,7 @@
             </div>
             
             <!-- Quick Overview -->
-            <div class="bg-white overflow-hidden shadow-sm rounded-lg">
+            <div class="bg-white overflow-hidden shadow-sm rounded-lg mb-6">
                 <div class="p-6">
                     <h2 class="text-lg font-semibold text-gray-800 mb-4">Quick Overview</h2>
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
@@ -158,6 +158,67 @@
                     </div>
                 </div>
             </div>
+            
+            <!-- My Trip Tickets Section -->
+            @if(isset($myTripTickets) && $myTripTickets->count() > 0)
+            <div class="bg-white overflow-hidden shadow-sm rounded-lg">
+                <div class="p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h2 class="text-lg font-semibold text-gray-800">My Trip Tickets</h2>
+                        <a href="{{ route('employee.trip-tickets.index') }}" class="text-[#1e6031] hover:text-[#164f2a] font-medium text-sm">
+                            View All →
+                        </a>
+                    </div>
+                    
+                    <div class="space-y-4">
+                        @foreach($myTripTickets as $ticket)
+                            <div class="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition">
+                                <div class="flex justify-between items-start">
+                                    <div>
+                                        <h3 class="font-medium text-gray-900">Ticket #{{ $ticket->ticket_number }}</h3>
+                                        <p class="text-sm text-gray-600 mt-1">
+                                            <span class="font-medium">Destination:</span> {{ $ticket->itinerary->destination ?? 'N/A' }}
+                                        </p>
+                                        <p class="text-sm text-gray-600 mt-1">
+                                            <span class="font-medium">Date:</span> 
+                                            {{ $ticket->itinerary->date_from?->format('M d, Y') ?? 'N/A' }}
+                                        </p>
+                                        <p class="text-sm text-gray-600 mt-1">
+                                            <span class="font-medium">Vehicle:</span> 
+                                            {{ $ticket->itinerary->vehicle->make ?? 'N/A' }} {{ $ticket->itinerary->vehicle->model ?? '' }}
+                                        </p>
+                                        <p class="text-sm text-gray-600 mt-1">
+                                            <span class="font-medium">Driver:</span> 
+                                            {{ $ticket->itinerary->driver->full_name ?? 'N/A' }}
+                                        </p>
+                                        @if($ticket->head_of_party && (str_contains($ticket->head_of_party, Auth::user()->employee->first_name) || str_contains($ticket->head_of_party, Auth::user()->employee->last_name)))
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 mt-2">
+                                                Head of Party
+                                            </span>
+                                        @else
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 mt-2">
+                                                Passenger
+                                            </span>
+                                        @endif
+                                    </div>
+                                    <div class="text-right">
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                            {{ $ticket->status }}
+                                        </span>
+                                        <div class="mt-2">
+                                            <a href="{{ route('employee.trip-tickets.show', $ticket->id) }}" 
+                                               class="text-sm text-[#1e6031] hover:text-[#164f2a] font-medium">
+                                                View Details
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+            </div>
+            @endif
         </div>
     </div>
 @endsection

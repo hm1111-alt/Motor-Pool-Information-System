@@ -306,9 +306,8 @@
         }
         
         function viewTravelOrder(id) {
-            // Placeholder for view functionality
-            alert('View travel order ID: ' + id);
-            // You can implement modal or redirect here
+            // Open PDF directly in new tab
+            window.open('/motorpool/travel-orders/' + id + '/pdf', '_blank');
         }
     </script>
 @endsection

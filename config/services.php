@@ -42,4 +42,16 @@ return [
     //     ],
     // ],
 
+    'convertapi' => [
+        'secret' => env('CONVERTAPI_SECRET'),
+    ],
+
+    'adobe' => [
+        'client_id' => env('ADOBE_PDF_SERVICES_CLIENT_ID'),
+        'client_secret' => env('ADOBE_PDF_SERVICES_CLIENT_SECRET'),
+        'private_key' => env('ADOBE_PDF_SERVICES_PRIVATE_KEY'),
+        'organization_id' => env('ADOBE_PDF_SERVICES_ORGANIZATION_ID'),
+        'account_id' => env('ADOBE_PDF_SERVICES_ACCOUNT_ID'),
+    ],
+
 ];

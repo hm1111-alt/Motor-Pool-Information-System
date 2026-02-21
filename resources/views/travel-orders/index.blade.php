@@ -115,4 +115,27 @@
     
     <!-- Include the table search JavaScript -->
     <script src="{{ asset('js/table-search.js') }}"></script>
+    
+    <script>
+        function viewTravelOrderPDF(id) {
+            // Check if the current user is a unit head
+            const isUnitHead = {{ auth()->user()->employee && auth()->user()->employee->is_head && !auth()->user()->employee->is_divisionhead && !auth()->user()->employee->is_vp && !auth()->user()->employee->is_president ? 'true' : 'false' }};
+            
+            // Check if the current user is a division head
+            const isDivisionHead = {{ auth()->user()->employee && auth()->user()->employee->is_divisionhead && !auth()->user()->employee->is_vp && !auth()->user()->employee->is_president ? 'true' : 'false' }};
+            
+            // Determine the correct route based on user role
+            let pdfUrl;
+            if (isUnitHead) {
+                pdfUrl = '/unithead/travel-orders/' + id + '/pdf';
+            } else if (isDivisionHead) {
+                pdfUrl = '/divisionhead/travel-orders/' + id + '/pdf';
+            } else {
+                pdfUrl = '/travel-orders/' + id + '/pdf';
+            }
+            
+            // Open PDF directly in new tab
+            window.open(pdfUrl, '_blank');
+        }
+    </script>
 @endsection
