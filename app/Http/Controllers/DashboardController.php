@@ -115,14 +115,85 @@ class DashboardController extends Controller
                         $query->where('office_name', 'Office of the Vice President for Administration');
                     })->exists();
                     
-                    // Pass approval data to VP dashboard
-                    $pendingItineraries = \App\Models\Itinerary::where('unit_head_approved', true)
-                        ->where('vp_approved', false)
-                        ->whereNull('vp_approved_at')
+                    // Count travel orders that require VP approval (for all VPs)
+                    $pendingTravelOrders = \App\Models\TravelOrder::where(function ($query) use ($employee) {
+                            // Include division head travel orders that need VP approval (division heads approve their own)
+                            $query->whereHas('employee.officer', function ($officerQuery) {
+                                $officerQuery->where('division_head', true)
+                                      ->where('vp', false)
+                                      ->where('president', false);
+                            })
+                            ->where(function($subQuery) {
+                                // Division head travel orders don't need head approval, they go directly to VP
+                                $subQuery->whereNull('vp_approved');
+                            })
+                            ->orWhere(function ($orQuery) {
+                                // Include unit head travel orders that have been approved by division head
+                                $orQuery->whereHas('employee.officer', function ($officerQuery) {
+                                    $officerQuery->where('unit_head', true)
+                                          ->where('division_head', false)
+                                          ->where('vp', false)
+                                          ->where('president', false);
+                                })
+                                ->where('divisionhead_approved', true);
+                            });
+                        })
+                        ->where(function ($positionQuery) use ($employee) {
+                            // Either in the same office as the VP
+                            $positionQuery->whereHas('position', function ($posQuery) use ($employee) {
+                                $vpPrimaryPosition = $employee->positions()->where('is_primary', true)->first();
+                                $vpOfficeId = $vpPrimaryPosition ? $vpPrimaryPosition->office_id : null;
+                                $posQuery->where('office_id', $vpOfficeId);
+                            })
+                            // OR escalate to President if no VP in same office
+                            ->orWhere(function ($orQuery) use ($employee) {
+                                // Check if there's no VP in the same office
+                                $vpPrimaryPosition = $employee->positions()->where('is_primary', true)->first();
+                                $vpOfficeId = $vpPrimaryPosition ? $vpPrimaryPosition->office_id : null;
+                                
+                                $vpInSameOffice = \App\Models\Employee::whereHas('positions', function($query) use ($vpOfficeId) {
+                                    $query->where('is_vp', true)
+                                          ->where('office_id', $vpOfficeId);
+                                })->exists();
+                                
+                                // If no VP in same office, escalate to President
+                                if (!$vpInSameOffice) {
+                                    // Check if there's a President
+                                    $presidentExists = \App\Models\Employee::whereHas('positions', function($query) {
+                                        $query->where('is_president', true);
+                                    })->exists();
+                                    
+                                    // If President exists, include all travel orders for President approval
+                                    if ($presidentExists) {
+                                        $orQuery->whereNotNull('divisionhead_approved') // Only approved by division head
+                                                ->whereNull('vp_approved') // Not yet approved by VP
+                                                ->whereNull('president_approved'); // Not yet approved by President
+                                    } else {
+                                        // No President either - include nothing (this shouldn't happen)
+                                        $orQuery->whereRaw('1 = 0');
+                                    }
+                                } else {
+                                    // VP exists in same office - don't escalate
+                                    $orQuery->whereRaw('1 = 0');
+                                }
+                            });
+                        })
+                        ->whereNull('vp_approved')
                         ->count();
-                        
-                    $pendingTripTickets = \App\Models\TripTicket::where('status', 'Pending')
-                        ->count();
+                    
+                    // Only calculate itinerary and trip ticket counts for VP of Office of the Vice President for Administration
+                    if ($isVpOfAdministration) {
+                        $pendingItineraries = \App\Models\Itinerary::where('unit_head_approved', true)
+                            ->where('vp_approved', false)
+                            ->whereNull('vp_approved_at')
+                            ->count();
+                            
+                        $pendingTripTickets = \App\Models\TripTicket::where('status', 'Pending')
+                            ->count();
+                    } else {
+                        $pendingItineraries = 0;
+                        $pendingTripTickets = 0;
+                    }
                     
                     // Get trip tickets for VP
                     $myTripTickets = \App\Models\TripTicket::with(['itinerary.vehicle', 'itinerary.driver', 'itinerary.travelOrder'])
@@ -143,7 +214,7 @@ class DashboardController extends Controller
                         ->take(5)
                         ->get();
                     
-                    return view('dashboards.vp', compact('isVpOfAdministration', 'pendingItineraries', 'pendingTripTickets', 'myTripTickets'));
+                    return view('dashboards.vp', compact('isVpOfAdministration', 'pendingTravelOrders', 'pendingItineraries', 'pendingTripTickets', 'myTripTickets'));
                 } elseif ($employee->is_divisionhead) {
                     // Get trip tickets for division head
                     $myTripTickets = \App\Models\TripTicket::with(['itinerary.vehicle', 'itinerary.driver', 'itinerary.travelOrder'])

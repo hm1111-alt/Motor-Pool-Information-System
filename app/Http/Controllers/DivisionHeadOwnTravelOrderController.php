@@ -394,14 +394,14 @@ class DivisionHeadOwnTravelOrderController extends Controller
         if ($travelOrder->president_approved_at) {
             $presidentStatus = $travelOrder->president_approved ? 'APPROVED' : 'DECLINED';
             $presidentTimestamp = $travelOrder->president_approved_at->format('M j, Y g:i A');
-            $sheet->setCellValue('I17', $presidentStatus . ' ' . $presidentTimestamp);
+            $sheet->setCellValue('H17', $presidentStatus . ' ' . $presidentTimestamp);
         }
         
         // VP approval status (K43) - always shown when VP has approved
         if ($travelOrder->vp_approved_at) {
             $vpStatus = $travelOrder->vp_approved ? 'APPROVED' : 'DECLINED';
             $vpTimestamp = $travelOrder->vp_approved_at->format('M j, Y g:i A');
-            $sheet->setCellValue('K43', $vpStatus . ' ' . $vpTimestamp);
+            $sheet->setCellValue('I43', $vpStatus . ' ' . $vpTimestamp);
         }
         
         // Special case: When President has approved, also show President status in K43
@@ -409,7 +409,7 @@ class DivisionHeadOwnTravelOrderController extends Controller
         if ($travelOrder->president_approved_at && !$travelOrder->vp_approved_at) {
             $presidentStatus = $travelOrder->president_approved ? 'APPROVED' : 'DECLINED';
             $presidentTimestamp = $travelOrder->president_approved_at->format('M j, Y g:i A');
-            $sheet->setCellValue('K43', $presidentStatus . ' ' . $presidentTimestamp);
+            $sheet->setCellValue('I43', $presidentStatus . ' ' . $presidentTimestamp);
         }
         
         // Save Excel to temporary file

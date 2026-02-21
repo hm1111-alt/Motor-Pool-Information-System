@@ -293,6 +293,7 @@ Route::middleware('auth')->group(function () {
     Route::patch('/trip-tickets/{id}/status', [App\Http\Controllers\TripTicketController::class, 'updateStatus'])->name('trip-tickets.status.update');
     Route::get('/api/travel-orders/{id}/passengers', [App\Http\Controllers\TripTicketController::class, 'getPassengersForTravelOrder']);
     Route::get('/trip-tickets/{id}/pdf', [App\Http\Controllers\TripTicketController::class, 'generatePDF'])->name('trip-tickets.pdf');
+    Route::get('/api/trip-tickets/{id}', [App\Http\Controllers\TripTicketController::class, 'getDetails'])->name('api.trip-tickets.details');
     Route::get('/api/travel-orders/{id}/creator', [App\Http\Controllers\RegularEmployeeTravelOrderController::class, 'getCreator']);
     Route::get('/api/travel-orders/{id}', function($id) {
         $travelOrder = \App\Models\TravelOrder::with('employee')->find($id);

@@ -409,27 +409,27 @@ class DivisionHeadTravelOrderController extends Controller
         if ($travelOrder->head_approved_at) {
             $unitHeadStatus = $travelOrder->head_approved ? 'APPROVED' : 'DECLINED';
             $unitHeadTimestamp = $travelOrder->head_approved_at->format('M j, Y g:i A');
-            $sheet->setCellValue('I17', $unitHeadStatus . ' ' . $unitHeadTimestamp);
+            $sheet->setCellValue('H17', $unitHeadStatus . ' ' . $unitHeadTimestamp);
         }
         
         // K43: Show Division Head approval status when available
         if ($travelOrder->divisionhead_approved_at) {
             $divisionHeadStatus = $travelOrder->divisionhead_approved ? 'APPROVED' : 'DECLINED';
             $divisionHeadTimestamp = $travelOrder->divisionhead_approved_at->format('M j, Y g:i A');
-            $sheet->setCellValue('K43', $divisionHeadStatus . ' ' . $divisionHeadTimestamp);
+            $sheet->setCellValue('I43', $divisionHeadStatus . ' ' . $divisionHeadTimestamp);
         }
         
         // For VP/President approval, show in K43 if no division head approval
         if ($travelOrder->vp_approved_at && !$travelOrder->divisionhead_approved_at) {
             $vpStatus = $travelOrder->vp_approved ? 'APPROVED' : 'DECLINED';
             $vpTimestamp = $travelOrder->vp_approved_at->format('M j, Y g:i A');
-            $sheet->setCellValue('K43', $vpStatus . ' ' . $vpTimestamp);
+            $sheet->setCellValue('I43', $vpStatus . ' ' . $vpTimestamp);
         }
         
         if ($travelOrder->president_approved_at && !$travelOrder->divisionhead_approved_at && !$travelOrder->vp_approved_at) {
             $presidentStatus = $travelOrder->president_approved ? 'APPROVED' : 'DECLINED';
             $presidentTimestamp = $travelOrder->president_approved_at->format('M j, Y g:i A');
-            $sheet->setCellValue('K43', $presidentStatus . ' ' . $presidentTimestamp);
+            $sheet->setCellValue('I43', $presidentStatus . ' ' . $presidentTimestamp);
         }
         
         // Save Excel temporarily for conversion

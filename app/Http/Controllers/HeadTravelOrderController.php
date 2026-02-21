@@ -342,32 +342,26 @@ class HeadTravelOrderController extends Controller
         $sheet->setCellValue('I45', $higherRankName);
         $sheet->setCellValue('I46', $higherRankPosition);
         
-        // Add approval status in cells I17 (Division Head) and K43 (Unit Head/VP/President)
-        // I17: Show only when Division Head has approved/declined
-        if ($travelOrder->divisionhead_approved_at) {
-            $divisionHeadStatus = $travelOrder->divisionhead_approved ? 'APPROVED' : 'DECLINED';
-            $divisionHeadTimestamp = $travelOrder->divisionhead_approved_at->format('M j, Y g:i A');
-            $sheet->setCellValue('I17', $divisionHeadStatus . ' ' . $divisionHeadTimestamp);
-        }
-        
-        // K43: Show Unit Head approval status when available
+        // Add approval status in cells H17 (Division Head/Unit Head) and I43 (VP/President)
+        // H17: Show Unit Head approval status when available (since unit head is approving this travel order)
         if ($travelOrder->head_approved_at) {
             $unitHeadStatus = $travelOrder->head_approved ? 'APPROVED' : 'DECLINED';
             $unitHeadTimestamp = $travelOrder->head_approved_at->format('M j, Y g:i A');
-            $sheet->setCellValue('K43', $unitHeadStatus . ' ' . $unitHeadTimestamp);
+            $sheet->setCellValue('H17', $unitHeadStatus . ' ' . $unitHeadTimestamp);
         }
         
-        // For VP/President approval, show in K43 if no unit head approval
-        if ($travelOrder->vp_approved_at && !$travelOrder->head_approved_at) {
+        // I43: Show VP approval status when available
+        if ($travelOrder->vp_approved_at) {
             $vpStatus = $travelOrder->vp_approved ? 'APPROVED' : 'DECLINED';
             $vpTimestamp = $travelOrder->vp_approved_at->format('M j, Y g:i A');
-            $sheet->setCellValue('K43', $vpStatus . ' ' . $vpTimestamp);
+            $sheet->setCellValue('I43', $vpStatus . ' ' . $vpTimestamp);
         }
         
-        if ($travelOrder->president_approved_at && !$travelOrder->head_approved_at && !$travelOrder->vp_approved_at) {
+        // For President approval, show in I43 if no VP approval
+        if ($travelOrder->president_approved_at && !$travelOrder->vp_approved_at) {
             $presidentStatus = $travelOrder->president_approved ? 'APPROVED' : 'DECLINED';
             $presidentTimestamp = $travelOrder->president_approved_at->format('M j, Y g:i A');
-            $sheet->setCellValue('K43', $presidentStatus . ' ' . $presidentTimestamp);
+            $sheet->setCellValue('I43', $presidentStatus . ' ' . $presidentTimestamp);
         }
         
         // Save Excel temporarily for conversion

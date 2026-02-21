@@ -434,14 +434,14 @@ class RegularEmployeeTravelOrderController extends Controller
         if ($travelOrder->divisionhead_approved_at) {
             $divisionHeadStatus = $travelOrder->divisionhead_approved ? 'APPROVED' : 'DECLINED';
             $divisionHeadTimestamp = $travelOrder->divisionhead_approved_at->format('M j, Y g:i A');
-            $sheet->setCellValue('I17', $divisionHeadStatus . ' ' . $divisionHeadTimestamp);
+            $sheet->setCellValue('H17', $divisionHeadStatus . ' ' . $divisionHeadTimestamp);
         }
         
         // For Unit Head approval status (K43)
         if ($travelOrder->head_approved_at) {
             $unitHeadStatus = $travelOrder->head_approved ? 'APPROVED' : 'DECLINED';
             $unitHeadTimestamp = $travelOrder->head_approved_at->format('M j, Y g:i A');
-            $sheet->setCellValue('K43', $unitHeadStatus . ' ' . $unitHeadTimestamp);
+            $sheet->setCellValue('I43', $unitHeadStatus . ' ' . $unitHeadTimestamp);
         }
         
         // Save Excel temporarily for conversion (EXACT COPY FROM MOTORPOOL ADMIN)

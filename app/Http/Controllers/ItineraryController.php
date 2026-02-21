@@ -416,24 +416,30 @@ class ItineraryController extends Controller
         $sheet->setCellValue('I45', $lowerRankOfficer['name']);  // Lower rank approving officer name
         $sheet->setCellValue('I46', $lowerRankOfficer['position']);  // Lower rank approving officer position
         
-        // === STATUS STAMPS ===
-        // I17: VP Approval Status (APPROVED or DECLINED)
-        if ($itinerary->vp_approved === true) {
-            $sheet->setCellValue('I17', 'APPROVED');
-        } elseif ($itinerary->vp_approved === false) {
-            $sheet->setCellValue('I17', 'DECLINED');
-        } else {
-            $sheet->setCellValue('I17', 'PENDING'); // or 'NOT REQUIRED' if not applicable
+        // === STATUS STAMPS WITH TIMESTAMPS ===
+        // H17: VP Approval Status with timestamp
+        // Only show status if VP has taken action (approved or declined)
+        if ($itinerary->vp_approved_at) {
+            $vpTimestamp = $itinerary->vp_approved_at->format('M j, Y g:i A');
+            if ($itinerary->vp_approved) {
+                $sheet->setCellValue('H17', 'APPROVED ' . $vpTimestamp);
+            } else {
+                $sheet->setCellValue('H17', 'DECLINED ' . $vpTimestamp);
+            }
         }
+        // Leave H17 empty if no action taken yet
         
-        // K43: Unit Head Approval Status (APPROVED or DECLINED)
-        if ($itinerary->unit_head_approved === true) {
-            $sheet->setCellValue('K43', 'APPROVED');
-        } elseif ($itinerary->unit_head_approved === false) {
-            $sheet->setCellValue('K43', 'DECLINED');
-        } else {
-            $sheet->setCellValue('K43', 'PENDING'); // or 'NOT REQUIRED' if not applicable
+        // I43: Unit Head Approval Status with timestamp
+        // Only show status if Unit Head has taken action (approved or declined)
+        if ($itinerary->unit_head_approved_at) {
+            $unitHeadTimestamp = $itinerary->unit_head_approved_at->format('M j, Y g:i A');
+            if ($itinerary->unit_head_approved) {
+                $sheet->setCellValue('I43', 'APPROVED ' . $unitHeadTimestamp);
+            } else {
+                $sheet->setCellValue('I43', 'DECLINED ' . $unitHeadTimestamp);
+            }
         }
+        // Leave I43 empty if no action taken yet
         
         // === DATE DETAILS ===
         $sheet->setCellValue('B34', $date_from);

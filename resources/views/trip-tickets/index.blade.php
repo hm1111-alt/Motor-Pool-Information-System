@@ -122,15 +122,9 @@
                                             <div class="action-buttons flex justify-center space-x-1">
                                                 <button type="button" 
                                                         class="btn view-btn border inline-flex items-center justify-center"
-                                                        title="View Itinerary PDF"
-                                                        onclick="viewItineraryPDF({{ $ticket->itinerary->id ?? 0 }})">
+                                                        title="View Trip Ticket Details"
+                                                        onclick="showTripTicketDetails({{ $ticket->id }})">
                                                     <i class="fas fa-eye"></i> View
-                                                </button>
-                                                <button type="button" 
-                                                        class="btn pdf-btn border inline-flex items-center justify-center"
-                                                        title="View as PDF"
-                                                        onclick="viewTripTicketPDF({{ $ticket->id }})">
-                                                    <i class="fas fa-file-pdf"></i> PDF
                                                 </button>
                                                 <a href="{{ route('trip-tickets.edit', $ticket) }}" 
                                                    class="btn edit-btn border inline-flex items-center justify-center"
@@ -243,15 +237,9 @@
                                             <div class="action-buttons flex justify-center space-x-1">
                                                 <button type="button" 
                                                         class="btn view-btn border inline-flex items-center justify-center"
-                                                        title="View Itinerary PDF"
-                                                        onclick="viewItineraryPDF({{ $ticket->itinerary->id ?? 0 }})">
+                                                        title="View Trip Ticket Details"
+                                                        onclick="showTripTicketDetails({{ $ticket->id }})">
                                                     <i class="fas fa-eye"></i> View
-                                                </button>
-                                                <button type="button" 
-                                                        class="btn pdf-btn border inline-flex items-center justify-center"
-                                                        title="View as PDF"
-                                                        onclick="viewTripTicketPDF({{ $ticket->id }})">
-                                                    <i class="fas fa-file-pdf"></i> PDF
                                                 </button>
                                                 <a href="{{ route('trip-tickets.edit', $ticket) }}" 
                                                    class="btn edit-btn border inline-flex items-center justify-center"
@@ -364,15 +352,9 @@
                                             <div class="action-buttons flex justify-center space-x-1">
                                                 <button type="button" 
                                                         class="btn view-btn border inline-flex items-center justify-center"
-                                                        title="View Itinerary PDF"
-                                                        onclick="viewItineraryPDF({{ $ticket->itinerary->id ?? 0 }})">
+                                                        title="View Trip Ticket Details"
+                                                        onclick="showTripTicketDetails({{ $ticket->id }})">
                                                     <i class="fas fa-eye"></i> View
-                                                </button>
-                                                <button type="button" 
-                                                        class="btn pdf-btn border inline-flex items-center justify-center"
-                                                        title="View as PDF"
-                                                        onclick="viewTripTicketPDF({{ $ticket->id }})">
-                                                    <i class="fas fa-file-pdf"></i> PDF
                                                 </button>
                                                 <button type="button" 
                                                         class="btn archive-btn border inline-flex items-center justify-center"
@@ -592,6 +574,33 @@
 }
 </style>
 
+<!-- Modal for Trip Ticket Details -->
+<div id="tripTicketModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+    <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-white">
+        <div class="mt-3">
+            <div class="flex justify-between items-center pb-3 border-b">
+                <h3 class="text-lg font-semibold text-[#004d00]">Trip Ticket Details</h3>
+                <button onclick="closeTripTicketModal()" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="p-4">
+                <div id="tripTicketDetailsContent">
+                    <!-- Trip ticket details will be loaded here -->
+                </div>
+            </div>
+            <div class="flex justify-end pt-3 border-t">
+                <button onclick="closeTripTicketModal()" class="px-4 py-2 bg-gray-500 text-white rounded-md mr-2 hover:bg-gray-600">
+                    Close
+                </button>
+                <button id="viewPdfButton" class="px-4 py-2 bg-[#1e6031] text-white rounded-md hover:bg-[#164f2a] hidden">
+                    View PDF
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
 
 <script>
@@ -752,5 +761,159 @@ function viewTripTicketPDF(ticketId) {
     // Open the PDF in a new tab
     window.open(`/trip-tickets/${ticketId}/pdf`, '_blank');
 }
+
+// Function to show trip ticket details in modal
+function showTripTicketDetails(ticketId) {
+    // Show loading state
+    document.getElementById('tripTicketDetailsContent').innerHTML = '<div class="text-center py-4"><i class="fas fa-spinner fa-spin mr-2"></i> Loading trip ticket details...</div>';
+    document.getElementById('tripTicketModal').classList.remove('hidden');
+    
+    // Fetch trip ticket details via AJAX
+    fetch(`/api/trip-tickets/${ticketId}`)
+        .then(response => response.json())
+        .then(data => {
+            // Format the details in a card-like structure
+            let content = `
+                <div class="space-y-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Ticket Number:</label>
+                            <p class="mt-1 text-sm text-gray-900">${data.ticket_number || 'N/A'}</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Status:</label>
+                            <p class="mt-1 text-sm text-gray-900">${data.status || 'N/A'}</p>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Head of the Party:</label>
+                        <p class="mt-1 text-sm text-gray-900">${data.head_of_party || 'N/A'}</p>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Passengers:</label>
+                        <div class="mt-1 text-sm text-gray-900">
+                            ${formatPassengers(data.passengers)}
+                        </div>
+                    </div>
+                    
+                    ${data.itinerary ? `
+                    <div class="border-t pt-4">
+                        <h4 class="font-medium text-gray-900 mb-2">Itinerary Details</h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Destination:</label>
+                                <p class="mt-1 text-sm text-gray-900">${data.itinerary.destination || 'N/A'}</p>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Purpose:</label>
+                                <p class="mt-1 text-sm text-gray-900">${data.itinerary.purpose || 'N/A'}</p>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Date From:</label>
+                                <p class="mt-1 text-sm text-gray-900">${data.itinerary.date_from ? new Date(data.itinerary.date_from).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : 'N/A'}</p>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Date To:</label>
+                                <p class="mt-1 text-sm text-gray-900">${data.itinerary.date_to ? new Date(data.itinerary.date_to).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : 'N/A'}</p>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Departure Time:</label>
+                                <p class="mt-1 text-sm text-gray-900">${data.itinerary.departure_time || 'N/A'}</p>
+                            </div>
+                        </div>
+                        
+                        ${data.itinerary.driver ? `
+                        <div class="mt-4">
+                            <h5 class="font-medium text-gray-900 mb-2">Driver</h5>
+                            <p class="text-sm text-gray-900">${data.itinerary.driver.full_name || 'N/A'}</p>
+                        </div>
+                        ` : ''}
+                        
+                        ${data.itinerary.vehicle ? `
+                        <div class="mt-4">
+                            <h5 class="font-medium text-gray-900 mb-2">Vehicle</h5>
+                            <div class="text-sm text-gray-900">
+                                <p>${data.itinerary.vehicle.make} ${data.itinerary.vehicle.model}</p>
+                                <p>Plate Number: ${data.itinerary.vehicle.plate_number}</p>
+                                <p>Engine Number: ${data.itinerary.vehicle.engine_number}</p>
+                                <p>Chassis Number: ${data.itinerary.vehicle.chassis_number}</p>
+                                <p>Year Model: ${data.itinerary.vehicle.year_model}</p>
+                                <p>Fuel Type: ${data.itinerary.vehicle.fuel_type}</p>
+                            </div>
+                        </div>
+                        ` : ''}
+                    </div>
+                    ` : ''}
+                </div>
+            `;
+            
+            document.getElementById('tripTicketDetailsContent').innerHTML = content;
+            
+            // Show the PDF button and attach click event
+            const pdfButton = document.getElementById('viewPdfButton');
+            pdfButton.classList.remove('hidden');
+            pdfButton.onclick = function() {
+                window.open(`/trip-tickets/${ticketId}/pdf`, '_blank');
+                closeTripTicketModal();
+            };
+        })
+        .catch(error => {
+            console.error('Error fetching trip ticket details:', error);
+            document.getElementById('tripTicketDetailsContent').innerHTML = '<div class="text-center py-4 text-red-500">Error loading trip ticket details.</div>';
+        });
+}
+
+// Function to format passengers array properly
+function formatPassengers(passengers) {
+    if (!passengers) {
+        return 'N/A';
+    }
+    
+    if (Array.isArray(passengers)) {
+        if (passengers.length === 0) {
+            return 'N/A';
+        }
+        
+        // Handle array of strings
+        if (typeof passengers[0] === 'string') {
+            return passengers.join(', ');
+        }
+        
+        // Handle array of objects (try to extract name properties)
+        if (typeof passengers[0] === 'object') {
+            return passengers.map(p => {
+                if (typeof p === 'object' && p !== null) {
+                    // Look for common name properties
+                    return p.name || p.full_name || p.first_name + ' ' + p.last_name || p.toString();
+                }
+                return p;
+            }).join(', ');
+        }
+        
+        return passengers.join(', ');
+    }
+    
+    // If it's a string, return as is
+    if (typeof passengers === 'string') {
+        return passengers;
+    }
+    
+    // For any other type, return 'N/A'
+    return 'N/A';
+}
+
+// Function to close the modal
+function closeTripTicketModal() {
+    document.getElementById('tripTicketModal').classList.add('hidden');
+}
+
+// Prevent scrolling when modal is open
+document.getElementById('tripTicketModal').addEventListener('click', function(e) {
+    if (e.target.id === 'tripTicketModal') {
+        closeTripTicketModal();
+    }
+});
 </script>
 @endsection

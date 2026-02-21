@@ -193,16 +193,7 @@ class ItineraryApprovalController extends Controller
             abort(403, 'Unauthorized to view VP pending itineraries');
         }
         
-        // Additional check: Only VPs from Office of the Vice President for Administration can access
-        if ($user->isVp() && !$user->isAdmin() && !$user->isMotorpoolAdmin()) {
-            $isVpOfAdministration = $user->employee->positions()->whereHas('office', function($query) {
-                $query->where('office_name', 'Office of the Vice President for Administration');
-            })->exists();
-            
-            if (!$isVpOfAdministration) {
-                abort(403, 'Only VP of Office of the Vice President for Administration can approve itineraries');
-            }
-        }
+        // All VPs can access itinerary approvals now
         
         // TEMPORARY: Show all unit head approved itineraries to VP
         // TODO: Determine correct office-based filtering logic
@@ -287,16 +278,7 @@ class ItineraryApprovalController extends Controller
             abort(403, 'Unauthorized to approve itineraries');
         }
         
-        // Additional check: Only VPs from Office of the Vice President for Administration can approve
-        if ($user->isVp() && !$user->isAdmin() && !$user->isMotorpoolAdmin()) {
-            $isVpOfAdministration = $user->employee->positions()->whereHas('office', function($query) {
-                $query->where('office_name', 'Office of the Vice President for Administration');
-            })->exists();
-            
-            if (!$isVpOfAdministration) {
-                abort(403, 'Only VP of Office of the Vice President for Administration can approve itineraries');
-            }
-        }
+        // All VPs can approve itineraries now
         
         // Additional check: if not admin/motorpool admin, verify user can approve this itinerary
         if (!$user->isAdmin() && !$user->isMotorpoolAdmin() && $user->isVp()) {

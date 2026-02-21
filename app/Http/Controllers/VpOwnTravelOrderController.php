@@ -288,18 +288,22 @@ class VpOwnTravelOrderController extends Controller
         $sheet->setCellValue('I41', $fullName);  // Employee name (signatory)
         $sheet->setCellValue('I42', $positionName);  // Employee position (signatory)
         
-        // President approval status (I17) - always shown when President has approved
+        // President approval status - shown when President has approved VP's travel order
+        // For VP's own travel orders, President is the approving authority
+        // When President approves, both H17 and I43 should show the approval status
+        
+        // President approval status (H17) - shown when President has approved
         if ($travelOrder->president_approved_at) {
             $presidentStatus = $travelOrder->president_approved ? 'APPROVED' : 'DECLINED';
             $presidentTimestamp = $travelOrder->president_approved_at->format('M j, Y g:i A');
-            $sheet->setCellValue('I17', $presidentStatus . ' ' . $presidentTimestamp);
+            $sheet->setCellValue('H17', $presidentStatus . ' ' . $presidentTimestamp);
         }
         
-        // President approval status (K43) - when President has approved (duplicated for VP format)
+        // President approval status (I43) - also shown when President has approved (for VP format)
         if ($travelOrder->president_approved_at) {
             $presidentStatus = $travelOrder->president_approved ? 'APPROVED' : 'DECLINED';
             $presidentTimestamp = $travelOrder->president_approved_at->format('M j, Y g:i A');
-            $sheet->setCellValue('K43', $presidentStatus . ' ' . $presidentTimestamp);
+            $sheet->setCellValue('I43', $presidentStatus . ' ' . $presidentTimestamp);
         }
         
         // Save Excel temporarily for conversion

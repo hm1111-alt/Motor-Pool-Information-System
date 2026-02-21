@@ -339,8 +339,7 @@
                                 })->exists();
                             @endphp
                             
-                            @if($isVpOfAdministration)
-                            <!-- Travel Order Approvals -->
+                            <!-- Travel Order Approvals (for all VPs) -->
                             <a href="{{ route('travel-orders.approvals.vp') }}" class="flex items-center px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors duration-200 mb-1">
                                 <div class="rounded-lg bg-[#1e6031] p-2 mr-3 flex-shrink-0">
                                     <svg class="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -350,7 +349,8 @@
                                 <span :class="sidebarOpen ? 'block' : 'hidden'" class="font-medium truncate">Travel Order Approvals</span>
                             </a>
                             
-                            <!-- Itinerary Approvals -->
+                            @if($isVpOfAdministration)
+                            <!-- Itinerary Approvals (only for VP of Office of the Vice President for Administration) -->
                             <a href="{{ route('itinerary.approvals.vp.pending') }}" class="flex items-center px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors duration-200 mb-1">
                                 <div class="rounded-lg bg-[#1e6031] p-2 mr-3 flex-shrink-0">
                                     <svg class="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -360,7 +360,7 @@
                                 <span :class="sidebarOpen ? 'block' : 'hidden'" class="font-medium truncate">Itinerary Approvals</span>
                             </a>
                             
-                            <!-- Trip Ticket Approvals -->
+                            <!-- Trip Ticket Approvals (only for VP of Office of the Vice President for Administration) -->
                             <a href="{{ route('vp.trip-tickets.approvals.index') }}" class="flex items-center px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors duration-200 mb-1">
                                 <div class="rounded-lg bg-[#1e6031] p-2 mr-3 flex-shrink-0">
                                     <svg class="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">

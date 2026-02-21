@@ -101,13 +101,40 @@
                 </div>
             </div>
             
-            <!-- Approval Section (Only for VP of Office of the Vice President for Administration) -->
-            @if(isset($isVpOfAdministration) && $isVpOfAdministration)
+            <!-- Approval Section (for all VPs) -->
+            @if(auth()->user()->employee && auth()->user()->employee->is_vp)
             <div class="bg-white overflow-hidden shadow-sm rounded-lg mb-6">
                 <div class="p-6">
                     <h2 class="text-lg font-semibold text-gray-800 mb-4">Pending Approvals</h2>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-                        <!-- Itinerary Approvals -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                        <!-- Travel Order Approvals (for all VPs) -->
+                        <div class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl border border-blue-200 p-5 transition-all duration-200 hover:shadow-md">
+                            <div class="flex items-start">
+                                <div class="rounded-lg bg-blue-600 p-3 flex-shrink-0">
+                                    <svg class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                                    </svg>
+                                </div>
+                                <div class="ml-4">
+                                    <h3 class="text-lg font-semibold text-gray-800">Travel Order Approvals</h3>
+                                    <p class="text-gray-600 text-sm mt-1 mb-3">Review and approve travel orders from your employees.</p>
+                                    <div class="flex items-center mb-3">
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                            {{ $pendingTravelOrders ?? 0 }} Pending
+                                        </span>
+                                    </div>
+                                    <a href="{{ route('travel-orders.approvals.vp') }}" class="inline-flex items-center px-4 py-2 bg-white border border-blue-300 text-blue-800 rounded-lg hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 text-sm font-medium transition duration-200 shadow-sm">
+                                        Review Travel Orders
+                                        <svg class="ml-1 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                                        </svg>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Itinerary Approvals (only for VP of Office of the Vice President for Administration) -->
+                        @if(isset($isVpOfAdministration) && $isVpOfAdministration)
                         <div class="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl border border-purple-200 p-5 transition-all duration-200 hover:shadow-md">
                             <div class="flex items-start">
                                 <div class="rounded-lg bg-purple-600 p-3 flex-shrink-0">
@@ -132,8 +159,10 @@
                                 </div>
                             </div>
                         </div>
+                        @endif
                         
-                        <!-- Trip Ticket Approvals -->
+                        <!-- Trip Ticket Approvals (only for VP of Office of the Vice President for Administration) -->
+                        @if(isset($isVpOfAdministration) && $isVpOfAdministration)
                         <div class="bg-gradient-to-br from-orange-50 to-orange-100 rounded-xl border border-orange-200 p-5 transition-all duration-200 hover:shadow-md">
                             <div class="flex items-start">
                                 <div class="rounded-lg bg-orange-600 p-3 flex-shrink-0">
@@ -158,6 +187,7 @@
                                 </div>
                             </div>
                         </div>
+                        @endif
                     </div>
                 </div>
             </div>

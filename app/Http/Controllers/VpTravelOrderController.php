@@ -27,14 +27,7 @@ class VpTravelOrderController extends Controller
             abort(403);
         }
         
-        // Additional check: Only VPs from Office of the Vice President for Administration can access
-        $isVpOfAdministration = $employee->positions()->whereHas('office', function($query) {
-            $query->where('office_name', 'Office of the Vice President for Administration');
-        })->exists();
-        
-        if (!$isVpOfAdministration) {
-            abort(403, 'Only VP of Office of the Vice President for Administration can approve travel orders');
-        }
+        // All VPs can access travel order approvals now
         
         // Get the tab parameter, default to 'pending'
         $tab = $request->get('tab', 'pending');
@@ -157,14 +150,7 @@ class VpTravelOrderController extends Controller
             abort(403);
         }
         
-        // Additional check: Only VPs from Office of the Vice President for Administration can access
-        $isVpOfAdministration = $employee->positions()->whereHas('office', function($query) {
-            $query->where('office_name', 'Office of the Vice President for Administration');
-        })->exists();
-        
-        if (!$isVpOfAdministration) {
-            abort(403, 'Only VP of Office of the Vice President for Administration can approve travel orders');
-        }
+        // All VPs can access travel order approvals now
         
         // Check if employee exists
         if (!$employee) {
@@ -223,14 +209,7 @@ class VpTravelOrderController extends Controller
             abort(403);
         }
         
-        // Additional check: Only VPs from Office of the Vice President for Administration can approve
-        $isVpOfAdministration = $employee->positions()->whereHas('office', function($query) {
-            $query->where('office_name', 'Office of the Vice President for Administration');
-        })->exists();
-        
-        if (!$isVpOfAdministration) {
-            abort(403, 'Only VP of Office of the Vice President for Administration can approve travel orders');
-        }
+        // All VPs can approve travel orders now
         
         // Ensure the VP can only approve travel orders from their office
         $vpPrimaryPosition = $employee->positions()->where('is_primary', true)->first();
@@ -517,25 +496,25 @@ class VpTravelOrderController extends Controller
         if ($travelOrder->divisionhead_approved_at) {
             $divisionHeadStatus = $travelOrder->divisionhead_approved ? 'APPROVED' : 'DECLINED';
             $divisionHeadTimestamp = $travelOrder->divisionhead_approved_at->format('M j, Y g:i A');
-            $sheet->setCellValue('I17', $divisionHeadStatus . ' ' . $divisionHeadTimestamp);
+            $sheet->setCellValue('H17', $divisionHeadStatus . ' ' . $divisionHeadTimestamp);
         } elseif ($travelOrder->head_approved_at) {
             $unitHeadStatus = $travelOrder->head_approved ? 'APPROVED' : 'DECLINED';
             $unitHeadTimestamp = $travelOrder->head_approved_at->format('M j, Y g:i A');
-            $sheet->setCellValue('I17', $unitHeadStatus . ' ' . $unitHeadTimestamp);
+            $sheet->setCellValue('H17', $unitHeadStatus . ' ' . $unitHeadTimestamp);
         }
         
         // K43: Show VP approval status when available
         if ($travelOrder->vp_approved_at) {
             $vpStatus = $travelOrder->vp_approved ? 'APPROVED' : 'DECLINED';
             $vpTimestamp = $travelOrder->vp_approved_at->format('M j, Y g:i A');
-            $sheet->setCellValue('K43', $vpStatus . ' ' . $vpTimestamp);
+            $sheet->setCellValue('I43', $vpStatus . ' ' . $vpTimestamp);
         }
         
         // For President approval, show in K43 if no VP approval
         if ($travelOrder->president_approved_at && !$travelOrder->vp_approved_at) {
             $presidentStatus = $travelOrder->president_approved ? 'APPROVED' : 'DECLINED';
             $presidentTimestamp = $travelOrder->president_approved_at->format('M j, Y g:i A');
-            $sheet->setCellValue('K43', $presidentStatus . ' ' . $presidentTimestamp);
+            $sheet->setCellValue('I43', $presidentStatus . ' ' . $presidentTimestamp);
         }
         
         // Save Excel temporarily for conversion

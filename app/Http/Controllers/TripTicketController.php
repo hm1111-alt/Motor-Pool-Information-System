@@ -161,6 +161,34 @@ class TripTicketController extends Controller
         
         return view('trip-tickets.show', compact('tripTicket'));
     }
+    
+    /**
+     * Get trip ticket details for the modal
+     */
+    public function getDetails($id): \Illuminate\Http\JsonResponse
+    {
+        $tripTicket = TripTicket::with([
+            'itinerary.driver',
+            'itinerary.vehicle',
+            'itinerary.travelOrder.employee'
+        ])->findOrFail($id);
+        
+        // Format passengers as a simple array for the frontend
+        $responseData = $tripTicket->toArray();
+        
+        // Ensure passengers is always an array, even if null
+        if (!isset($responseData['passengers']) || $responseData['passengers'] === null) {
+            $responseData['passengers'] = [];
+        } elseif (is_string($responseData['passengers'])) {
+            // If passengers is stored as a JSON string, decode it
+            $decoded = json_decode($responseData['passengers'], true);
+            $responseData['passengers'] = is_array($decoded) ? $decoded : [];
+        } elseif (!is_array($responseData['passengers'])) {
+            $responseData['passengers'] = [];
+        }
+        
+        return response()->json($responseData);
+    }
 
     /**
      * Show the form for editing the specified trip ticket.
@@ -516,6 +544,12 @@ class TripTicketController extends Controller
         $sheet->setCellValue('G62', $headPassenger);
         $sheet->setCellValue('G27', $officerName);
         $sheet->setCellValue('G28', $officerPosition);
+        
+        // Add approval stamp in G25 if trip ticket is approved
+        if ($ticket->status === 'Approved' && $ticket->updated_at) {
+            $approvedDate = Carbon::parse($ticket->updated_at)->format('M j, Y g:i A');
+            $sheet->setCellValue('G25', "APPROVED {$approvedDate}");
+        }
         
         // Save Excel temporarily for conversion
         $excelTemp = tempnam(sys_get_temp_dir(), 'trip_ticket_') . '.xlsx';
