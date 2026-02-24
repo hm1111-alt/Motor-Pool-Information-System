@@ -9,6 +9,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Validation\ValidationException;
 
 class VehicleController extends Controller
 {
@@ -20,7 +21,8 @@ class VehicleController extends Controller
         $search = $request->get('search');
         $type = $request->get('type');
         
-        $query = Vehicle::when($search, function ($query, $search) {
+        $query = Vehicle::where('status', 'Active')
+            ->when($search, function ($query, $search) {
                 return $query->where('plate_number', 'LIKE', "%{$search}%")
                             ->orWhere('model', 'LIKE', "%{$search}%")
                             ->orWhere('type', 'LIKE', "%{$search}%");
@@ -49,8 +51,8 @@ class VehicleController extends Controller
             ]);
         }
 
-        // Get all vehicles for PDF export
-        $activeVehicles = Vehicle::orderBy('created_at', 'desc')->get();
+        // Get only Active vehicles for PDF export
+        $activeVehicles = Vehicle::where('status', 'Active')->orderBy('created_at', 'desc')->get();
         
         return view('vehicles.index', compact('vehicles', 'search', 'type', 'types', 'activeVehicles'));
     }
@@ -94,16 +96,22 @@ class VehicleController extends Controller
             'fuel_type' => 'required|string|max:255',
             'seating_capacity' => 'required|integer|min:1',
             'mileage' => 'required|integer|min:0',
-            'status' => 'required|in:Available,Not Available,Active,Under Maintenance',
+            'status' => 'required|in:Available,Not Available,Active,Under Maintenance,Inactive',
+        ], [
+            'plate_number.unique' => 'This has already been taken.',
         ]);
 
         $data = $request->except('picture');
         
         if ($request->hasFile('picture')) {
-            $data['picture'] = $request->file('picture')->store('vehicles', 'public');
+            // Store the image in the public directory
+            $publicPath = public_path('vehicles/images/');
+            $imageName = time() . '_' . $request->file('picture')->getClientOriginalName();
+            $request->file('picture')->move($publicPath, $imageName);
+            $data['picture'] = $imageName;
         } else {
             // Use default image when no picture is uploaded
-            $data['picture'] = 'vehicles/images/vehicle_default.png';
+            $data['picture'] = 'vehicle_default.png';
         }
 
         $vehicle = Vehicle::create($data);
@@ -139,17 +147,30 @@ class VehicleController extends Controller
     }
 
     /**
-     * Show the form for editing the specified vehicle.
+     * Get vehicle data for editing via AJAX.
      */
-    public function edit(Vehicle $vehicle): View
+    public function getForEdit(Vehicle $vehicle): JsonResponse
     {
-        return view('vehicles.edit', compact('vehicle'));
+        return response()->json([
+            'success' => true,
+            'vehicle' => [
+                'id' => $vehicle->id,
+                'model' => $vehicle->model,
+                'type' => $vehicle->type,
+                'plate_number' => $vehicle->plate_number,
+                'fuel_type' => $vehicle->fuel_type,
+                'seating_capacity' => $vehicle->seating_capacity,
+                'mileage' => $vehicle->mileage,
+                'status' => $vehicle->status,
+                'picture' => $vehicle->picture
+            ]
+        ]);
     }
 
     /**
      * Update the specified vehicle in storage.
      */
-    public function update(Request $request, Vehicle $vehicle): RedirectResponse
+    public function update(Request $request, Vehicle $vehicle): RedirectResponse|JsonResponse
     {
         // Debugging: Log the vehicle ID and plate number
         \Log::info('Updating vehicle ID: ' . $vehicle->id . ', Plate Number: ' . $vehicle->plate_number);
@@ -160,38 +181,86 @@ class VehicleController extends Controller
         \Log::info('New plate number: ' . $newPlateNumber);
         \Log::info('Current vehicle plate number: ' . $vehicle->plate_number);
         
-        $request->validate([
-            'picture' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
-            'plate_number' => [
-                'required',
-                'string',
-                'max:50',
-                Rule::unique('vehicles', 'plate_number')->ignore($vehicle->id)
-            ],
-            'model' => 'required|string|max:255',
-            'type' => 'required|string|max:255',
-            'fuel_type' => 'required|string|max:255',
-            'seating_capacity' => 'required|integer|min:1',
-            'mileage' => 'required|integer|min:0',
-            'status' => 'required|in:Available,Not Available,Active,Under Maintenance',
-        ]);
+        try {
+            $request->validate([
+                'picture' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
+                'plate_number' => [
+                    'required',
+                    'string',
+                    'max:50',
+                    Rule::unique('vehicles', 'plate_number')->ignore($vehicle->id)
+                ],
+                'model' => 'required|string|max:255',
+                'type' => 'required|string|max:255',
+                'fuel_type' => 'required|string|max:255',
+                'seating_capacity' => 'required|integer|min:1',
+                'mileage' => 'required|integer|min:0',
+                'status' => 'sometimes|in:Available,Not Available,Active,Under Maintenance',
+            ], [
+                'plate_number.unique' => 'This has already been taken.',
+            ]);
+        } catch (ValidationException $e) {
+            // Handle validation errors for AJAX requests
+            if ($request->ajax() || $request->wantsJson()) {
+                $errors = $e->errors();
+                
+                // Check if it's a plate number duplicate error
+                if (isset($errors['plate_number'])) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'This has already been taken.',
+                        'errors' => $errors
+                    ], 422);
+                }
+                
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Validation failed.',
+                    'errors' => $errors
+                ], 422);
+            }
+            
+            // Re-throw for non-AJAX requests
+            throw $e;
+        }
 
         $data = $request->except('picture');
         
+        // If picture is not provided, don't include it in the update data
+        if (!$request->hasFile('picture')) {
+            unset($data['picture']);
+        }
+        
         if ($request->hasFile('picture')) {
             // Delete old picture if exists (but not the default image)
-            if ($vehicle->picture && $vehicle->picture !== 'vehicles/images/vehicle_default.png') {
-                Storage::disk('public')->delete($vehicle->picture);
+            $publicPath = public_path('vehicles/images/');
+            if ($vehicle->picture && $vehicle->picture !== 'vehicle_default.png') {
+                $oldImagePath = $publicPath . basename($vehicle->picture);
+                if (file_exists($oldImagePath)) {
+                    unlink($oldImagePath);
+                }
             }
-            $data['picture'] = $request->file('picture')->store('vehicles', 'public');
+            
+            // Store the new image in the public directory
+            $imageName = time() . '_' . $request->file('picture')->getClientOriginalName();
+            $request->file('picture')->move($publicPath, $imageName);
+            $data['picture'] = $imageName;
         } else {
             // If no new picture uploaded, keep existing picture or set default
             if (!$vehicle->picture) {
-                $data['picture'] = 'vehicles/images/vehicle_default.png';
+                $data['picture'] = 'vehicle_default.png';
             }
         }
 
         $vehicle->update($data);
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Vehicle updated successfully!',
+                'vehicle' => $vehicle
+            ]);
+        }
 
         return redirect()->route('vehicles.index')
             ->with('success', 'Vehicle updated successfully.');
@@ -202,14 +271,29 @@ class VehicleController extends Controller
      */
     public function destroy(Vehicle $vehicle): RedirectResponse
     {
-        // Delete picture if exists
-        if ($vehicle->picture) {
-            Storage::disk('public')->delete($vehicle->picture);
-        }
-        
-        $vehicle->delete();
+        // Archive the vehicle instead of deleting it
+        $vehicle->update(['status' => 'Inactive']);
 
         return redirect()->route('vehicles.index')
-            ->with('success', 'Vehicle deleted successfully.');
+            ->with('success', 'Vehicle archived successfully!');
+    }
+    
+    /**
+     * Check if plate number already exists
+     */
+    public function checkPlateNumber(Request $request, string $plateNumber): JsonResponse
+    {
+        $query = Vehicle::where('plate_number', $plateNumber);
+        
+        // Exclude specific vehicle ID if provided (for edit form)
+        if ($request->has('exclude_id')) {
+            $query->where('id', '!=', $request->exclude_id);
+        }
+        
+        $exists = $query->exists();
+        
+        return response()->json([
+            'exists' => $exists
+        ]);
     }
 }

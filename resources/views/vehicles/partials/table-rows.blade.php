@@ -13,18 +13,19 @@
                    title="View Vehicle">
                     <i class="fas fa-eye"></i> View
                 </a>
-                <a href="{{ route('vehicles.edit', $vehicle) }}" 
+                <button type="button" 
                    class="btn edit-btn border inline-flex items-center justify-center"
-                   title="Edit Vehicle">
+                   title="Edit Vehicle"
+                   onclick="loadVehicleData({{ $vehicle->id }})">
                     <i class="fas fa-edit"></i> Edit
-                </a>
+                </button>
                 <form action="{{ route('vehicles.destroy', $vehicle) }}" method="POST" class="inline delete-form">
                     @csrf
                     @method('DELETE')
                     <button type="button" 
                             class="btn archive-btn border delete-btn inline-flex items-center justify-center"
-                            title="Delete Vehicle">
-                        <i class="fas fa-trash"></i> Delete
+                            title="Archive Vehicle">
+                        <i class="fas fa-archive"></i> Archive
                     </button>
                 </form>
             </div>

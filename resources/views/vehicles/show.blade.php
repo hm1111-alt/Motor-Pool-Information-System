@@ -5,88 +5,84 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <!-- Back Button and View Maintenance Button -->
         <div class="mb-6 flex justify-between items-center">
-            <a href="{{ route('vehicles.index') }}" class="inline-flex items-center px-4 py-2 bg-[#1e6031] border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-wider hover:bg-[#164f2a] focus:bg-[#164f2a] active:bg-[#103c1e] focus:outline-none focus:ring-2 focus:ring-[#1e6031] focus:ring-offset-2 transition ease-in-out duration-150">
-                <i class="fas fa-arrow-left mr-2"></i> Back to Vehicles
+            <a href="{{ route('vehicles.index') }}" class="inline-flex items-center px-4 py-2 bg-[#1e6031] border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-[#164f2a] focus:bg-[#164f2a] active:bg-[#103c1e] focus:outline-none focus:ring-2 focus:ring-[#1e6031] focus:ring-offset-2 transition ease-in-out duration-150">
+                <i class="fas fa-arrow-left mr-2"></i> Back
             </a>
             <a href="{{ route('vehicles.maintenance', $vehicle) }}" class="inline-flex items-center px-4 py-2 bg-[#1e6031] border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-wider hover:bg-[#164f2a] focus:bg-[#164f2a] active:bg-[#103c1e] focus:outline-none focus:ring-2 focus:ring-[#1e6031] focus:ring-offset-2 transition ease-in-out duration-150">
                 <i class="fas fa-wrench mr-2"></i> View Maintenance
             </a>
         </div>
 
-        <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg border border-green-300">
-            <div class="p-6">
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    <!-- Left Column - Vehicle Image -->
-                    <div class="lg:col-span-1">
-                        <div class="mb-6">
-                            @php
-                                $imagePath = $vehicle->picture && file_exists(public_path($vehicle->picture))
-                                    ? asset($vehicle->picture)
-                                    : asset('storage/vehicles/images/vehicle_default.png');
-                            @endphp
-                            <img src="{{ $imagePath }}" 
-                                 alt="{{ $vehicle->model }}" 
-                                 class="w-full rounded-lg border border-gray-200 shadow-sm"
-                                 onerror="this.src='{{ asset('storage/vehicles/images/vehicle_default.png') }}'">
-                        </div>
+        <div class="row g-3">
+    <!-- Vehicle Image -->
+    <div class="col-md-4 d-flex align-items-start">
+        <div class="card shadow-sm w-100 border-[#1e6031]" style="height: 200px;">
+            @php
+                // Check if the image exists in the new public directory
+                $imagePath = $vehicle->picture && file_exists(public_path('vehicles/images/' . $vehicle->picture))
+                    ? asset('vehicles/images/' . $vehicle->picture)
+                    : asset('vehicles/images/vehicle_default.png');
+            @endphp
+            <img 
+                src="{{ $imagePath }}" 
+                class="card-img-top img-fluid" 
+                alt="{{ $vehicle->model ?? 'Vehicle Image' }}"
+                style="object-fit: cover; height: 100%; width: 100%;"
+                onerror="this.src='{{ asset('storage/vehicles/images/vehicle_default.png') }}'">
+        </div>
+    </div>
+
+    <!-- Vehicle Info -->
+    <div class="col-md-8 d-flex align-items-start">
+        <div class="card w-100 shadow-sm border-[#1e6031]" style="height: 200px; border-radius: 12px;">
+            <div class="card-header d-flex align-items-center" style="background-color: #1e6031; color: white; font-weight: 600; border-radius: 12px 12px 0 0;">
+                <i class="fas fa-car me-2"></i>
+                <h5 class="mb-0">Vehicle Information</h5>
+            </div>
+            <div class="card-body p-3" style="font-size: 0.9rem; line-height: 1.5;">
+                <div class="row">
+                    <div class="col-6 mb-2">
+                        <strong>Model:</strong> {{ $vehicle->model }}
                     </div>
-
-                    <!-- Right Column - Vehicle Information -->
-                    <div class="lg:col-span-2">
-                        <!-- Vehicle Information Header -->
-                        <div class="flex items-center mb-6">
-                            <i class="fas fa-car text-[#1e6031] text-xl mr-3"></i>
-                            <h3 class="text-xl font-semibold text-gray-900">Vehicle Information</h3>
-                        </div>
-
-                        <!-- Vehicle Details in 2 Columns -->
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-1">
-                            <div>
-                                <span class="font-bold text-gray-800">Model:</span>
-                                <span class="text-gray-900 ml-2">{{ $vehicle->model }}</span>
-                            </div>
-                            <div>
-                                <span class="font-bold text-gray-800">Plate Number:</span>
-                                <span class="text-gray-900 ml-2">{{ $vehicle->plate_number }}</span>
-                            </div>
-                            <div>
-                                <span class="font-bold text-gray-800">Fuel Type:</span>
-                                <span class="text-gray-900 ml-2">{{ $vehicle->fuel_type ?? 'N/A' }}</span>
-                            </div>
-                            <div>
-                                <span class="font-bold text-gray-800">Seating Capacity:</span>
-                                <span class="text-gray-900 ml-2">{{ $vehicle->seating_capacity }}</span>
-                            </div>
-                            <div>
-                                <span class="font-bold text-gray-800">Mileage:</span>
-                                <span class="text-gray-900 ml-2">{{ number_format($vehicle->mileage) }} km</span>
-                            </div>
-                            <div>
-                                <span class="font-bold text-gray-800">Type:</span>
-                                <span class="text-gray-900 ml-2">{{ $vehicle->type }}</span>
-                            </div>
-                            <div>
-                                <span class="font-bold text-gray-800">Status:</span>
-                                <span class="px-2 py-1 rounded-full text-xs font-semibold ml-2
-                                    @if($vehicle->status === 'Available') bg-green-100 text-green-800
-                                    @elseif($vehicle->status === 'Not Available') bg-red-100 text-red-800
-                                    @elseif($vehicle->status === 'Active') bg-blue-100 text-blue-800
-                                    @elseif($vehicle->status === 'Under Maintenance') bg-yellow-100 text-yellow-800
-                                    @endif">
-                                    {{ $vehicle->status }}
-                                </span>
-                            </div>
-                        </div>
+                    <div class="col-6 mb-2">
+                        <strong>Plate Number:</strong> {{ $vehicle->plate_number }}
+                    </div>
+                    <div class="col-6 mb-2">
+                        <strong>Fuel Type:</strong> {{ $vehicle->fuel_type ?? 'N/A' }}
+                    </div>
+                    <div class="col-6 mb-2">
+                        <strong>Seating Capacity:</strong> {{ $vehicle->seating_capacity ?? 'N/A' }}
+                    </div>
+                    <div class="col-6 mb-2">
+                        <strong>Mileage:</strong> {{ number_format($vehicle->mileage) }} km
+                    </div>
+                    <div class="col-6 mb-2">
+                        <strong>Type:</strong> {{ $vehicle->type ?? 'N/A' }}
+                    </div>
+                    <div class="col-6 mb-2">
+                        <strong>Status:</strong>
+                        <span class="badge 
+                            @if($vehicle->status === 'Available') bg-success
+                            @elseif($vehicle->status === 'Not Available') bg-danger
+                            @elseif($vehicle->status === 'Active') bg-primary
+                            @elseif($vehicle->status === 'Under Maintenance') bg-warning text-dark
+                            @endif">
+                            {{ $vehicle->status }}
+                        </span>
                     </div>
                 </div>
             </div>
         </div>
+    </div>
+</div>
+                        </div>
+                    </div>
 
         <!-- Travel History Section -->
-        <div class="mt-6 bg-white overflow-hidden shadow-sm sm:rounded-lg">
-            <div class="p-6">
+        <div class="mt-6">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="flex justify-between items-center mb-6">
-                    <h3 class="text-xl font-semibold text-gray-900">
+                    <h3 class="text-xl font-semibold" style="color: #1e6031;">
                         {{ $vehicle->model }} {{ $vehicle->plate_number }} - Travel History
                     </h3>
                     <div class="flex items-center gap-2">

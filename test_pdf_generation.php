@@ -9,7 +9,7 @@ $app->make('Illuminate\Contracts\Console\Kernel')->bootstrap();
 use App\Models\Vehicle;
 
 // Test the vehicle data query
-$activeVehicles = Vehicle::whereIn('status', ['Active', 'Under Maintenance'])
+$activeVehicles = Vehicle::where('status', 'Active')
     ->orderBy('created_at', 'desc')
     ->get();
 

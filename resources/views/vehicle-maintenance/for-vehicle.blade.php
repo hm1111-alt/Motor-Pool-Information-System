@@ -2,101 +2,75 @@
 
 @section('content')
     <!-- Back Button Row -->
-    <div class="bg-white shadow">
-        <div class="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between items-center">
-                <a href="{{ route('vehicles.show', $vehicle) }}" 
+    <div class="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between items-center">
+            <a href="{{ route('vehicles.show', $vehicle) }}" 
+               class="inline-flex items-center px-4 py-2 bg-[#1e6031] border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-[#164f2a] focus:bg-[#164f2a] active:bg-[#103c1e] focus:outline-none focus:ring-2 focus:ring-[#1e6031] focus:ring-offset-2 transition ease-in-out duration-150">
+                <i class="fas fa-arrow-left mr-2"></i> Back
+            </a>
+        </div>
+    </div>
+    
+    <!-- Title, Search, and Add Record Row -->
+    <div class="max-w-7xl mx-auto py-2 px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between items-center mb-6">
+            <h3 class="text-xl font-semibold" style="color: #1e6031;">
+                {{ $vehicle->model ?? 'Unknown Vehicle' }} {{ $vehicle->plate_number ?? '' }} - Maintenance History
+            </h3>
+    
+            <div class="flex items-center gap-2">
+                <!-- Search Bar -->
+                <div class="flex">
+                    <input type="text" id="searchMaintenance" placeholder="Search history..." 
+                           style="height: 32px; width: 200px; font-size: 0.85rem; border: 1px solid #1e6031; border-radius: 0.375rem 0 0 0.375rem; padding: 0 12px;" 
+                           value="">
+                    <button type="button" 
+                            style="background-color: #1e6031; color: #ffffff; border: 1px solid #1e6031; height: 32px; width: 40px; border-radius: 0 0.375rem 0.375rem 0; cursor:pointer;">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
+                
+                <!-- Add Record Button -->
+                <a href="{{ route('vehicle-maintenance.create') }}?vehicle_id={{ $vehicle->id }}" 
                    class="inline-flex items-center px-4 py-2 bg-[#1e6031] border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-[#164f2a] focus:bg-[#164f2a] active:bg-[#103c1e] focus:outline-none focus:ring-2 focus:ring-[#1e6031] focus:ring-offset-2 transition ease-in-out duration-150">
-                    <i class="fas fa-arrow-left mr-2"></i> Back
+                    <i class="fas fa-plus-circle mr-2"></i> Add Record
                 </a>
             </div>
         </div>
     </div>
     
-    <!-- Title and Search/Add Record Row -->
-    <div class="bg-white shadow">
-        <div class="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8">
-            <div class="d-flex justify-content-between align-items-center">
-                <!-- Title on the left -->
-                <h4 style="color: #004d00; font-weight: 700; margin:0;">
-                    {{ $vehicle->model ?? 'Unknown Vehicle' }} {{ $vehicle->plate_number ?? '' }} - Maintenance History
-                </h4>
-
-                <!-- Search and Add Record on the right -->
-                <div class="d-flex align-items-center gap-2">
-
-                    <!-- Search Bar -->
-                    <div class="input-group" style="width: 250px;">
-                        <input type="text" id="searchMaintenance" class="form-control" 
-                               placeholder="Search maintenance..." 
-                               style="height: 32px; font-size: 0.85rem; border: 1px solid #008000;" 
-                               value="">
-                        <span class="input-group-text" 
-                              style="background-color: #008000; color: #ffffff; border: 1px solid #008000;">
-                            <i class="fas fa-search"></i>
-                        </span>
-                    </div>
-
-                    <!-- Add Record Button -->
-                    <a href="{{ route('vehicle-maintenance.create') }}?vehicle_id={{ $vehicle->id }}" 
-                       class="btn btn-success d-flex align-items-center" 
-                       style="height:32px; font-size:0.85rem; background-color:#008000; color:#ffffff; border:1px solid #008000; display:flex; align-items:center; gap:5px; padding:0 10px; border-radius:4px;">
-                        <i class="fas fa-plus-circle"></i> Add Record
-                    </a>
+    <!-- Tabs and PDF Row -->
+    <div class="max-w-7xl mx-auto py-2 px-4 sm:px-6 lg:px-8">
+        <div class="border-b border-gray-200 mb-6">
+            <nav class="flex justify-between items-center">
+                <div class="flex space-x-8">
+                    <button type="button" 
+                            class="tab-button pb-3 px-1 border-b-2 font-medium text-sm border-[#1e6031] text-[#1e6031]" 
+                            data-bs-toggle="tab" data-bs-target="#pending" type="button" role="tab">
+                        Pending
+                    </button>
+                    <button type="button" 
+                            class="tab-button pb-3 px-1 border-b-2 font-medium text-sm" 
+                            data-bs-toggle="tab" data-bs-target="#completed" type="button" role="tab">
+                        Completed
+                    </button>
                 </div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Generate PDF Row -->
-    <div class="bg-white shadow">
-        <div class="max-w-7xl mx-auto py-2 px-4 sm:px-6 lg:px-8">
-            <div class="d-flex justify-content-end">
-                <div id="maintenance-pdf-btn-container" style="display: inline-flex; align-items: center; gap: 5px;">
+                <div id="maintenance-pdf-btn-container">
                     <button id="generateMaintenancePDF" class="btn btn-danger" style="padding: 4px 8px; font-size: 0.80rem;">
                         <i class="fas fa-file-pdf" style="margin-right: 5px;"></i> Generate PDF
                     </button>
                 </div>
-            </div>
+            </nav>
         </div>
     </div>
     
-    <!-- Tabs Row -->
-    <div class="bg-white shadow">
-        <div class="max-w-7xl mx-auto py-2 px-4 sm:px-6 lg:px-8">
-            <ul class="nav nav-tabs" id="maintenanceTabs" role="tablist">
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link active" id="pending-tab" data-bs-toggle="tab" data-bs-target="#pending" type="button" role="tab">Pending</button>
-                </li>
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="completed-tab" data-bs-toggle="tab" data-bs-target="#completed" type="button" role="tab">Completed</button>
-                </li>
-            </ul>
-        </div>
-    </div>
 
-    <div class="py-6">
+
+    <div class="py-1">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                <div class="p-6 text-gray-900">
-                    <!-- Vehicle Information -->
-                    <div class="mb-6 p-4 bg-gray-50 rounded-lg">
-                        <h3 class="text-lg font-medium text-gray-900 mb-2">Vehicle Information</h3>
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <div>
-                                <span class="text-sm font-medium text-gray-500">Plate Number:</span>
-                                <span class="ml-2 text-sm text-gray-900">{{ $vehicle->plate_number }}</span>
-                            </div>
-                            <div>
-                                <span class="text-sm font-medium text-gray-500">Model:</span>
-                                <span class="ml-2 text-sm text-gray-900">{{ $vehicle->model }}</span>
-                            </div>
-                            <div>
-                                <span class="text-sm font-medium text-gray-500">Type:</span>
-                                <span class="ml-2 text-sm text-gray-900">{{ $vehicle->type }}</span>
-                            </div>
-                        </div>
-                    </div>
+                <div class="p-2 text-gray-900">
+
 
                     <!-- Success Message -->
                     @if(session('success'))
@@ -117,7 +91,7 @@
                     @endif
 
                     <!-- Tab Content -->
-                    <div class="tab-content" id="maintenanceTabContent">
+                    <div class="tab-content -mt-6" id="maintenanceTabContent">
                         <div class="tab-pane fade show active" id="pending" role="tabpanel">
                             <!-- Pending Maintenance Records List -->
                             @php
@@ -125,80 +99,64 @@
                                     return $record->status === 'Pending' || $record->status === 'Ongoing';
                                 });
                             @endphp
-                            @if($pendingRecords->count() > 0)
-                                <div id="pendingRecordsList" class="space-y-4">
-                                    @foreach($pendingRecords as $index => $record)
-                                        <div class="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow duration-200 bg-white" data-record-id="{{ $record->id }}" data-nature-of-work="{{ strtolower($record->nature_of_work) }}" data-make-or-type="{{ strtolower($record->make_or_type) }}" data-mechanic-assigned="{{ strtolower($record->mechanic_assigned) }}" data-date-started="{{ $record->date_started->format('M d, Y') }}">
-                                            <div class="flex justify-between items-start">
-                                                <div class="flex-1">
-                                                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                                                        <div>
-                                                            <p class="text-xs text-gray-500 uppercase tracking-wide">Record #</p>
-                                                            <p class="text-sm font-medium text-gray-900">{{ $index + 1 }}</p>
-                                                        </div>
-                                                        <div>
-                                                            <p class="text-xs text-gray-500 uppercase tracking-wide">Nature of Work</p>
-                                                            <p class="text-sm font-medium text-[#006400]">{{ $record->nature_of_work }}</p>
-                                                        </div>
-                                                        <div>
-                                                            <p class="text-xs text-gray-500 uppercase tracking-wide">Maintenance Type</p>
-                                                            <p class="text-sm font-medium text-gray-900">{{ $record->make_or_type }}</p>
-                                                        </div>
-                                                        <div>
-                                                            <p class="text-xs text-gray-500 uppercase tracking-wide">Date Started</p>
-                                                            <p class="text-sm font-medium text-gray-900">{{ $record->date_started->format('M d, Y') }}</p>
-                                                        </div>
+                            <div class="overflow-x-auto">
+                                <table class="min-w-full divide-y divide-gray-200">
+                                    <thead class="bg-[#1e6031]">
+                                        <tr>
+                                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">No.</th>
+                                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Nature of Work</th>
+                                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Maintenance Type</th>
+                                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Mechanics Assigned</th>
+                                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Date Started</th>
+                                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="bg-white divide-y divide-gray-200">
+                                        @if($pendingRecords->count() > 0)
+                                            @foreach($pendingRecords as $index => $record)
+                                            <tr class="hover:bg-gray-50" data-record-id="{{ $record->id }}" data-nature-of-work="{{ strtolower($record->nature_of_work) }}" data-make-or-type="{{ strtolower($record->make_or_type) }}" data-mechanic-assigned="{{ strtolower($record->mechanic_assigned) }}" data-date-started="{{ $record->date_started->format('M d, Y') }}">
+                                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $index + 1 }}</td>
+                                                <td class="px-6 py-4 text-sm text-[#006400]">{{ $record->nature_of_work }}</td>
+                                                <td class="px-6 py-4 text-sm text-gray-900">{{ $record->make_or_type }}</td>
+                                                <td class="px-6 py-4 text-sm text-gray-900">{{ $record->mechanic_assigned }}</td>
+                                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $record->date_started->format('M d, Y') }}</td>
+                                                <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                                    <div class="flex space-x-2">
+                                                        <a href="{{ route('vehicle-maintenance.show', $record) }}" 
+                                                           class="text-indigo-600 hover:text-indigo-900 inline-flex items-center"
+                                                           title="View Maintenance">
+                                                            <i class="fas fa-eye mr-1" style="font-size: 12px;"></i> View
+                                                        </a>
+                                                        <a href="{{ route('vehicle-maintenance.edit', $record) }}" 
+                                                           class="text-yellow-600 hover:text-yellow-900 inline-flex items-center ml-2"
+                                                           title="Edit Maintenance">
+                                                            <i class="fas fa-edit mr-1" style="font-size: 12px;"></i> Edit
+                                                        </a>
+                                                        <form action="{{ route('vehicle-maintenance.destroy', $record) }}" method="POST" class="d-inline delete-form">
+                                                            @csrf
+                                                            @method('DELETE')
+                                                            <button type="button" class="text-red-600 hover:text-red-900 delete-btn inline-flex items-center ml-2" title="Delete Maintenance">
+                                                                <i class="fas fa-trash mr-1" style="font-size: 12px;"></i> Delete
+                                                            </button>
+                                                        </form>
                                                     </div>
-                                                    <div class="mt-3 grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                        <div>
-                                                            <p class="text-xs text-gray-500 uppercase tracking-wide">Mechanics Assigned</p>
-                                                            <p class="text-sm font-medium text-gray-900">{{ $record->mechanic_assigned }}</p>
-                                                        </div>
-                                                        <div>
-                                                            <p class="text-xs text-gray-500 uppercase tracking-wide">Status</p>
-                                                            <span class="px-2 py-1 rounded-full text-xs font-semibold
-                                                                @if($record->status === 'Completed') bg-green-100 text-green-800
-                                                                @elseif($record->status === 'Ongoing') bg-yellow-100 text-yellow-800
-                                                                @elseif($record->status === 'Pending') bg-blue-100 text-blue-800
-                                                                @endif">
-                                                                {{ $record->status }}
-                                                            </span>
-                                                        </div>
+                                                </td>
+                                            </tr>
+                                            @endforeach
+                                        @else
+                                            <tr>
+                                                <td colspan="6" class="px-6 py-12 text-center">
+                                                    <div class="flex flex-col items-center">
+                                                        <i class="fas fa-tools text-gray-300 text-4xl mb-3"></i>
+                                                        <h4 class="text-lg font-medium text-gray-900 mb-1">No Pending Maintenance Records</h4>
+                                                        <p class="text-gray-500">Get started by creating a new maintenance record for this vehicle.</p>
                                                     </div>
-                                                </div>
-                                                <div class="ml-4 flex flex-col space-y-2">
-                                                    <a href="{{ route('vehicle-maintenance.show', $record) }}" 
-                                                       class="btn btn-sm btn-outline-primary border inline-flex items-center justify-center text-xs px-3 py-1.5"
-                                                       title="View Maintenance">
-                                                        <i class="fas fa-eye" style="font-size: 10px;"></i> View
-                                                    </a>
-                                                    <a href="{{ route('vehicle-maintenance.edit', $record) }}" 
-                                                       class="btn btn-sm btn-outline-warning border inline-flex items-center justify-center text-xs px-3 py-1.5"
-                                                       title="Edit Maintenance">
-                                                        <i class="fas fa-edit" style="font-size: 10px;"></i> Edit
-                                                    </a>
-                                                    <form action="{{ route('vehicle-maintenance.destroy', $record) }}" method="POST" class="d-inline delete-form">
-                                                        @csrf
-                                                        @method('DELETE')
-                                                        <button type="button" class="btn btn-sm btn-outline-danger border delete-btn w-full text-xs px-3 py-1.5" title="Delete Maintenance">
-                                                            <i class="fas fa-trash" style="font-size: 10px;"></i> Delete
-                                                        </button>
-                                                    </form>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    @endforeach
-                                </div>
-                            @else
-                                <div class="text-center py-8">
-                                    <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                    </svg>
-                                    <h3 class="mt-2 text-sm font-medium text-gray-900">No Pending/Ongoing Maintenance Records</h3>
-                                    <p class="mt-1 text-sm text-gray-500">Get started by creating a new maintenance record for this vehicle.</p>
-                                </div>
-                            @endif
+                                                </td>
+                                            </tr>
+                                        @endif
+                                    </tbody>
+                                </table>
+                            </div>
                         </div> <!-- End of Pending tab -->
                         
                         <div class="tab-pane fade" id="completed" role="tabpanel">
@@ -207,89 +165,66 @@
                                     return $record->status === 'Completed';
                                 });
                             @endphp
-                            @if($completedRecords->count() > 0)
-                                <div id="completedRecordsList" class="space-y-4">
-                                    @foreach($completedRecords as $index => $record)
-                                        <div class="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow duration-200 bg-white" data-record-id="{{ $record->id }}" data-nature-of-work="{{ strtolower($record->nature_of_work) }}" data-make-or-type="{{ strtolower($record->make_or_type) }}" data-mechanic-assigned="{{ strtolower($record->mechanic_assigned) }}" data-date-started="{{ $record->date_started->format('M d, Y') }}">
-                                            <div class="flex justify-between items-start">
-                                                <div class="flex-1">
-                                                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                                                        <div>
-                                                            <p class="text-xs text-gray-500 uppercase tracking-wide">Record #</p>
-                                                            <p class="text-sm font-medium text-gray-900">{{ $index + 1 }}</p>
-                                                        </div>
-                                                        <div>
-                                                            <p class="text-xs text-gray-500 uppercase tracking-wide">Nature of Work</p>
-                                                            <p class="text-sm font-medium text-[#006400]">{{ $record->nature_of_work }}</p>
-                                                        </div>
-                                                        <div>
-                                                            <p class="text-xs text-gray-500 uppercase tracking-wide">Maintenance Type</p>
-                                                            <p class="text-sm font-medium text-gray-900">{{ $record->make_or_type }}</p>
-                                                        </div>
-                                                        <div>
-                                                            <p class="text-xs text-gray-500 uppercase tracking-wide">Date Started</p>
-                                                            <p class="text-sm font-medium text-gray-900">{{ $record->date_started->format('M d, Y') }}</p>
-                                                        </div>
+                            <div class="overflow-x-auto">
+                                <table class="min-w-full divide-y divide-gray-200">
+                                    <thead class="bg-[#1e6031]">
+                                        <tr>
+                                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">No.</th>
+                                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Nature of Work</th>
+                                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Maintenance Type</th>
+                                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Mechanics Assigned</th>
+                                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Date Started</th>
+                                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="bg-white divide-y divide-gray-200">
+                                        @if($completedRecords->count() > 0)
+                                            @foreach($completedRecords as $index => $record)
+                                            <tr class="hover:bg-gray-50" data-record-id="{{ $record->id }}" data-nature-of-work="{{ strtolower($record->nature_of_work) }}" data-make-or-type="{{ strtolower($record->make_or_type) }}" data-mechanic-assigned="{{ strtolower($record->mechanic_assigned) }}" data-date-started="{{ $record->date_started->format('M d, Y') }}">
+                                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $index + 1 }}</td>
+                                                <td class="px-6 py-4 text-sm text-[#006400]">{{ $record->nature_of_work }}</td>
+                                                <td class="px-6 py-4 text-sm text-gray-900">{{ $record->make_or_type }}</td>
+                                                <td class="px-6 py-4 text-sm text-gray-900">{{ $record->mechanic_assigned }}</td>
+                                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $record->date_started->format('M d, Y') }}</td>
+                                                <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                                    <div class="flex space-x-2">
+                                                        <a href="{{ route('vehicle-maintenance.show', $record) }}" 
+                                                           class="text-indigo-600 hover:text-indigo-900 inline-flex items-center"
+                                                           title="View Maintenance">
+                                                            <i class="fas fa-eye mr-1" style="font-size: 12px;"></i> View
+                                                        </a>
+                                                        <a href="{{ route('vehicle-maintenance.edit', $record) }}" 
+                                                           class="text-yellow-600 hover:text-yellow-900 inline-flex items-center ml-2"
+                                                           title="Edit Maintenance">
+                                                            <i class="fas fa-edit mr-1" style="font-size: 12px;"></i> Edit
+                                                        </a>
+                                                        <form action="{{ route('vehicle-maintenance.destroy', $record) }}" method="POST" class="d-inline delete-form">
+                                                            @csrf
+                                                            @method('DELETE')
+                                                            <button type="button" class="text-red-600 hover:text-red-900 delete-btn inline-flex items-center ml-2" title="Delete Maintenance">
+                                                                <i class="fas fa-trash mr-1" style="font-size: 12px;"></i> Delete
+                                                            </button>
+                                                        </form>
                                                     </div>
-                                                    <div class="mt-3 grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                        <div>
-                                                            <p class="text-xs text-gray-500 uppercase tracking-wide">Mechanics Assigned</p>
-                                                            <p class="text-sm font-medium text-gray-900">{{ $record->mechanic_assigned }}</p>
-                                                        </div>
-                                                        <div>
-                                                            <p class="text-xs text-gray-500 uppercase tracking-wide">Status</p>
-                                                            <span class="px-2 py-1 rounded-full text-xs font-semibold
-                                                                @if($record->status === 'Completed') bg-green-100 text-green-800
-                                                                @elseif($record->status === 'Ongoing') bg-yellow-100 text-yellow-800
-                                                                @elseif($record->status === 'Pending') bg-blue-100 text-blue-800
-                                                                @endif">
-                                                                {{ $record->status }}
-                                                            </span>
-                                                        </div>
+                                                </td>
+                                            </tr>
+                                            @endforeach
+                                        @else
+                                            <tr>
+                                                <td colspan="6" class="px-6 py-12 text-center">
+                                                    <div class="flex flex-col items-center">
+                                                        <i class="fas fa-tools text-gray-300 text-4xl mb-3"></i>
+                                                        <h4 class="text-lg font-medium text-gray-900 mb-1">No Completed Maintenance Records</h4>
+                                                        <p class="text-gray-500">There are no completed maintenance records for this vehicle.</p>
                                                     </div>
-                                                </div>
-                                                <div class="ml-4 flex flex-col space-y-2">
-                                                    <a href="{{ route('vehicle-maintenance.show', $record) }}" 
-                                                       class="btn btn-sm btn-outline-primary border inline-flex items-center justify-center text-xs px-3 py-1.5"
-                                                       title="View Maintenance">
-                                                        <i class="fas fa-eye" style="font-size: 10px;"></i> View
-                                                    </a>
-                                                    <a href="{{ route('vehicle-maintenance.edit', $record) }}" 
-                                                       class="btn btn-sm btn-outline-warning border inline-flex items-center justify-center text-xs px-3 py-1.5"
-                                                       title="Edit Maintenance">
-                                                        <i class="fas fa-edit" style="font-size: 10px;"></i> Edit
-                                                    </a>
-                                                    <form action="{{ route('vehicle-maintenance.destroy', $record) }}" method="POST" class="d-inline delete-form">
-                                                        @csrf
-                                                        @method('DELETE')
-                                                        <button type="button" class="btn btn-sm btn-outline-danger border delete-btn w-full text-xs px-3 py-1.5" title="Delete Maintenance">
-                                                            <i class="fas fa-trash" style="font-size: 10px;"></i> Delete
-                                                        </button>
-                                                    </form>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    @endforeach
-                                </div>
-                            @else
-                                <div class="text-center py-8">
-                                    <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                    </svg>
-                                    <h3 class="mt-2 text-sm font-medium text-gray-900">No Completed Maintenance Records</h3>
-                                    <p class="mt-1 text-sm text-gray-500">There are no completed maintenance records for this vehicle.</p>
-                                </div>
-                            @endif
+                                                </td>
+                                            </tr>
+                                        @endif
+                                    </tbody>
+                                </table>
+                            </div>
                         </div> <!-- End of Completed tab -->
                     </div> <!-- End of tab content -->
-                    
-                    <div class="mt-6">
-                        <a href="{{ route('vehicles.show', $vehicle) }}" 
-                           class="inline-flex items-center px-4 py-2 bg-gray-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700 focus:bg-gray-700 active:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150">
-                            Back to Vehicle Details
-                        </a>
-                    </div>
                 </div>
             </div>
         </div>
@@ -318,51 +253,43 @@
             });
         });
             
-        // Search functionality
-        document.addEventListener('DOMContentLoaded', function() {
-            const searchInput = document.getElementById('searchMaintenance');
-        
-            searchInput.addEventListener('keyup', function() {
-                const query = this.value.toLowerCase();
-                const table = document.querySelector('table');
-                const tbody = table.querySelector('tbody');
-                    
-                // Get all rows except the header
-                const rows = Array.from(tbody.querySelectorAll('tr'));
-        
-                rows.forEach(row => {
-                    const rowText = row.textContent.toLowerCase();
-                    if (rowText.includes(query)) {
-                        row.style.display = '';
-                    } else {
-                        row.style.display = 'none';
-                    }
+        // Tab switching functionality
+        const tabButtons = document.querySelectorAll('.tab-button');
+            
+        tabButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                // Remove active class from all buttons
+                tabButtons.forEach(btn => {
+                    btn.classList.remove('active', 'border-[#1e6031]', 'text-[#1e6031]');
+                    btn.classList.add('border-transparent', 'text-gray-500');
                 });
                     
-                // Renumber first column for visible rows
-                let count = 1;
-                rows.forEach(row => {
-                    if (window.getComputedStyle(row).display !== 'none') {
-                        const firstCell = row.querySelector('td:first-child');
-                        if (firstCell) firstCell.textContent = count++;
-                    }
+                // Add active class to clicked button
+                this.classList.remove('border-transparent', 'text-gray-500');
+                this.classList.add('active', 'border-[#1e6031]', 'text-[#1e6031]');
+                    
+                // Hide all tab content
+                document.querySelectorAll('.tab-pane').forEach(pane => {
+                    pane.classList.remove('show', 'active');
                 });
+                    
+                // Show corresponding tab content
+                const targetId = this.getAttribute('data-bs-target').substring(1);
+                document.getElementById(targetId).classList.add('show', 'active');
             });
         });
-    });
-    
-    // Search functionality for maintenance records
-    document.addEventListener('DOMContentLoaded', function() {
+            
+        // Search functionality for maintenance records
         const searchInput = document.getElementById('searchMaintenance');
-
+    
         searchInput.addEventListener('keyup', function() {
             const query = this.value.toLowerCase();
-            
+                
             // Get the active tab's records
             const activeTab = document.querySelector('.tab-pane.active.show');
             if (activeTab) {
-                const records = activeTab.querySelectorAll('div[data-record-id]');
-                
+                const records = activeTab.querySelectorAll('tr[data-record-id]');
+                    
                 records.forEach(record => {
                     const recordData = [
                         record.getAttribute('data-nature-of-work'),
@@ -370,7 +297,7 @@
                         record.getAttribute('data-mechanic-assigned'),
                         record.getAttribute('data-date-started')
                     ].join(' ').toLowerCase();
-                    
+                        
                     if (recordData.includes(query)) {
                         record.style.display = '';
                     } else {

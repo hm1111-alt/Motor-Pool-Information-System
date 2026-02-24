@@ -112,12 +112,12 @@ class Vehicle extends Model
     public function getPictureUrl(): string
     {
         if ($this->picture) {
-            // Check if it's a direct public path
-            if (str_starts_with($this->picture, 'vehicles/')) {
-                return asset($this->picture);
+            // Check if it's the default image
+            if ($this->picture === 'vehicle_default.png') {
+                return asset('vehicles/images/' . $this->picture);
             }
-            // Otherwise assume it's in storage
-            return asset('storage/' . $this->picture);
+            // For other images, they are stored directly in public/vehicles/images/
+            return asset('vehicles/images/' . $this->picture);
         }
         
         // Return default image if no picture

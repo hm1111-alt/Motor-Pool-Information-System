@@ -24,7 +24,7 @@
         <div class="main">
             <div class="flex justify-between items-center mb-3">
                 <!-- Left: Heading -->
-                <h2 class="font-semibold text-xl text-gray-800">Drivers</h2>
+                <h2 class="font-bold" style="color: #1e6031; font-size: 1.75rem;">Drivers</h2>
 
                 <!-- Right: Search Bar + Add Driver Button -->
                 <div class="flex items-center gap-2">
@@ -55,7 +55,7 @@
                 
                 <!-- Position Filter -->
                 <div style="display:flex; align-items:center;">
-                    <label for="positionFilter" style="margin-right: 10px; font-weight: bold;">Filter by Position:</label>
+                    <label for="positionFilter" style="margin-right: 10px; font-weight: normal; font-size: 0.875rem;">Filter by Position:</label>
                     <select id="positionFilter" name="position" class="border border-gray-300 rounded-md px-2 py-1 text-sm"
                         style="width:150px; padding:6px 8px; font-size:13px; border:1px solid #ccc; border-radius:5px;">
                         <option value="">All Positions</option>
@@ -76,6 +76,9 @@
 
             </div>
 
+            <!-- Hidden data container for PDF generation -->
+            <div id="js-driver-data" data-drivers='@json($allDrivers)'></div>
+            
             <!-- Drivers Table -->
             <div class="overflow-x-auto">
                 <table class="min-w-full divide-y divide-gray-200">
@@ -1668,5 +1671,154 @@
         });
     }
   });
+  
+  // Add PDF generation functionality
+  document.addEventListener('DOMContentLoaded', function () {
+    const pdfBtn = document.getElementById('generatePDFBtn');
+    if (!pdfBtn) return;
+    
+    pdfBtn.addEventListener('click', function () {
+        // Show loading alert
+        Swal.fire({
+            title: 'Generating PDF...',
+            text: 'Please wait while we prepare your driver list',
+            allowOutsideClick: false,
+            allowEscapeKey: false,
+            showConfirmButton: false,
+            didOpen: () => {
+                Swal.showLoading();
+            }
+        });
+        
+        // Wait 2 seconds then generate PDF and close loading
+        setTimeout(function() {
+            // Close the loading alert
+            Swal.close();
+            
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            const pageWidth = doc.internal.pageSize.getWidth();
+            const pageHeight = doc.internal.pageSize.getHeight();
+            
+            const allDrivers = JSON.parse(document.getElementById('js-driver-data').dataset.drivers);
+            
+            const logo = new Image();
+            logo.src = "{{ asset('assets/images/clsu-logo.png') }}";
+            
+            logo.onload = function () {
+                const logoSize = 30;
+                const marginTop = 12;
+                const logoX = pageWidth / 2 - 70;
+                
+                // Header
+                doc.addImage(logo, "PNG", logoX, marginTop, logoSize, logoSize);
+                doc.setFont("helvetica", "normal").setFontSize(10);
+                doc.text("Republic of the Philippines", pageWidth / 2, marginTop + 2, { align: "center" });
+                doc.setFont("helvetica", "bold").setFontSize(14);
+                doc.text("CENTRAL LUZON STATE UNIVERSITY", pageWidth / 2, marginTop + 8, { align: "center" });
+                doc.setFont("helvetica", "normal").setFontSize(10);
+                doc.text("Science City of Muñoz, Nueva Ecija", pageWidth / 2, marginTop + 14, { align: "center" });
+                doc.setFont("helvetica", "bold").setFontSize(11);
+                doc.text("TRANSPORTATION SERVICES", pageWidth / 2, marginTop + 20, { align: "center" });
+                
+                // Line under header
+                doc.setDrawColor(0, 77, 0);
+                doc.setLineWidth(0.5);
+                doc.line(15, marginTop + 33, pageWidth - 15, marginTop + 33);
+                
+                // Title
+                doc.setFontSize(12);
+                doc.setFont("helvetica", "bold");
+                doc.text("LIST OF DRIVERS", pageWidth / 2, marginTop + 42, { align: 'center' });
+                
+
+                
+                // Prepare table data
+                const tableData = allDrivers.length
+                    ? allDrivers.map((driver, index) => [
+                        index + 1,
+                        driver.full_name || `${driver.first_name || ''} ${driver.middle_initial ? driver.middle_initial + '.' : ''} ${driver.last_name || ''}`.trim(),
+                        driver.position || '',
+                        driver.official_station || '',
+                        driver.user?.contact_num || 'No Contact'
+                    ])
+                    : null;
+                
+                if (tableData && tableData.length > 0) {
+                    doc.autoTable({
+                        head: [["No.", "Driver Name", "Position", "Official Station", "Contact Number"]],
+                        body: tableData,
+                        startY: marginTop + 50,
+                        theme: 'grid',
+                        headStyles: { fillColor: [0, 128, 0], textColor: 255, fontStyle: 'bold', halign: 'center' },
+                        bodyStyles: { halign: 'center', valign: 'middle' },
+                        styles: { fontSize: 9, cellPadding: 2 },  // Smaller font for more data
+                        columnStyles: {  // Custom column widths
+                            0: { cellWidth: 15 },   // No.
+                            1: { cellWidth: 50 },   // Driver Name
+                            2: { cellWidth: 40 },   // Position
+                            3: { cellWidth: 45 },   // Official Station
+                            4: { cellWidth: 35 }    // Contact Number
+                        },
+                        didDrawPage: function (data) {
+                            const pageCount = doc.internal.getNumberOfPages();
+                            const pageNumber = doc.internal.getCurrentPageInfo().pageNumber;
+                            doc.setFontSize(9);
+                            doc.text(`Page ${pageNumber} of ${pageCount}`, pageWidth / 2, pageHeight - 8, { align: 'center' });
+                        }
+                    });
+                } else {
+                    doc.setFontSize(12);
+                    doc.setFont("helvetica", "bold");
+                    doc.text("No Driver Records Found", pageWidth / 2, marginTop + 60, { align: 'center' });
+                }
+                
+                // Footer date
+                const date = new Date();
+                doc.setFontSize(9);
+                doc.text(
+                    `Generated on: ${date.toLocaleDateString()} ${date.toLocaleTimeString()}`,
+                    pageWidth - 14,
+                    pageHeight - 10,
+                    { align: 'right' }
+                );
+                
+
+                
+                // Create a blob URL and open in modal
+                const pdfBlob = doc.output('blob');
+                const pdfUrl = URL.createObjectURL(pdfBlob);
+                
+                // Create modal HTML
+                let modalHtml = `
+                    <div id="pdfPreviewModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                        <div class="bg-white rounded-2xl w-full max-w-6xl h-full flex flex-col shadow-lg">
+                            <iframe src="${pdfUrl}" class="flex-1 w-full h-full border-none rounded-b-2xl"></iframe>
+                        </div>
+                    </div>
+                `;
+                
+                // Add modal to body
+                document.body.insertAdjacentHTML('beforeend', modalHtml);
+                
+                // Close modal when clicking outside
+                document.getElementById('pdfPreviewModal').addEventListener('click', function(e) {
+                    if (e.target === this) {
+                        const modal = document.getElementById('pdfPreviewModal');
+                        if (modal) {
+                            modal.remove();
+                            // Revoke the object URL to free memory
+                            URL.revokeObjectURL(pdfUrl);
+                        }
+                    }
+                });
+            };
+        }, 2000);
+    });
+  });
 </script>
+
+<!-- JS Libraries -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
 @endsection

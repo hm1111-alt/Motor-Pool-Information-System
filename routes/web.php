@@ -31,6 +31,7 @@ use Illuminate\Support\Facades\Auth;
 // PUBLIC API ROUTES FOR VALIDATION (NO AUTHENTICATION REQUIRED)
 Route::get('/api/check-contact-number/{contactNumber}', [DriverController::class, 'checkContactNumber'])->name('api.check-contact-number');
 Route::get('/api/check-email/{email}', [DriverController::class, 'checkEmail'])->name('api.check-email');
+Route::get('/api/check-plate-number/{plateNumber}', [VehicleController::class, 'checkPlateNumber'])->name('api.check-plate-number');
 
 Route::get('/api/offices', function() {
     try {
@@ -317,6 +318,7 @@ Route::middleware('auth')->group(function () {
     
     // Vehicle Management Routes for Motorpool Admin
     Route::resource('vehicles', App\Http\Controllers\VehicleController::class);
+    Route::get('/vehicles/{vehicle}/edit-data', [App\Http\Controllers\VehicleController::class, 'getForEdit'])->name('vehicles.edit.data');
     
     // Driver Management Routes for Motorpool Admin
     Route::resource('drivers', DriverController::class);

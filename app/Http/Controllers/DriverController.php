@@ -42,8 +42,29 @@ class DriverController extends Controller
         $drivers = $query->paginate(10)->appends($request->except('page'));
         $positions = Driver::select('position')->distinct()->orderBy('position')->pluck('position');
         $users = User::orderBy('name')->get();
+        
+        // Get all drivers for PDF generation (without pagination)
+        $allDriversQuery = Driver::with('user');
+        
+        // Apply same filters for PDF data
+        if ($search) {
+            $allDriversQuery->where(function($q) use ($search) {
+                $q->where('first_name', 'LIKE', "%{$search}%")
+                  ->orWhere('last_name', 'LIKE', "%{$search}%")
+                  ->orWhereHas('user', function($q) use ($search) {
+                      $q->where('email', 'LIKE', "%{$search}%");
+                  });
+            });
+        }
+        
+        if ($position) {
+            $allDriversQuery->where('position', $position);
+        }
+        
+        $allDriversQuery->orderBy('created_at', 'desc');
+        $allDrivers = $allDriversQuery->get();
             
-        return view('drivers.index', compact('drivers', 'search', 'positions', 'position', 'users'));
+        return view('drivers.index', compact('drivers', 'search', 'positions', 'position', 'users', 'allDrivers'));
     }
 
     /**
@@ -173,7 +194,16 @@ class DriverController extends Controller
     public function show(Driver $driver): View
     {
         $driver->load('user', 'itineraries.vehicle');
-        return view('drivers.show', compact('driver'));
+        
+        // Get the current assigned vehicle (most recent approved itinerary)
+        $currentItinerary = $driver->itineraries()
+            ->where('status', 'Approved')
+            ->orderBy('created_at', 'desc')
+            ->first();
+            
+        $currentVehicle = $currentItinerary ? $currentItinerary->vehicle : null;
+        
+        return view('drivers.show', compact('driver', 'currentVehicle'));
     }
 
     /**

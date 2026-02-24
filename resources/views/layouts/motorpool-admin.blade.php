@@ -31,7 +31,7 @@
 </head>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        @if(session('success'))
+        @if(session('success') && !Request::is('vehicles') && session('success') !== 'Vehicle archived successfully!')
             Swal.fire({
                 icon: 'success',
                 title: 'Success!',
