@@ -269,13 +269,38 @@ class VehicleController extends Controller
     /**
      * Remove the specified vehicle from storage.
      */
-    public function destroy(Vehicle $vehicle): RedirectResponse
+    public function destroy(Vehicle $vehicle): RedirectResponse|JsonResponse
     {
-        // Archive the vehicle instead of deleting it
-        $vehicle->update(['status' => 'Inactive']);
-
-        return redirect()->route('vehicles.index')
-            ->with('success', 'Vehicle archived successfully!');
+        try {
+            // Archive the vehicle instead of deleting it
+            $vehicle->update(['status' => 'Inactive']);
+            
+            // Check if this is an AJAX request
+            if (request()->ajax() || request()->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Vehicle archived successfully!'
+                ]);
+            }
+            
+            return redirect()->route('vehicles.index')
+                ->with('success', 'Vehicle archived successfully!');
+                
+        } catch (\Exception $e) {
+            // Log the error for debugging
+            \Log::error('Error archiving vehicle: ' . $e->getMessage());
+            
+            // Check if this is an AJAX request
+            if (request()->ajax() || request()->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Failed to archive vehicle: ' . $e->getMessage()
+                ], 500);
+            }
+            
+            return redirect()->route('vehicles.index')
+                ->with('error', 'Failed to archive vehicle: ' . $e->getMessage());
+        }
     }
     
     /**

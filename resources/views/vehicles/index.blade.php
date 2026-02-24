@@ -394,6 +394,7 @@
 window.bindArchiveButtons = function bindArchiveButtons() {
     // Use setTimeout to ensure DOM is ready
     setTimeout(() => {
+        // Select ALL delete buttons that are not yet bound
         const archiveButtons = document.querySelectorAll('.delete-btn:not([data-bound])');
         console.log('Found', archiveButtons.length, 'archive buttons to bind');
         
@@ -435,8 +436,47 @@ window.bindArchiveButtons = function bindArchiveButtons() {
                             }
                         });
                         
-                        // Submit the form
-                        form.submit();
+                        // Submit form via AJAX
+                        const formData = new FormData(form);
+                        fetch(form.action, {
+                            method: 'POST',
+                            body: formData,
+                            headers: {
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                                'X-Requested-With': 'XMLHttpRequest'
+                            }
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                // Show success message
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Success!',
+                                    text: data.message || 'Vehicle archived successfully!',
+                                    showConfirmButton: false,
+                                    timer: 2000
+                                }).then(() => {
+                                    // Reload the page to show updated data
+                                    location.reload();
+                                });
+                            } else {
+                                // Show error message
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Error!',
+                                    text: data.message || 'Failed to archive vehicle'
+                                });
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error archiving vehicle:', error);
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error!',
+                                text: 'An error occurred while archiving the vehicle. Please try again.'
+                            });
+                        });
                     }
                 });
             });
@@ -446,9 +486,18 @@ window.bindArchiveButtons = function bindArchiveButtons() {
 
 // Bind archive buttons initially when DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM loaded, binding archive buttons');
     if (typeof window.bindArchiveButtons === 'function') {
         window.bindArchiveButtons();
     }
+    
+    // Also bind after a small delay to catch any late-loading content
+    setTimeout(() => {
+        console.log('Delayed binding of archive buttons');
+        if (typeof window.bindArchiveButtons === 'function') {
+            window.bindArchiveButtons();
+        }
+    }, 500);
 });
         
 
@@ -1074,6 +1123,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 tableBody.style.transition = 'opacity 0.2s ease-in-out';
                 
                 // Re-bind archive button click handlers after content update
+                console.log('AJAX content loaded, rebinding archive buttons');
                 if (typeof window.bindArchiveButtons === 'function') {
                     window.bindArchiveButtons();
                 } else {
