@@ -94,8 +94,11 @@
                   <tbody id="driver-table-body">
                     @forelse($drivers as $index => $driver)
                         <tr class="{{ $loop->even ? 'bg-gray-50' : 'bg-white' }} hover:bg-[#f0f8f0]">
-                            <td class="px-3 py-2 whitespace-nowrap text-xs text-[#004d00] font-medium">{{ $index + 1 }}</td>
-                            <td class="px-3 py-2 whitespace-nowrap text-xs text-[#004d00] font-medium">{{ $driver->full_name }}</td>
+                            <td class="px-3 py-2 whitespace-nowrap text-xs text-[#004d00] font-medium">{{ $drivers->firstItem() + $index }}</td>
+                            <td class="px-3 py-2 whitespace-nowrap text-xs">
+                                <div class="text-[#004d00] font-medium">{{ $driver->full_name2 }}</div>
+                                <div class="text-[#006400] text-xs mt-1">{{ $driver->user ? $driver->user->email : 'No Email' }}</div>
+                            </td>
                             <td class="px-3 py-2 whitespace-nowrap text-xs text-[#006400]">{{ $driver->user ? $driver->user->contact_num : 'No Contact' }}</td>
                             <td class="px-3 py-2 whitespace-nowrap text-xs text-gray-600 max-w-[200px]">
                                 <div class="text-[#004d00] font-medium">{{ $driver->position }}</div>
@@ -109,9 +112,19 @@
                                         <i class="fas fa-eye"></i> View
                                     </a>
                                     <button type="button" 
-                                       class="btn edit-btn border inline-flex items-center justify-center"
-                                       title="Edit Driver"
-                                       data-driver-id="{{ $driver->id }}">
+                                           class="btn edit-btn border inline-flex items-center justify-center"
+                                           title="Edit Driver"
+                                           data-bs-toggle="modal" 
+                                           data-bs-target="#editDriverModal"
+                                           data-driver-id="{{ $driver->id }}"
+                                           data-first-name="{{ $driver->first_name }}"
+                                           data-middle-initial="{{ $driver->middle_initial ?? '' }}"
+                                           data-last-name="{{ $driver->last_name }}"
+                                           data-email="{{ $driver->user->email ?? '' }}"
+                                           data-address="{{ $driver->address }}"
+                                           data-contact-num="{{ $driver->user->contact_num ?? '' }}"
+                                           data-position="{{ $driver->position }}"
+                                           data-official-station="{{ $driver->official_station }}">
                                         <i class="fas fa-edit"></i> Edit
                                     </button>
                                     <form action="{{ route('drivers.destroy', $driver) }}" method="POST" class="inline delete-form">
@@ -138,13 +151,29 @@
             </div>
 
             <!-- Pagination -->
-            <div class="flex justify-between items-center mt-4">
-                <div class="text-sm text-gray-600">
-                    Showing {{ $drivers->firstItem() ?? 0 }} to {{ $drivers->lastItem() ?? 0 }} of {{ $drivers->total() }} applications
+            <div class="flex justify-between items-center mt-4" id="pagination-container" data-current-page="{{ $drivers->currentPage() }}" data-last-page="{{ $drivers->lastPage() }}">
+                <div class="text-sm text-gray-600" id="pagination-info">
+                    Showing {{ $drivers->firstItem() ?? 0 }} to {{ $drivers->lastItem() ?? 0 }} of {{ $drivers->total() }} drivers
                 </div>
                 <div class="flex items-center space-x-2">
                     @if($drivers->lastPage() > 1)
-                        {{ $drivers->appends(['search' => request('search'), 'position' => request('position')])->links() }}
+                        <nav>
+                            <ul class="pagination">
+                                <li class="page-item {{ $drivers->currentPage() <= 1 ? 'disabled' : '' }}">
+                                    <a class="page-link {{ $drivers->currentPage() <= 1 ? 'disabled-link' : '' }}" 
+                                       href="#" onclick="loadPage({{ max(1, $drivers->currentPage() - 1) }}); return false;" 
+                                       {{ $drivers->currentPage() <= 1 ? 'aria-disabled="true"' : '' }}>Prev</a>
+                                </li>
+                                <li class="page-item active">
+                                    <span class="page-link">{{ $drivers->currentPage() }}</span>
+                                </li>
+                                <li class="page-item {{ $drivers->currentPage() >= $drivers->lastPage() ? 'disabled' : '' }}">
+                                    <a class="page-link {{ $drivers->currentPage() >= $drivers->lastPage() ? 'disabled-link' : '' }}" 
+                                       href="#" onclick="loadPage({{ min($drivers->lastPage(), $drivers->currentPage() + 1) }}); return false;" 
+                                       {{ $drivers->currentPage() >= $drivers->lastPage() ? 'aria-disabled="true"' : '' }}>Next</a>
+                                </li>
+                            </ul>
+                        </nav>
                     @else
                         <nav>
                             <ul class="pagination">
@@ -316,6 +345,8 @@
     color: #6c757d;
     cursor: not-allowed;
 }
+
+
 </style>
 
 <!-- Add Driver Modal -->
@@ -395,8 +426,8 @@
             <div class="invalid-feedback" style="display: none;">Passwords do not match</div>
           </div>
 
-          <!-- Hidden Availability Status (default: Available) -->
-          <input type="hidden" name="availability_status" value="Available">
+          <!-- Hidden Availability Status (default: Active) -->
+          <input type="hidden" name="availability_status" value="Active">
 
         </div>
 
@@ -508,6 +539,15 @@
 </div>
 
 <script>
+    // Initialize modal instances when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+        // Store add driver modal instance globally
+        const addDriverModalElement = document.getElementById('addDriverModal');
+        if (addDriverModalElement) {
+            window.addDriverModal = new bootstrap.Modal(addDriverModalElement);
+        }
+    });
+    
     // Handle search input
     const searchInput = document.getElementById('searchForm').querySelector('input[name="search"]');
     let searchTimeout;
@@ -548,29 +588,89 @@
         window.location.href = url.toString();
     });
     
-    // Handle delete buttons
-    document.querySelectorAll('.delete-btn').forEach(button => {
-        button.addEventListener('click', function() {
-            const form = this.closest('.delete-form');
-            Swal.fire({
-                title: 'Are you sure?',
-                text: 'Are you sure you want to archive this driver? This action cannot be undone.',
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#d33',
-                cancelButtonColor: '#6c757d',
-                confirmButtonText: 'Yes, archive it!',
-                cancelButtonText: 'Cancel'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    form.submit();
-                }
-            });
-        });
+    // Handle delete buttons with event delegation
+    document.addEventListener('click', function(e) {
+        // Check if clicked element is a delete button or its child
+        if (e.target.closest('.delete-btn')) {
+            const button = e.target.closest('.delete-btn');
+            const form = button.closest('.delete-form');
+            
+            if (form) {
+                e.preventDefault(); // Prevent default form submission
+                Swal.fire({
+                    title: 'Are you sure?',
+                    text: 'Are you sure you want to archive this driver? This action cannot be undone.',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d33',
+                    cancelButtonColor: '#6c757d',
+                    confirmButtonText: 'Yes, archive it!',
+                    cancelButtonText: 'Cancel'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        // Show loading state
+                        Swal.fire({
+                            title: 'Archiving...',
+                            text: 'Please wait while we archive the driver.',
+                            allowOutsideClick: false,
+                            allowEscapeKey: false,
+                            showConfirmButton: false,
+                            didOpen: () => {
+                                Swal.showLoading();
+                            }
+                        });
+                        
+                        // Submit form via AJAX
+                        const formData = new FormData(form);
+                        fetch(form.action, {
+                            method: 'POST',
+                            body: formData,
+                            headers: {
+                                'X-Requested-With': 'XMLHttpRequest'
+                            }
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                // Show success message for 2 seconds
+                                Swal.fire({
+                                    title: 'Success!',
+                                    text: data.message || 'Driver archived successfully!',
+                                    icon: 'success',
+                                    timer: 2000,
+                                    showConfirmButton: false
+                                }).then(() => {
+                                    // Reload the page to show updated data
+                                    location.reload();
+                                });
+                            } else {
+                                // Show error message
+                                Swal.fire({
+                                    title: 'Error!',
+                                    text: data.message || 'Failed to archive driver',
+                                    icon: 'error'
+                                });
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error archiving driver:', error);
+                            Swal.fire({
+                                title: 'Error!',
+                                text: 'An error occurred while archiving the driver. Please try again.',
+                                icon: 'error'
+                            });
+                        });
+                    }
+                });
+            }
+        }
     });
     
-    // Clear form when Cancel button is clicked
+    // Clear form and close modal when Cancel button is clicked
     document.getElementById('cancelDriverBtn').addEventListener('click', function() {
+        console.log('Add Driver Cancel button clicked - starting cleanup process');
+        
+        // Reset the form
         document.getElementById('addDriverForm').reset();
         
         // Clear validation styling and error messages
@@ -616,6 +716,78 @@
         
         // Reset touch flags
         confirmPasswordTouched = false;
+        
+        console.log('Form reset complete, attempting to close modal');
+        
+        // BRUTE FORCE APPROACH - Try multiple methods to close the modal
+        const modalElement = document.getElementById('addDriverModal');
+        
+        // Method 1: Try global instance
+        if (window.addDriverModal) {
+            console.log('Found global addDriverModal instance, hiding it');
+            try {
+                window.addDriverModal.hide();
+                console.log('Global instance hide successful');
+            } catch (e) {
+                console.log('Global instance hide failed:', e);
+            }
+        }
+        
+        // Method 2: Try Bootstrap API
+        if (modalElement) {
+            console.log('Trying Bootstrap getInstance');
+            try {
+                const modal = bootstrap.Modal.getInstance(modalElement);
+                if (modal) {
+                    console.log('Found Bootstrap instance, hiding it');
+                    modal.hide();
+                    console.log('Bootstrap instance hide successful');
+                } else {
+                    console.log('No Bootstrap instance found');
+                }
+            } catch (e) {
+                console.log('Bootstrap getInstance failed:', e);
+            }
+        }
+        
+        // Method 3: Manual DOM manipulation (BRUTE FORCE)
+        console.log('Attempting manual DOM cleanup');
+        if (modalElement) {
+            // Force remove show class and hide modal
+            modalElement.classList.remove('show');
+            modalElement.style.display = 'none';
+            console.log('Removed show class and set display to none');
+            
+            // Remove all modal backdrops (there might be multiple)
+            const backdrops = document.querySelectorAll('.modal-backdrop');
+            backdrops.forEach(backdrop => {
+                backdrop.remove();
+                console.log('Removed backdrop element');
+            });
+            
+            // Remove body classes that prevent scrolling
+            document.body.classList.remove('modal-open');
+            document.body.style.overflow = '';
+            document.body.style.paddingRight = '';
+            console.log('Removed body modal classes and styles');
+            
+            // Force body to be interactive
+            document.body.style.pointerEvents = 'auto';
+            console.log('Forced body pointer events to auto');
+        }
+        
+        // Method 4: Nuclear option - reload the page section
+        setTimeout(() => {
+            const modalStillVisible = document.querySelector('#addDriverModal.show');
+            if (modalStillVisible) {
+                console.log('Modal still visible after all methods, forcing page refresh');
+                location.reload();
+            } else {
+                console.log('Modal successfully closed');
+            }
+        }, 100);
+        
+        console.log('Add Driver Cancel button processing complete');
     });
 </script>
 
@@ -1240,7 +1412,7 @@
               allDrivers.forEach(driver => {
                   driverData[driver.id] = {
                       id: driver.id,
-                      firsts_name: driver.firsts_name,
+                      first_name: driver.first_name,
                       middle_initial: driver.middle_initial,
                       last_name: driver.last_name,
                       email: driver.email,
@@ -1255,7 +1427,7 @@
               
               if (driver) {
                   // Populate the edit form with driver data
-                  document.getElementById('edit_first_name').value = driver.firsts_name || '';
+                  document.getElementById('edit_first_name').value = driver.first_name || '';
                   document.getElementById('edit_middle_initial').value = driver.middle_initial || '';
                   document.getElementById('edit_last_name').value = driver.last_name || '';
                   document.getElementById('edit_email').value = driver.email || '';
@@ -1268,9 +1440,9 @@
                   const editForm = document.getElementById('editDriverForm');
                   editForm.action = `/drivers/${driverId}`;
                   
-                  // Show the modal
-                  const editModal = new bootstrap.Modal(document.getElementById('editDriverModal'));
-                  editModal.show();
+                  // Store modal instance globally so we can access it later
+                  window.editDriverModal = new bootstrap.Modal(document.getElementById('editDriverModal'));
+                  window.editDriverModal.show();
               }
           });
       });
@@ -1290,7 +1462,7 @@
           
           isEditSubmitting = true; // Set flag to prevent multiple submissions
           
-          // Show loading state with SweetAlert for 2 seconds
+          // Show loading state with SweetAlert for exactly 2 seconds
           Swal.fire({
             title: 'Saving...',
             text: 'Please wait while we save the driver information.',
@@ -1303,17 +1475,18 @@
             }
           });
           
-          // Submit form via AJAX
-          const formData = new FormData(editForm);
-          fetch(editForm.action, {
-            method: 'POST',
-            body: formData,
-            headers: {
-              'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-              'X-Requested-With': 'XMLHttpRequest',
-              'X-HTTP-Method-Override': 'PUT'
-            }
-          })
+          // Submit form via AJAX after 2 seconds (to let saving alert show)
+          setTimeout(() => {
+            const formData = new FormData(editForm);
+            fetch(editForm.action, {
+              method: 'POST',
+              body: formData,
+              headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-HTTP-Method-Override': 'PUT'
+              }
+            })
           .then(response => {
             if (!response.ok) {
               throw new Error(`HTTP error! status: ${response.status}`);
@@ -1322,6 +1495,8 @@
           })
           .then(data => {
             if (data.success) {
+              // Clear error flag on successful submission
+              editForm.classList.remove('has-errors');
               // Close the loading SweetAlert and show success message for 2 seconds
               Swal.fire({
                 icon: 'success',
@@ -1345,40 +1520,49 @@
                 
                 // Reset submitting flag
                 isEditSubmitting = false;
-                
+                              
+                // Clear error flag on successful submission
+                editForm.classList.remove('has-errors');
+                              
                 // Reload the page after showing success message
                 window.location.reload();
               }, 2000);
             } else {
-              // Close the loading SweetAlert and show error message
+              // Close the loading SweetAlert
               Swal.close();
               
-              Swal.fire({
-                icon: 'error',
-                title: 'Error!',
-                text: data.message || 'Failed to update driver. Please try again.',
-                showConfirmButton: true,
-                confirmButtonText: 'OK'
-              });
+              // Show validation errors inline
+              if (data.errors) {
+                showEditValidationErrors(data.errors);
+                // Mark form as having errors
+                editForm.classList.add('has-errors');
+              } else {
+                // Show general error message inline
+                showEditGeneralError(data.message || 'Failed to update driver. Please try again.');
+                // Mark form as having errors
+                editForm.classList.add('has-errors');
+              }
             }
           })
           .catch(error => {
             console.error('Error updating driver:', error);
-            
-            // Close the loading SweetAlert and show error message
+                      
+            // Close the loading SweetAlert
             Swal.close();
-            
+                      
             // Reset submitting flag
             isEditSubmitting = false;
-            
-            Swal.fire({
-              icon: 'error',
-              title: 'Error!',
-              text: 'An unexpected error occurred. Please try again.',
-              showConfirmButton: true,
-              confirmButtonText: 'OK'
-            });
+                      
+            // Show error inline
+            let errorMessage = 'An unexpected error occurred. Please try again.';
+            if (error.message) {
+              errorMessage = error.message;
+            }
+            showEditGeneralError(errorMessage);
+            // Mark form as having errors
+            editForm.classList.add('has-errors');
           });
+        }, 2000); // End of 2-second timeout
         });
       }
       
@@ -1622,52 +1806,136 @@
       }
     }
     
-    // Clear validation for edit form when Cancel button is clicked
+    // Capture user changes in form fields
+    const editForm = document.getElementById('editDriverForm');
+    if (editForm) {
+        // Listen for input changes on all form fields
+        editForm.addEventListener('input', function(e) {
+            if (e.target.name) {
+                // Map field names to our storage keys
+                const fieldMap = {
+                    'first_name': 'firstName',
+                    'middle_initial': 'middleInitial',
+                    'last_name': 'lastName',
+                    'email': 'email',
+                    'address': 'address',
+                    'contact_num': 'contactNum',
+                    'position': 'position',
+                    'official_station': 'officialStation'
+                };
+                
+                const storageKey = fieldMap[e.target.name];
+                if (storageKey) {
+                    window.userEditChanges[storageKey] = e.target.value;
+                }
+            }
+        });
+    }
+    
+    // Reset edit form and close modal when Cancel button is clicked
     if (document.getElementById('cancelEditDriverBtn')) {
         document.getElementById('cancelEditDriverBtn').addEventListener('click', function() {
-            // Clear validation styling and error messages for edit form
-            const editEmailInput = document.getElementById('edit_email');
-            if (editEmailInput) {
-                editEmailInput.classList.remove('is-valid', 'is-invalid');
-                // Hide error message
-                const editEmailError = editEmailInput.parentNode.querySelector('.invalid-feedback');
-                if (editEmailError) {
-                    editEmailError.style.display = 'none';
+            console.log('Cancel button clicked - starting cleanup process');
+            
+            // Reset the form to original data
+            const editForm = document.getElementById('editDriverForm');
+            if (editForm && Object.keys(window.originalEditData).length > 0) {
+                document.getElementById('edit_first_name').value = window.originalEditData.firstName || '';
+                document.getElementById('edit_middle_initial').value = window.originalEditData.middleInitial || '';
+                document.getElementById('edit_last_name').value = window.originalEditData.lastName || '';
+                document.getElementById('edit_email').value = window.originalEditData.email || '';
+                document.getElementById('edit_address').value = window.originalEditData.address || '';
+                document.getElementById('edit_contact_num').value = window.originalEditData.contactNum || '';
+                document.getElementById('edit_position').value = window.originalEditData.position || '';
+                document.getElementById('edit_official_station').value = window.originalEditData.officialStation || '';
+                document.getElementById('edit_password').value = '';
+                document.getElementById('edit_password_confirmation').value = '';
+                
+                // Clear user changes since we're resetting to original data
+                window.userEditChanges = {};
+            }
+            
+            // Clear validation styling and error messages
+            const formElements = editForm.querySelectorAll('input, textarea');
+            formElements.forEach(element => {
+                element.classList.remove('is-valid', 'is-invalid');
+                const errorElement = element.parentNode.querySelector('.invalid-feedback');
+                if (errorElement) {
+                    errorElement.style.display = 'none';
+                }
+            });
+            
+            console.log('Form reset complete, attempting to close modal');
+            
+            // BRUTE FORCE APPROACH - Try multiple methods to close the modal
+            const modalElement = document.getElementById('editDriverModal');
+            
+            // Method 1: Try global instance
+            if (window.editDriverModal) {
+                console.log('Found global editDriverModal instance, hiding it');
+                try {
+                    window.editDriverModal.hide();
+                    console.log('Global instance hide successful');
+                } catch (e) {
+                    console.log('Global instance hide failed:', e);
                 }
             }
             
-            const editContactInput = document.getElementById('edit_contact_num');
-            if (editContactInput) {
-                editContactInput.classList.remove('is-valid', 'is-invalid');
-                // Hide error message
-                const editContactError = editContactInput.parentNode.querySelector('.invalid-feedback');
-                if (editContactError) {
-                    editContactError.style.display = 'none';
+            // Method 2: Try Bootstrap API
+            if (modalElement) {
+                console.log('Trying Bootstrap getInstance');
+                try {
+                    const modal = bootstrap.Modal.getInstance(modalElement);
+                    if (modal) {
+                        console.log('Found Bootstrap instance, hiding it');
+                        modal.hide();
+                        console.log('Bootstrap instance hide successful');
+                    } else {
+                        console.log('No Bootstrap instance found');
+                    }
+                } catch (e) {
+                    console.log('Bootstrap getInstance failed:', e);
                 }
             }
             
-            const editPasswordInput = document.getElementById('edit_password');
-            if (editPasswordInput) {
-                editPasswordInput.classList.remove('is-valid', 'is-invalid');
-                // Hide error message
-                const editPasswordError = editPasswordInput.parentNode.querySelector('.invalid-feedback');
-                if (editPasswordError) {
-                    editPasswordError.style.display = 'none';
-                }
+            // Method 3: Manual DOM manipulation (BRUTE FORCE)
+            console.log('Attempting manual DOM cleanup');
+            if (modalElement) {
+                // Force remove show class and hide modal
+                modalElement.classList.remove('show');
+                modalElement.style.display = 'none';
+                console.log('Removed show class and set display to none');
+                
+                // Remove all modal backdrops (there might be multiple)
+                const backdrops = document.querySelectorAll('.modal-backdrop');
+                backdrops.forEach(backdrop => {
+                    backdrop.remove();
+                    console.log('Removed backdrop element');
+                });
+                
+                // Remove body classes that prevent scrolling
+                document.body.classList.remove('modal-open');
+                document.body.style.overflow = '';
+                document.body.style.paddingRight = '';
+                console.log('Removed body modal classes and styles');
+                
+                // Force body to be interactive
+                document.body.style.pointerEvents = 'auto';
+                console.log('Forced body pointer events to auto');
             }
             
-            const editConfirmPasswordInput = document.getElementById('edit_password_confirmation');
-            if (editConfirmPasswordInput) {
-                editConfirmPasswordInput.classList.remove('is-valid', 'is-invalid');
-                // Hide error message
-                const editConfirmPasswordError = editConfirmPasswordInput.parentNode.querySelector('.invalid-feedback');
-                if (editConfirmPasswordError) {
-                    editConfirmPasswordError.style.display = 'none';
+            // Method 4: Nuclear option - reload the page section
+            setTimeout(() => {
+                const modalStillVisible = document.querySelector('#editDriverModal.show');
+                if (modalStillVisible) {
+                    console.log('Modal still visible after all methods, forcing page refresh');
+                    location.reload();
+                } else {
+                    console.log('Modal successfully closed');
                 }
-            }
+            }, 100);
             
-            // Reset touch flags
-            editConfirmPasswordTouched = false;
+            console.log('Cancel button processing complete');
         });
     }
   });
@@ -1737,7 +2005,7 @@
                 const tableData = allDrivers.length
                     ? allDrivers.map((driver, index) => [
                         index + 1,
-                        driver.full_name || `${driver.first_name || ''} ${driver.middle_initial ? driver.middle_initial + '.' : ''} ${driver.last_name || ''}`.trim(),
+                        driver.full_name2 || `${driver.first_name || ''} ${driver.middle_initial ? driver.middle_initial + '.' : ''} ${driver.last_name || ''}`.trim(),
                         driver.position || '',
                         driver.official_station || '',
                         driver.user?.contact_num || 'No Contact'
@@ -1815,6 +2083,223 @@
             };
         }, 2000);
     });
+    
+
+    // Function to show validation errors inline
+    function showEditValidationErrors(errors) {
+        // Don't clear previous errors - update them in place
+        // Only clear errors that are no longer relevant
+        
+        // First, hide all current error messages
+        const currentErrors = document.querySelectorAll('#editDriverForm .invalid-feedback');
+        currentErrors.forEach(errorEl => {
+            errorEl.style.display = 'none';
+        });
+        
+        // Remove error styling from all fields
+        const invalidFields = document.querySelectorAll('#editDriverForm .is-invalid');
+        invalidFields.forEach(field => {
+            field.classList.remove('is-invalid');
+        });
+        
+        // Show each validation error
+        Object.keys(errors).forEach(field => {
+            const errorMessages = errors[field];
+            const inputElement = document.querySelector(`#editDriverForm [name="${field}"]`);
+            
+            if (inputElement) {
+                // Add error styling
+                inputElement.classList.add('is-invalid');
+                
+                // Create or update error message
+                let errorElement = inputElement.parentNode.querySelector('.invalid-feedback');
+                if (!errorElement) {
+                    errorElement = document.createElement('div');
+                    errorElement.className = 'invalid-feedback';
+                    errorElement.style.display = 'block';
+                    inputElement.parentNode.appendChild(errorElement);
+                } else {
+                    errorElement.style.display = 'block';
+                }
+                
+                // Show the first error message
+                errorElement.textContent = errorMessages[0];
+            }
+        });
+    }
+    
+    // Function to show general error inline
+    function showEditGeneralError(message) {
+        // Don't clear previous errors - update the general error in place
+        
+        // Show general error at the top of the form
+        const form = document.getElementById('editDriverForm');
+        let errorContainer = document.getElementById('editFormGeneralError');
+        
+        if (!errorContainer) {
+            errorContainer = document.createElement('div');
+            errorContainer.id = 'editFormGeneralError';
+            errorContainer.className = 'alert alert-danger alert-dismissible fade show';
+            errorContainer.style.fontSize = '0.8rem';
+            errorContainer.style.padding = '0.5rem 0.75rem';
+            errorContainer.style.marginBottom = '1rem';
+            form.insertBefore(errorContainer, form.firstChild);
+        }
+        
+        errorContainer.innerHTML = `
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" style="font-size: 0.6rem; padding: 0.25rem;"></button>
+        `;
+    }
+    
+    // Function to clear all form errors
+    function clearEditFormErrors() {
+        // Remove general error message
+        const generalError = document.getElementById('editFormGeneralError');
+        if (generalError) {
+            generalError.remove();
+        }
+        
+        // Remove validation error styling and messages
+        const formElements = document.querySelectorAll('#editDriverForm .is-invalid');
+        formElements.forEach(element => {
+            element.classList.remove('is-invalid');
+            const errorElement = element.parentNode.querySelector('.invalid-feedback');
+            if (errorElement) {
+                errorElement.remove();
+            }
+        });
+    }
+    
+    // Clear errors when form is submitted successfully
+    const editForm = document.getElementById('editDriverForm');
+    if (editForm) {
+        // No early error clearing - let errors persist between submissions
+    }
+    
+    // Store original data and user changes
+    window.originalEditData = {};
+    window.userEditChanges = {};
+    window.currentDriverId = null;
+    
+    // Handle edit buttons with event delegation
+    document.addEventListener('click', function(e) {
+        // Check if clicked element is an edit button or its child
+        if (e.target.closest('.edit-btn')) {
+            const button = e.target.closest('.edit-btn');
+            
+            // Get the driver data from data attributes
+            const driverId = button.getAttribute('data-driver-id');
+            const firstName = button.getAttribute('data-first-name');
+            const middleInitial = button.getAttribute('data-middle-initial');
+            const lastName = button.getAttribute('data-last-name');
+            const email = button.getAttribute('data-email');
+            const address = button.getAttribute('data-address');
+            const contactNum = button.getAttribute('data-contact-num');
+            const position = button.getAttribute('data-position');
+            const officialStation = button.getAttribute('data-official-station');
+            
+            // Check if we're switching to a different driver
+            const isDifferentDriver = window.currentDriverId !== driverId;
+            
+            // Store original data for reset functionality
+            window.originalEditData = {
+                firstName: firstName,
+                middleInitial: middleInitial,
+                lastName: lastName,
+                email: email,
+                address: address,
+                contactNum: contactNum,
+                position: position,
+                officialStation: officialStation
+            };
+            
+            // Update current driver ID
+            window.currentDriverId = driverId;
+            
+            // If switching drivers, clear user changes
+            if (isDifferentDriver) {
+                window.userEditChanges = {};
+            }
+            
+            // Populate the form fields - use user changes if they exist, otherwise use original data
+            document.getElementById('edit_first_name').value = window.userEditChanges.firstName || firstName;
+            document.getElementById('edit_middle_initial').value = window.userEditChanges.middleInitial || middleInitial;
+            document.getElementById('edit_last_name').value = window.userEditChanges.lastName || lastName;
+            document.getElementById('edit_email').value = window.userEditChanges.email || email;
+            document.getElementById('edit_address').value = window.userEditChanges.address || address;
+            document.getElementById('edit_contact_num').value = window.userEditChanges.contactNum || contactNum;
+            document.getElementById('edit_position').value = window.userEditChanges.position || position;
+            document.getElementById('edit_official_station').value = window.userEditChanges.officialStation || officialStation;
+            
+            // Set the form action to the update endpoint for this driver
+            document.getElementById('editDriverForm').action = `/drivers/${driverId}`;
+            
+            // Show the modal
+            const editModal = new bootstrap.Modal(document.getElementById('editDriverModal'));
+            editModal.show();
+        }
+    });
+   
+   // Handle edit form submission with AJAX to prevent page refresh
+   // (Using the original implementation above)
+   
+   // AJAX pagination function to load data without changing URL
+   window.loadPage = function(page) {
+       const search = document.getElementById('searchInput')?.value || '';
+       const position = document.getElementById('positionFilter')?.value || '';
+           
+       // Show immediate visual feedback with minimal effect
+       const tableContainer = document.querySelector('div.overflow-x-auto');
+       if (tableContainer) {
+           tableContainer.style.opacity = '0.9';
+           tableContainer.style.pointerEvents = 'none'; // Disable interactions during load
+       }
+           
+       // Make AJAX request
+       fetch(`?page=${page}&search=${encodeURIComponent(search)}&position=${encodeURIComponent(position)}`, {
+           headers: {
+               'X-Requested-With': 'XMLHttpRequest',
+               'Accept': 'text/html'
+           }
+       })
+       .then(response => response.text())
+       .then(html => {
+           // Parse the response to extract table body and pagination
+           const parser = new DOMParser();
+           const doc = parser.parseFromString(html, 'text/html');
+               
+           // Extract the table and pagination sections
+           const newTableSection = doc.querySelector('div.overflow-x-auto');
+           const newPagination = doc.querySelector('#pagination-container');
+               
+           if (newTableSection && tableContainer) {
+               // Immediate replacement with minimal delay
+               tableContainer.outerHTML = newTableSection.outerHTML;
+           }
+               
+           if (newPagination) {
+               const currentPagination = document.getElementById('pagination-container');
+               if (currentPagination) {
+                   currentPagination.outerHTML = newPagination.outerHTML;
+               }
+           }
+       })
+       .catch(error => {
+           console.error('Error loading page:', error);
+           if (tableContainer) {
+               tableContainer.innerHTML = '<div class="alert alert-danger text-center">Error loading data. Please refresh the page.</div>';
+           }
+       })
+       .finally(() => {
+           // Restore immediately
+           const tableContainer = document.querySelector('div.overflow-x-auto');
+           if (tableContainer) {
+               tableContainer.style.opacity = '1';
+               tableContainer.style.pointerEvents = 'auto';
+           }
+       });
+   };
   });
 </script>
 

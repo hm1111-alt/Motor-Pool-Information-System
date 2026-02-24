@@ -358,7 +358,7 @@ Route::middleware('auth')->group(function () {
                   ->whereRaw("DATE(CONCAT(itineraries.date_to, ' ', '23:59:59')) >= ?", [$date]);
         })->pluck('itinerary.driver_id');
         
-        $availableDrivers = \App\Models\Driver::where('availability_status', 'Available')
+        $availableDrivers = \App\Models\Driver::where('availability_status', 'Active')
             ->whereNotIn('id', $tripTickets)
             ->get();
         
@@ -465,7 +465,7 @@ Route::middleware('auth')->group(function () {
     // Test route for itinerary modal
     Route::get('/test-itinerary-modal', function () {
         $vehicles = \App\Models\Vehicle::whereIn('status', ['Available', 'Active'])->get();
-        $drivers = \App\Models\Driver::where('availability_status', 'Available')->get();
+        $drivers = \App\Models\Driver::where('availability_status', 'Active')->get();
         $travelOrders = \App\Models\TravelOrder::where('status', 'approved')
             ->whereDoesntHave('itinerary')
             ->get();

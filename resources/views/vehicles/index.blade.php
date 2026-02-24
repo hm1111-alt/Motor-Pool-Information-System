@@ -1763,4 +1763,84 @@ document.addEventListener('click', function(e) {
   </div>
 </div>
 
+<script>
+// Handle archive buttons with event delegation
+document.addEventListener('click', function(e) {
+    // Check if clicked element is an archive button or its child
+    if (e.target.closest('.archive-btn')) {
+        const button = e.target.closest('.archive-btn');
+        const form = button.closest('.delete-form');
+        
+        if (form) {
+            e.preventDefault(); // Prevent default form submission
+            Swal.fire({
+                title: 'Are you sure?',
+                text: 'Are you sure you want to archive this vehicle? This action cannot be undone.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Yes, archive it!',
+                cancelButtonText: 'Cancel'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Show loading state
+                    Swal.fire({
+                        title: 'Archiving...',
+                        text: 'Please wait while we archive the vehicle.',
+                        allowOutsideClick: false,
+                        allowEscapeKey: false,
+                        showConfirmButton: false,
+                        didOpen: () => {
+                            Swal.showLoading();
+                        }
+                    });
+                    
+                    // Submit form via AJAX
+                    const formData = new FormData(form);
+                    fetch(form.action, {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            // Show success message for 2 seconds
+                            Swal.fire({
+                                title: 'Success!',
+                                text: data.message || 'Vehicle archived successfully!',
+                                icon: 'success',
+                                timer: 2000,
+                                showConfirmButton: false
+                            }).then(() => {
+                                // Reload the page to show updated data
+                                location.reload();
+                            });
+                        } else {
+                            // Show error message
+                            Swal.fire({
+                                title: 'Error!',
+                                text: data.message || 'Failed to archive vehicle',
+                                icon: 'error'
+                            });
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error archiving vehicle:', error);
+                        Swal.fire({
+                            title: 'Error!',
+                            text: 'An error occurred while archiving the vehicle. Please try again.',
+                            icon: 'error'
+                        });
+                    });
+                }
+            });
+        }
+    }
+});
+</script>
+
 @endsection

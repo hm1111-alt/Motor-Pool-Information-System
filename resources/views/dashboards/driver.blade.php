@@ -55,7 +55,8 @@
                                 <h3 class="text-lg font-semibold text-gray-800">Welcome, {{ Auth::user()->name }}!</h3>
                                 <p class="text-gray-600">Driver ID: {{ $driver->id }} | Status: 
                                     <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 
-                                        @if($driver->availability_status == 'Available') bg-green-100 text-green-800
+                                        @if($driver->availability_status == 'Active') bg-green-100 text-green-800
+                                        @elseif($driver->availability_status == 'Available') bg-green-100 text-green-800
                                         @elseif($driver->availability_status == 'Not Available') bg-red-100 text-red-800
                                         @elseif($driver->availability_status == 'On Duty') bg-blue-100 text-blue-800
                                         @else bg-yellow-100 text-yellow-800 @endif">

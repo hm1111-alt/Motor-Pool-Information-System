@@ -19,7 +19,7 @@ class DriverController extends Controller
         $search = $request->get('search');
         $position = $request->get('position');
             
-        $query = Driver::with('user');
+        $query = Driver::with('user')->where('availability_status', 'Active');
             
         // Apply search filter
         if ($search) {
@@ -44,7 +44,7 @@ class DriverController extends Controller
         $users = User::orderBy('name')->get();
         
         // Get all drivers for PDF generation (without pagination)
-        $allDriversQuery = Driver::with('user');
+        $allDriversQuery = Driver::with('user')->where('availability_status', 'Active');
         
         // Apply same filters for PDF data
         if ($search) {
@@ -124,7 +124,7 @@ class DriverController extends Controller
                     'address' => $request->address,
                     'position' => $request->position,
                     'official_station' => $request->official_station,
-                    'availability_status' => 'Available',
+                    'availability_status' => 'Active',
                 ]);
 
                 return response()->json([
@@ -132,11 +132,17 @@ class DriverController extends Controller
                     'message' => 'Driver created successfully.'
                 ]);
 
+            } catch (\Illuminate\Validation\ValidationException $e) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Validation failed',
+                    'errors' => $e->errors()
+                ], 422);
             } catch (\Exception $e) {
                 return response()->json([
                     'success' => false,
                     'message' => $e->getMessage()
-                ], 422);
+                ], 500);
             }
         }
 
@@ -181,7 +187,7 @@ class DriverController extends Controller
             'address' => $request->address,
             'position' => $request->position,
             'official_station' => $request->official_station,
-            'availability_status' => 'Available',
+            'availability_status' => 'Active',
         ]);
 
         return redirect()->route('drivers.index')
@@ -227,9 +233,9 @@ class DriverController extends Controller
                     'first_name' => 'required|string|max:255',
                     'middle_initial' => 'nullable|string|max:10',
                     'last_name' => 'required|string|max:255',
-                    'email' => 'required|email|max:255|unique:drivers,email,' . $driver->id,
+                    'email' => 'required|email|max:255|unique:users,email,' . $driver->user_id,
                     'address' => 'required|string|max:500',
-                    'contact_num' => 'required|string|size:11|unique:drivers,contact_num,' . $driver->id,
+                    'contact_num' => 'required|string|size:11|unique:users,contact_num,' . $driver->user_id,
                     'position' => 'required|string|max:255',
                     'official_station' => 'required|string|max:255',
                     'password' => 'nullable|string|min:8|confirmed',
@@ -245,16 +251,20 @@ class DriverController extends Controller
 
                 // Update driver information
                 $driver->update([
-                    'firsts_name' => $request->first_name,
+                    'first_name' => $request->first_name,
                     'middle_initial' => $request->middle_initial,
                     'last_name' => $request->last_name,
                     'full_name' => $fullName,
                     'full_name2' => $fullName2,
-                    'email' => $request->email,
-                    'address' => $request->address,
-                    'contact_num' => $request->contact_num,
                     'position' => $request->position,
                     'official_station' => $request->official_station,
+                ]);
+
+                // Update user information
+                $driver->user->update([
+                    'name' => $fullName,
+                    'email' => $request->email,
+                    'contact_num' => $request->contact_num,
                 ]);
 
                 // Update user password if provided
@@ -269,11 +279,17 @@ class DriverController extends Controller
                     'message' => 'Driver updated successfully'
                 ]);
 
+            } catch (\Illuminate\Validation\ValidationException $e) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Validation failed',
+                    'errors' => $e->errors()
+                ], 422);
             } catch (\Exception $e) {
                 return response()->json([
                     'success' => false,
                     'message' => $e->getMessage()
-                ], 422);
+                ], 500);
             }
         }
 
@@ -282,9 +298,9 @@ class DriverController extends Controller
             'first_name' => 'required|string|max:255',
             'middle_initial' => 'nullable|string|max:10',
             'last_name' => 'required|string|max:255',
-            'email' => 'required|email|max:255|unique:drivers,email,' . $driver->id,
+            'email' => 'required|email|max:255|unique:users,email,' . $driver->user_id,
             'address' => 'required|string|max:500',
-            'contact_num' => 'required|string|size:11|unique:drivers,contact_num,' . $driver->id,
+            'contact_num' => 'required|string|size:11|unique:users,contact_num,' . $driver->user_id,
             'position' => 'required|string|max:255',
             'official_station' => 'required|string|max:255',
             'password' => 'nullable|string|min:8|confirmed',
@@ -300,16 +316,20 @@ class DriverController extends Controller
 
         // Update driver information
         $driver->update([
-            'firsts_name' => $request->first_name,
+            'first_name' => $request->first_name,
             'middle_initial' => $request->middle_initial,
             'last_name' => $request->last_name,
             'full_name' => $fullName,
             'full_name2' => $fullName2,
-            'email' => $request->email,
-            'address' => $request->address,
-            'contact_num' => $request->contact_num,
             'position' => $request->position,
             'official_station' => $request->official_station,
+        ]);
+
+        // Update user information
+        $driver->user->update([
+            'name' => $fullName,
+            'email' => $request->email,
+            'contact_num' => $request->contact_num,
         ]);
 
         // Update user password if provided
@@ -326,12 +346,36 @@ class DriverController extends Controller
     /**
      * Remove the specified driver from storage.
      */
-    public function destroy(Driver $driver): RedirectResponse
+    public function destroy(Driver $driver)
     {
-        $driver->delete();
+        // Check if this is an AJAX request
+        if (request()->ajax() || request()->wantsJson() || request()->headers->get('X-Requested-With') === 'XMLHttpRequest') {
+            try {
+                // Archive the driver instead of deleting
+                $driver->update([
+                    'availability_status' => 'Inactive'
+                ]);
+                
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Driver archived successfully.'
+                ]);
+                
+            } catch (\Exception $e) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $e->getMessage()
+                ], 500);
+            }
+        }
+        
+        // Non-AJAX request - traditional form submission
+        $driver->update([
+            'availability_status' => 'Inactive'
+        ]);
 
         return redirect()->route('drivers.index')
-            ->with('success', 'Driver deleted successfully.');
+            ->with('success', 'Driver archived successfully.');
     }
 
     /**
@@ -401,7 +445,7 @@ class DriverController extends Controller
             $html .= '
                 <tr>
                     <td>' . ($index + 1) . '</td>
-                    <td>' . htmlspecialchars($driver->full_name) . '</td>
+                    <td>' . htmlspecialchars($driver->full_name2) . '</td>
                     <td>' . htmlspecialchars($driver->position) . '</td>
                     <td>' . htmlspecialchars($driver->official_station) . '</td>
                     <td>' . htmlspecialchars($driver->contact_num) . '</td>

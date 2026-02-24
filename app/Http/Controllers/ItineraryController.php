@@ -78,7 +78,7 @@ class ItineraryController extends Controller
         
         // Get data for the modal
         $vehicles = \App\Models\Vehicle::whereIn('status', ['Available', 'Active'])->get();
-        $drivers = \App\Models\Driver::where('availability_status', 'Available')->get();
+        $drivers = \App\Models\Driver::where('availability_status', 'Active')->get();
         $travelOrders = TravelOrder::where('status', 'approved')->get();
 
         return view('itineraries.index', [
@@ -98,7 +98,7 @@ class ItineraryController extends Controller
     public function create()
     {
         $vehicles = \App\Models\Vehicle::whereIn('status', ['Available', 'Active'])->get();
-        $drivers = \App\Models\Driver::where('availability_status', 'Available')->get();
+        $drivers = \App\Models\Driver::where('availability_status', 'Active')->get();
         $travelOrders = TravelOrder::where('status', 'approved')
             ->whereDoesntHave('itinerary')
             ->get();
@@ -128,7 +128,7 @@ class ItineraryController extends Controller
     public function createModal()
     {
         $vehicles = \App\Models\Vehicle::whereIn('status', ['Available', 'Active'])->get();
-        $drivers = \App\Models\Driver::where('availability_status', 'Available')->get();
+        $drivers = \App\Models\Driver::where('availability_status', 'Active')->get();
         $travelOrders = TravelOrder::where('status', 'approved')
             ->whereDoesntHave('itinerary')
             ->get();
@@ -182,7 +182,7 @@ class ItineraryController extends Controller
     public function edit(Itinerary $itinerary)
     {
         $vehicles = \App\Models\Vehicle::whereIn('status', ['Available', 'Active'])->get();
-        $drivers = \App\Models\Driver::where('availability_status', 'Available')->get();
+        $drivers = \App\Models\Driver::where('availability_status', 'Active')->get();
         $travelOrders = TravelOrder::where('status', 'approved')->get();
         
         // Determine which layout to use based on user's role

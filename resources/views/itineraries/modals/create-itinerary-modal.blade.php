@@ -76,7 +76,7 @@
             <label for="driver_id" class="form-label small fw-semibold text-success mb-1" style="font-size: 0.75rem;">Driver <span class="text-danger">*</span></label>
             <select name="driver_id" id="driver_id" class="form-select form-select-sm rounded" style="height: 30px; font-size: 0.75rem;" required>
               <option value="" disabled selected>-- Select Driver --</option>
-              @foreach($drivers->where('availability_status', 'Available')->sortBy(function($driver) {
+              @foreach($drivers->where('availability_status', 'Active')->sortBy(function($driver) {
                   return $driver->first_name . ' ' . $driver->last_name;
               }) as $driver)
                 <option value="{{ $driver->id }}" data-position="{{ $driver->position }}" data-station="{{ $driver->official_station }}">

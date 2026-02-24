@@ -24,7 +24,7 @@
                 <div class="row">
                     <div class="col-6">
                         <div class="mb-2">
-                            <strong>Name:</strong> {{ $driver->full_name }}
+                            <strong>Name:</strong> {{ $driver->full_name2 }}
                         </div>
                         <div class="mb-2">
                             <strong>Email:</strong> {{ $driver->user->email ?? 'N/A' }}
@@ -104,7 +104,7 @@
         <!-- Header with title, search, and PDF button -->
         <div class="d-flex justify-content-between align-items-center mb-3">
             <h3 class="text-lg font-semibold mb-0" style="color: #1e6031;">
-                {{ $driver->full_name }} - Travel History
+                {{ $driver->full_name2 }} - Travel History
             </h3>
             <div class="d-flex align-items-center gap-2">
                 <!-- Search Bar -->
