@@ -9,6 +9,7 @@ use App\Models\Unit;
 use Illuminate\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\DB;
 
 class SubunitController extends Controller
 {
@@ -17,7 +18,11 @@ class SubunitController extends Controller
      */
     public function index(Request $request): View|JsonResponse
     {
-        $query = Subunit::with('unit.division.office');
+        $query = Subunit::whereExists(function($q) {
+            $q->select(DB::raw(1))
+              ->from('lib_units')
+              ->whereColumn('lib_units.id', 'lib_subunits.unit_id');
+        })->with('unit');
         
         // Handle search
         if ($request->has('search') && $request->search) {

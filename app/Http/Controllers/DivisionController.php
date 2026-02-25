@@ -73,11 +73,11 @@ class DivisionController extends Controller
             'division_abbr' => 'required|string|max:100',
             'office_id' => 'required|exists:offices,id',
             'division_code' => 'required|string|max:50',
-            'division_isactive' => 'boolean',
+            'division_isactive' => 'sometimes|in:0,1',
         ]);
 
         // Handle checkbox value properly
-        $isActive = $request->has('division_isactive') && $request->division_isactive == '1' ? 1 : 0;
+        $isActive = $request->has('division_isactive') && ($request->division_isactive == '1' || $request->division_isactive == 1 || $request->division_isactive == true) ? 1 : 0;
 
         $division = Division::create([
             'division_name' => $request->division_name,
@@ -118,11 +118,11 @@ class DivisionController extends Controller
             'division_abbr' => 'required|string|max:100',
             'office_id' => 'required|exists:offices,id',
             'division_code' => 'required|string|max:50',
-            'division_isactive' => 'boolean',
+            'division_isactive' => 'sometimes|in:0,1',
         ]);
 
         // Handle checkbox value properly
-        $isActive = $request->has('division_isactive') && $request->division_isactive == '1' ? 1 : 0;
+        $isActive = $request->has('division_isactive') && ($request->division_isactive == '1' || $request->division_isactive == 1 || $request->division_isactive == true) ? 1 : 0;
 
         $division->update([
             'division_name' => $request->division_name,

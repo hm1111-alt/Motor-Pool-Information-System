@@ -1,9 +1,25 @@
-<x-app-layout>
-    <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            {{ __('Profile') }}
-        </h2>
-    </x-slot>
+@auth
+    @if(auth()->user()->role === 'admin' || auth()->user()->hasRole('admin'))
+        <x-admin-layout>
+            <x-slot name="header-title">
+                {{ __('Profile') }}
+            </x-slot>
+    @else
+        <x-app-layout>
+            <x-slot name="header">
+                <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+                    {{ __('Profile') }}
+                </h2>
+            </x-slot>
+    @endif
+@else
+    <x-app-layout>
+        <x-slot name="header">
+            <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+                {{ __('Profile') }}
+            </h2>
+        </x-slot>
+@endif
 
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
@@ -26,4 +42,13 @@
             </div>
         </div>
     </div>
-</x-app-layout>
+    
+@if(auth()->check())
+    @if(auth()->user()->role === 'admin' || auth()->user()->hasRole('admin'))
+        </x-admin-layout>
+    @else
+        </x-app-layout>
+    @endif
+@else
+    </x-app-layout>
+@endif

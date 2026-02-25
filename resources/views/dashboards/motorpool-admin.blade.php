@@ -311,7 +311,33 @@
         }
     </script>
 @endsection
+<style>
+.dashboard-card{
+    flex: 1;
+    min-width: 220px;
+    height: 120px;
+    display: flex;
+    align-items: center;
+    padding: 20px;
 
+    background: #DFF0D8;
+    border-radius: 12px;
+
+    /* ✅ GREEN OUTER BORDER */
+    border: 2px solid #00703C;
+
+    box-shadow: 0 6px 12px rgba(0,112,60,0.15);
+
+    cursor: pointer;
+
+    transition: all 0.25s ease;
+}
+
+.dashboard-card:hover{
+    transform: translateY(-4px);
+    box-shadow: 0 12px 20px rgba(0,112,60,0.25);
+}
+</style>
 @section('content')
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
@@ -364,19 +390,7 @@
                     </script>
                     
                         <!-- ITINERARIES -->
-                        <div id="itineraries-card" class="dashboard-card" style="
-                            flex: 1;
-                            min-width: 220px;
-                            height: 120px;
-                            display: flex;
-                            align-items: center;
-                            padding: 20px;
-                            background: #DFF0D8; /* light green background */
-                            border-radius: 12px;
-                            box-shadow: 0 6px 12px rgba(0,112,60,0.15);
-                            transition: transform 0.2s, box-shadow 0.2s;
-                            cursor: pointer;
-                        ">
+                        <div id="itineraries-card" class="dashboard-card">
                             <div style="
                                 width: 60px;
                                 height: 60px;
@@ -396,19 +410,7 @@
                         </div>
                     
                         <!-- TRIP TICKETS -->
-                        <div id="tripTickets-card" class="dashboard-card" style="
-                            flex: 1;
-                            min-width: 220px;
-                            height: 120px;
-                            display: flex;
-                            align-items: center;
-                            padding: 20px;
-                            background: #DFF0D8; /* light green background */
-                            border-radius: 12px;
-                            box-shadow: 0 6px 12px rgba(0,112,60,0.15);
-                            transition: transform 0.2s, box-shadow 0.2s;
-                            cursor: pointer;
-                        ">
+                        <div id="tripTickets-card" class="dashboard-card">
                             <div style="
                                 width: 60px;
                                 height: 60px;
@@ -428,10 +430,8 @@
                         </div>
                     
                         <!-- VEHICLES -->
-                        <div id="vehicles-card" class="dashboard-card" 
-                             data-bs-toggle="modal" data-bs-target="#vehiclesModal"
-                             style="flex: 1; min-width: 220px; height: 120px; display: flex; align-items: center; padding: 20px; background: #DFF0D8; border-radius: 12px; box-shadow: 0 6px 12px rgba(0,112,60,0.15); transition: transform 0.2s, box-shadow 0.2s; cursor: pointer;">
-                            <div style="width: 60px; height: 60px; border-radius: 50%; background-color: #A8DFAA; display: flex; align-items: center; justify-content: center; margin-right: 15px;">
+                      <div id="vehicles-card" class="dashboard-card">
+                        <div style="width: 60px; height: 60px; border-radius: 50%; background-color: #A8DFAA; display: flex; align-items: center; justify-content: center; margin-right: 15px;">
                                 <i class="fas fa-car" style="font-size:28px; color:#00703C;"></i>
                             </div>
                             <div style="flex:1; text-align:right;">
@@ -441,10 +441,8 @@
                         </div>
                          
                         <!-- DRIVERS CARD -->
-                        <div id="drivers-card" class="dashboard-card" 
-                             data-bs-toggle="modal" data-bs-target="#driversModal"
-                             style="flex: 1; min-width: 220px; height: 120px; display: flex; align-items: center; padding: 20px; background: #DFF0D8; border-radius: 12px; box-shadow: 0 4px 8px rgba(0,112,60,0.1); transition: transform 0.2s, box-shadow 0.2s; cursor: pointer; border: 1px solid rgba(0,112,60,0.1);">
-                            <div style="width: 60px; height: 60px; border-radius: 50%; background-color: #A8DFAA; display: flex; align-items: center; justify-content: center; margin-right: 15px;">
+                        <div id="drivers-card" class="dashboard-card">
+                         <div style="width: 60px; height: 60px; border-radius: 50%; background-color: #A8DFAA; display: flex; align-items: center; justify-content: center; margin-right: 15px;">
                                 <i class="fas fa-id-badge" style="font-size:28px; color:#00703C;"></i>
                             </div>
 
@@ -703,9 +701,6 @@
 
                                         
                     </div>
-
-
-
 <!-- ===============================
 VEHICLES & DRIVERS ROW
 ================================ -->

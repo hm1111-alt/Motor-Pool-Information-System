@@ -158,7 +158,6 @@ Route::middleware('auth')->group(function () {
     Route::post('/admin/offices', [OfficeController::class, 'store'])->name('admin.offices.store');
     Route::get('/admin/offices/{office}/edit', [OfficeController::class, 'edit'])->name('admin.offices.edit');
     Route::put('/admin/offices/{office}', [OfficeController::class, 'update'])->name('admin.offices.update');
-    Route::delete('/admin/offices/{office}', [OfficeController::class, 'destroy'])->name('admin.offices.destroy');
     
     Route::get('/admin/divisions', [DivisionController::class, 'index'])->name('admin.divisions.index');
     Route::get('/admin/divisions/create', [DivisionController::class, 'create'])->name('admin.divisions.create');

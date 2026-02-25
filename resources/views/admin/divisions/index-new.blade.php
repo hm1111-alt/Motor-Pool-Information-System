@@ -79,14 +79,14 @@
 </div>
 
                 <!-- Pagination -->
-                <div class="flex flex-col sm:flex-row justify-between items-center mt-4 gap-2" id="pagination-container">
+                <div class="flex justify-between items-center mt-4" id="pagination-container">
                     <div class="text-sm text-gray-600" id="pagination-info">
                         Showing {{ $divisions->firstItem() ?? 0 }} to {{ $divisions->lastItem() ?? 0 }} of {{ $divisions->total() }} results
                     </div>
                     <div class="flex items-center space-x-2">
                         <!-- Custom Pagination - Copied from vehicles page -->
                         <nav>
-                            <ul class="pagination flex items-center">
+                            <ul class="pagination">
                                 <li class="page-item {{ $divisions->currentPage() <= 1 ? 'disabled' : '' }}">
                                     <a class="page-link {{ $divisions->currentPage() <= 1 ? 'disabled-link' : '' }}" 
                                        href="{{ $divisions->currentPage() <= 1 ? 'javascript:void(0)' : $divisions->previousPageUrl() }}"
@@ -142,22 +142,22 @@
                     <!-- Abbreviation -->
                     <div class="mb-2">
                         <label class="small fw-semibold text-success">Abbreviation <span class="text-danger">*</span></label>
-                        <input type="text" name="division_abbr" class="form-control form-control-sm border-success" placeholder="Enter abbreviation (e.g., HRD, FMD)" required>
+                        <input type="text" name="abbreviation" class="form-control form-control-sm border-success" placeholder="Enter abbreviation (e.g., HRD, FMD)" required>
                     </div>
                     
                     <!-- Code -->
                     <div class="mb-2">
                         <label class="small fw-semibold text-success">Division Code <span class="text-danger">*</span></label>
-                        <input type="text" name="division_code" class="form-control form-control-sm border-success" placeholder="Enter division code" required>
+                        <input type="text" name="code" class="form-control form-control-sm border-success" placeholder="Enter division code" required>
                     </div>
                     
                     <!-- Hidden Status Field (always Active) -->
-                    <input type="hidden" name="division_isactive" value="1">
+                    <input type="hidden" name="status" value="Active">
                 </div>
                 
                 <!-- FOOTER -->
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-sm btn-outline-secondary" id="addDivisionCancelButton">Cancel</button>
+                    <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
                     <button type="submit" class="btn btn-sm btn-success">Create Division</button>
                 </div>
             </form>
@@ -199,28 +199,28 @@
                     <!-- Abbreviation -->
                     <div class="mb-2">
                         <label class="small fw-semibold text-success">Abbreviation <span class="text-danger">*</span></label>
-                        <input type="text" name="division_abbr" id="edit_division_abbreviation" class="form-control form-control-sm border-success" placeholder="Enter abbreviation (e.g., HRD, FMD)" required>
+                        <input type="text" name="abbreviation" id="edit_division_abbreviation" class="form-control form-control-sm border-success" placeholder="Enter abbreviation (e.g., HRD, FMD)" required>
                     </div>
                     
                     <!-- Code -->
                     <div class="mb-2">
                         <label class="small fw-semibold text-success">Division Code <span class="text-danger">*</span></label>
-                        <input type="text" name="division_code" id="edit_division_code" class="form-control form-control-sm border-success" placeholder="Enter division code" required>
+                        <input type="text" name="code" id="edit_division_code" class="form-control form-control-sm border-success" placeholder="Enter division code" required>
                     </div>
                     
                     <!-- Status -->
                     <div class="mb-2">
                         <label class="small fw-semibold text-success">Status <span class="text-danger">*</span></label>
-                        <select name="division_isactive" id="edit_division_status" class="form-control form-control-sm border-success" required>
-                            <option value="1">Active</option>
-                            <option value="0">Inactive</option>
+                        <select name="status" id="edit_division_status" class="form-control form-control-sm border-success" required>
+                            <option value="Active">Active</option>
+                            <option value="Inactive">Inactive</option>
                         </select>
                     </div>
                 </div>
                 
                 <!-- FOOTER -->
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-sm btn-outline-secondary" id="editDivisionCancelButton">Cancel</button>
+                    <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
                     <button type="submit" class="btn btn-sm btn-success">Update Division</button>
                 </div>
             </form>
@@ -231,91 +231,6 @@
 <!-- Bootstrap -->
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-
-<style>
-/* Action buttons styling to match offices page */
-.action-buttons .btn {
-    font-size: 10px;
-    padding: 2px 6px;
-    line-height: 1;
-    height: 25px;
-    min-width: 50px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 3px;
-    border-radius: 4px;
-}
-
-.action-buttons .btn i,
-.action-buttons .btn svg {
-    font-size: 10px;
-    margin-right: 2px;
-    width: 12px;
-    height: 12px;
-}
-
-/* Colors for action buttons */
-.action-buttons .edit-btn {
-    color: #ffc107 !important;
-    border: 1px solid #ffc107 !important;
-    background-color: transparent !important;
-}
-
-.action-buttons .edit-btn:hover {
-    background-color: #ffc107 !important;
-    color: #000 !important;
-    border-color: #ffc107 !important;
-}
-
-/* Pagination styling - Simplified version */
-.pagination {
-    display: flex;
-    justify-content: flex-end;
-    list-style: none;
-}
-
-.pagination .page-link {
-    color: #1e6031 !important;
-    padding: 0.15rem 0.4rem;
-    font-size: 0.8125rem;
-    display: block;
-    text-decoration: none;
-    background-color: #fff !important;
-    border: 1px solid #1e6031;
-    border-radius: 0.25rem;
-}
-
-.page-item.disabled .page-link {
-    background-color: #e9ecef;
-    border-color: #dee2e6;
-    color: #6c757d;
-    cursor: not-allowed;
-}
-
-.page-item:not(.disabled) .page-link:hover {
-    background-color: #1e6031 !important;
-    color: white !important;
-}
-
-.page-link.disabled-link {
-    background-color: #e9ecef !important;
-    border-color: #dee2e6 !important;
-    color: #6c757d !important;
-    cursor: not-allowed !important;
-    pointer-events: none;
-}
-
-.pagination .active .page-link {
-    background-color: #1e6031 !important;
-    color: white !important;
-    font-weight: bold;
-}
-
-.page-item {
-    margin: 0 2px;
-}
-</style>
 
 <!-- SweetAlert2 for notifications -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -385,238 +300,105 @@
             const status = button.getAttribute('data-status');
             const officeId = button.getAttribute('data-office-id');
             
-            // Store original data (database values)
-            editModal.originalData = {
-                name: name,
-                abbreviation: abbreviation,
-                code: code,
-                status: status,
-                officeId: officeId
-            };
-            
-            // Check if we have stored edited data from a previous session (closed via backdrop/X)
-            if (editModal.editedData) {
-                // Use previously edited data if modal was closed without canceling
-                document.getElementById('edit_division_name').value = editModal.editedData.name;
-                document.getElementById('edit_division_abbreviation').value = editModal.editedData.abbreviation;
-                document.getElementById('edit_division_code').value = editModal.editedData.code;
-                document.getElementById('edit_division_status').value = editModal.editedData.status;
-                document.getElementById('edit_office_id').value = editModal.editedData.officeId;
-            } else {
-                // Otherwise use original data
-                document.getElementById('edit_division_name').value = name;
-                document.getElementById('edit_division_abbreviation').value = abbreviation;
-                document.getElementById('edit_division_code').value = code;
-                document.getElementById('edit_division_status').value = status;
-                document.getElementById('edit_office_id').value = officeId;
-            }
+            // Fill form fields
+            document.getElementById('edit_division_name').value = name;
+            document.getElementById('edit_division_abbreviation').value = abbreviation;
+            document.getElementById('edit_division_code').value = code;
+            document.getElementById('edit_division_status').value = status;
+            document.getElementById('edit_office_id').value = officeId;
             
             // Update form action
             document.getElementById('editDivisionForm').action = `/admin/divisions/${id}`;
         });
         
-        // Handle Add Division modal cancel button
-        const addCancelButton = document.getElementById('addDivisionCancelButton');
-        const addForm = document.querySelector('#addDivisionModal form');
-        
-        if (addCancelButton && addForm) {
-            addCancelButton.addEventListener('click', function() {
-                // Clear all form fields
-                addForm.reset();
-                
-                // Remove any validation error classes
-                addForm.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
-                addForm.querySelectorAll('.invalid-feedback').forEach(el => el.remove());
-                
-                // Close the modal using Bootstrap
-                const addModal = document.getElementById('addDivisionModal');
-                const modalInstance = bootstrap.Modal.getInstance(addModal);
-                if (modalInstance) {
-                    modalInstance.hide();
-                }
-            });
-        }
-        
-        // Handle Edit Division modal cancel button - resets to original data
-        const editCancelButton = document.getElementById('editDivisionCancelButton');
-        const editForm = document.querySelector('#editDivisionForm');
-        
-        if (editCancelButton && editForm) {
-            editCancelButton.addEventListener('click', function() {
-                // Reset form to original values (before any edits)
-                if (editModal.originalData) {
-                    document.getElementById('edit_division_name').value = editModal.originalData.name;
-                    document.getElementById('edit_division_abbreviation').value = editModal.originalData.abbreviation;
-                    document.getElementById('edit_division_code').value = editModal.originalData.code;
-                    document.getElementById('edit_division_status').value = editModal.originalData.status;
-                    document.getElementById('edit_office_id').value = editModal.originalData.officeId;
-                }
-                
-                // Remove any validation error classes
-                editForm.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
-                editForm.querySelectorAll('.invalid-feedback').forEach(el => el.remove());
-                
-                // Clear the stored edited data since user cancelled
-                editModal.editedData = null;
-                
-                // Close the modal using Bootstrap
-                const modalInstance = bootstrap.Modal.getInstance(editModal);
-                if (modalInstance) {
-                    modalInstance.hide();
-                }
-            });
-        }
-        
-        // Handle modal closing events (click outside or X button) - preserve edited data
-        editModal.addEventListener('hide.bs.modal', function() {
-            // Store current form data when modal is closed via backdrop or X button
-            editModal.editedData = {
-                name: document.getElementById('edit_division_name').value,
-                abbreviation: document.getElementById('edit_division_abbreviation').value,
-                code: document.getElementById('edit_division_code').value,
-                status: document.getElementById('edit_division_status').value,
-                officeId: document.getElementById('edit_office_id').value
-            };
-        });
-        
         // Handle form submission with AJAX
+        const addForm = document.querySelector('#addDivisionModal form');
         addForm.addEventListener('submit', function(e) {
             e.preventDefault();
             
-            // First show loading alert for 2 seconds
-            Swal.fire({
-                title: 'Creating Division...',
-                text: 'Please wait while we process your request',
-                allowOutsideClick: false,
-                allowEscapeKey: false,
-                showConfirmButton: false,
-                timer: 2000,
-                didOpen: () => {
-                    Swal.showLoading();
-                }
-            });
+            const formData = new FormData(this);
             
-            // After 2 seconds, show success message that auto-dismisses
-            setTimeout(() => {
-                const formData = new FormData(this);
-                
-                fetch(this.action, {
-                    method: 'POST',
-                    body: formData,
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                    }
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        Swal.fire({
-                            title: 'Success!',
-                            text: data.message,
-                            icon: 'success',
-                            showConfirmButton: false,
-                            timer: 2000,
-                            didOpen: () => {
-                                // Close modal immediately when success alert opens
-                                const addModal = document.getElementById('addDivisionModal');
-                                const modalInstance = bootstrap.Modal.getInstance(addModal);
-                                if (modalInstance) {
-                                    modalInstance.hide();
-                                }
-                            }
-                        }).then(() => {
-                            // Refresh page after success message disappears
-                            location.reload();
-                        });
-                    } else {
-                        Swal.fire({
-                            title: 'Error!',
-                            text: data.message || 'An error occurred.',
-                            icon: 'error',
-                            confirmButtonColor: '#1e6031'
-                        });
-                    }
-                })
-                .catch(error => {
+            fetch(this.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    Swal.fire({
+                        title: 'Success!',
+                        text: data.message,
+                        icon: 'success',
+                        confirmButtonColor: '#1e6031'
+                    }).then(() => {
+                        location.reload();
+                    });
+                } else {
                     Swal.fire({
                         title: 'Error!',
-                        text: 'An error occurred while submitting the form.',
+                        text: data.message || 'An error occurred.',
                         icon: 'error',
                         confirmButtonColor: '#1e6031'
                     });
+                }
+            })
+            .catch(error => {
+                Swal.fire({
+                    title: 'Error!',
+                    text: 'An error occurred while submitting the form.',
+                    icon: 'error',
+                    confirmButtonColor: '#1e6031'
                 });
-            }, 2000);
+            });
         });
         
         // Handle edit form submission with AJAX
+        const editForm = document.querySelector('#editDivisionForm');
         editForm.addEventListener('submit', function(e) {
             e.preventDefault();
             
-            // First show loading alert for 2 seconds
-            Swal.fire({
-                title: 'Updating Division...',
-                text: 'Please wait while we process your request',
-                allowOutsideClick: false,
-                allowEscapeKey: false,
-                showConfirmButton: false,
-                timer: 2000,
-                didOpen: () => {
-                    Swal.showLoading();
-                }
-            });
+            const formData = new FormData(this);
             
-            // After 2 seconds, show success message that auto-dismisses
-            setTimeout(() => {
-                const formData = new FormData(this);
-                
-                fetch(this.action, {
-                    method: 'POST',
-                    body: formData,
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                    }
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        Swal.fire({
-                            title: 'Success!',
-                            text: data.message,
-                            icon: 'success',
-                            showConfirmButton: false,
-                            timer: 2000,
-                            didOpen: () => {
-                                // Close modal immediately when success alert opens
-                                const editModal = document.getElementById('editDivisionModal');
-                                const modalInstance = bootstrap.Modal.getInstance(editModal);
-                                if (modalInstance) {
-                                    modalInstance.hide();
-                                }
-                            }
-                        }).then(() => {
-                            // Refresh page after success message disappears
-                            location.reload();
-                        });
-                    } else {
-                        Swal.fire({
-                            title: 'Error!',
-                            text: data.message || 'An error occurred.',
-                            icon: 'error',
-                            confirmButtonColor: '#1e6031'
-                        });
-                    }
-                })
-                .catch(error => {
+            fetch(this.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    Swal.fire({
+                        title: 'Success!',
+                        text: data.message,
+                        icon: 'success',
+                        confirmButtonColor: '#1e6031'
+                    }).then(() => {
+                        location.reload();
+                    });
+                } else {
                     Swal.fire({
                         title: 'Error!',
-                        text: 'An error occurred while submitting the form.',
+                        text: data.message || 'An error occurred.',
                         icon: 'error',
                         confirmButtonColor: '#1e6031'
                     });
+                }
+            })
+            .catch(error => {
+                Swal.fire({
+                    title: 'Error!',
+                    text: 'An error occurred while submitting the form.',
+                    icon: 'error',
+                    confirmButtonColor: '#1e6031'
                 });
-            }, 2000);
+            });
         });
     });
 </script>

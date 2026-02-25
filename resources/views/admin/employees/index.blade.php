@@ -1,418 +1,249 @@
-<x-app-layout>
+<x-admin-layout>
     <x-slot name="header">
-        <div class="flex items-center justify-between">
-            <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-                <svg class="inline-block h-6 w-6 text-[#1e6031] mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                </svg>
-                {{ __('Employee Management') }}
-            </h2>
-            <div class="flex space-x-2">
-                <a href="{{ route('admin.employees.create') }}" class="bg-[#1e6031] hover:bg-[#164f2a] text-white px-4 py-2 rounded-lg transition duration-300 flex items-center shadow-md hover:shadow-lg">
-                    <svg class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+        <div class="flex justify-center items-center">
+            <!-- Centered Content -->
+            <div class="flex justify-between items-center" style="width: 100%; max-width: 1200px;">
+                <!-- Left: Heading -->
+                <h2 class="font-bold flex items-center" style="color: #1e6031; font-size: 1.5rem; height: 32px; margin-top: 10px;">
+                    <svg class="mr-2" style="width: 24px; height: 24px; color: #1e6031;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                     </svg>
-                    Add New Employee
-                </a>
-                <a href="{{ route('dashboard') }}" class="bg-gray-500 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition duration-300 flex items-center shadow-md hover:shadow-lg">
-                    <svg class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                    </svg>
-                    Back to Dashboard
-                </a>
+                    Employee Management
+                </h2>
+
+                <!-- Right: Search Bar + Add Employee Button -->
+                <div class="flex items-center gap-2">
+                    <!-- Search Bar -->
+                    <form id="searchForm" method="GET" action="{{ route('admin.employees.index') }}">
+                        <div class="flex">
+                            <input type="text" name="search" class="form-input" placeholder="Search employees..." 
+                                   value="{{ request('search') }}"
+                                   style="height: 32px; width: 250px; font-size: 0.85rem; border: 1px solid #1e6031; border-radius: 0.375rem 0 0 0.375rem; padding: 0 12px;">
+                            <button type="submit" 
+                                    style="background-color: #1e6031; color: #ffffff; border: 1px solid #1e6031; height: 32px; width: 40px; border-radius: 0 0.375rem 0.375rem 0; cursor:pointer; display: flex; align-items: center; justify-content: center;">
+                                <svg class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                </svg>
+                            </button>
+                        </div> 
+                    </form>
+                    
+                    <!-- Add New Employee Button -->
+                    <a href="{{ route('admin.employees.create') }}" class="inline-flex items-center px-3 py-1 bg-[#1e6031] border border-[#1e6031] rounded-md font-semibold text-xs text-white uppercase tracking-wider hover:bg-[#164f2a] focus:bg-[#164f2a] active:bg-[#103c1e] focus:outline-none focus:ring-2 focus:ring-[#1e6031] focus:ring-offset-2 transition ease-in-out duration-150" style="height: 32px;">
+                        <svg class="mr-1" style="width: 10px; height: 10px;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                        </svg>
+                        Add New Employee
+                    </a>
+                </div>
             </div>
         </div>
     </x-slot>
 
-    <div class="py-6">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                <div class="p-6 text-gray-900">
-                    <!-- Search and Filter Section -->
-                    <div class="mb-6">
-                        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                            <div class="flex-1">
-                                <div class="relative">
-                                    <input 
-                                        type="text" 
-                                        id="employee-search"
-                                        placeholder="Search employees..." 
-                                        class="w-full rounded-lg border-gray-300 shadow-sm focus:border-[#1e6031] focus:ring focus:ring-[#1e6031] focus:ring-opacity-50 px-4 py-2"
-                                        value="{{ request('search', '') }}"
-                                    >
-                                </div>
-                            </div>
-                            <div class="flex space-x-2">
-                                <select id="office-filter" class="rounded-lg border-gray-300 shadow-sm focus:border-[#1e6031] focus:ring focus:ring-[#1e6031] focus:ring-opacity-50">
-                                    <option value="all">All Offices</option>
-                                    @foreach($offices as $office)
-                                        <option value="{{ $office->id }}" {{ request('office', 'all') == $office->id ? 'selected' : '' }}>{{ $office->office_name }}</option>
-                                    @endforeach
-                                </select>
-                                <select id="division-filter" class="rounded-lg border-gray-300 shadow-sm focus:border-[#1e6031] focus:ring focus:ring-[#1e6031] focus:ring-opacity-50">
-                                    <option value="all">All Divisions</option>
-                                </select>
-                                <select id="unit-filter" class="rounded-lg border-gray-300 shadow-sm focus:border-[#1e6031] focus:ring focus:ring-[#1e6031] focus:ring-opacity-50">
-                                    <option value="all">All Units</option>
-                                </select>
-                                <select id="subunit-filter" class="rounded-lg border-gray-300 shadow-sm focus:border-[#1e6031] focus:ring focus:ring-[#1e6031] focus:ring-opacity-50">
-                                    <option value="all">All Subunits</option>
-                                </select>
-                                <select id="class-filter" class="rounded-lg border-gray-300 shadow-sm focus:border-[#1e6031] focus:ring focus:ring-[#1e6031] focus:ring-opacity-50">
-                                    <option value="all">All Classes</option>
-                                    @foreach($classes as $class)
-                                        <option value="{{ $class->id }}" {{ request('class', 'all') == $class->id ? 'selected' : '' }}>{{ $class->class_name }}</option>
-                                    @endforeach
-                                </select>
-                                <select id="status-filter" class="rounded-lg border-gray-300 shadow-sm focus:border-[#1e6031] focus:ring focus:ring-[#1e6031] focus:ring-opacity-50">
-                                    <option value="all" {{ request('status', 'all') == 'all' ? 'selected' : '' }}>All Status</option>
-                                    <option value="active" {{ request('status', 'all') == 'active' ? 'selected' : '' }}>Active</option>
-                                    <option value="inactive" {{ request('status', 'all') == 'inactive' ? 'selected' : '' }}>Inactive</option>
-                                </select>
-                            </div>
-                        </div>
+    <div class="-mt-5">
+    <div class="flex justify-center">
+        <div style="width: 100%; max-width: 1200px;">
+                <!-- Filter -->
+               <div class="flex justify-between items-center mb-0" style="display:flex; align-items:center; justify-content:space-between; padding:4px 0; border-bottom:1px solid #1e6031; margin-bottom:8px;">
+                    <div style="display:flex; align-items:center;">
+                        <label for="statusFilter" style="margin-right: 10px; font-weight: normal; font-size: 0.875rem;">Filter by Status: </label>
+                        <select id="statusFilter" name="status" class="border border-gray-300 rounded-md px-2 py-1 text-sm"
+                            style="width:150px; padding:6px 8px; font-size:13px; border:1px solid #ccc; border-radius:5px;">
+                            <option value="all" {{ request('status', 'all') == 'all' ? 'selected' : '' }}>All Status</option>
+                            <option value="active" {{ request('status', 'all') == 'active' ? 'selected' : '' }}>Active</option>
+                            <option value="inactive" {{ request('status', 'all') == 'inactive' ? 'selected' : '' }}>Inactive</option>
+                        </select>
                     </div>
+                </div>
+<!-- Employees Table -->
+<div class="overflow-x-auto">
+    <table class="min-w-full divide-y divide-gray-200">
+        <thead style="background-color: #1e6031; color: white;">
+            <tr>
+                <th style="padding: 10px; text-align: center; font-weight: bold; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.05em; width: 5%;">No.</th>
+                <th style="padding: 10px; text-align: left; font-weight: bold; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.05em; width: 30%;">Employee Name</th>
+                <th style="padding: 10px; text-align: left; font-weight: bold; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.05em; width: 20%;">Position</th>
+                <th style="padding: 10px; text-align: left; font-weight: bold; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.05em; width: 15%;">Status</th>
+                <th style="padding: 10px; text-align: left; font-weight: bold; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.05em; width: 15%;">Role</th>
+                <th style="padding: 10px; text-align: center; font-weight: bold; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.05em; width: 15%;">Actions</th>
+            </tr>
+        </thead>
+        <tbody id="employees-table-body">
+            @include('admin.employees.partials.table-body', ['employees' => $employees])
+        </tbody>
+    </table>
+</div>
 
-                    <!-- Employees Table -->
-                    <div class="overflow-x-auto rounded-lg shadow">
-                        <table class="min-w-full divide-y divide-gray-200" id="employees-table">
-                            <thead class="bg-gray-50">
-                                <tr>
-                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">No</th>
-                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Employee Name</th>
-                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Position</th>
-                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
-                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody class="bg-white divide-y divide-gray-200" id="employees-table-body">
-                                @include('admin.employees.partials.table-body')
-                            </tbody>
-                        </table>
+                <!-- Pagination -->
+                <div class="flex justify-between items-center mt-4" id="pagination-container">
+                    <div class="text-sm text-gray-600" id="pagination-info">
+                        Showing {{ $employees->firstItem() ?? 0 }} to {{ $employees->lastItem() ?? 0 }} of {{ $employees->total() }} results
                     </div>
-
-                    <!-- Pagination -->
-                    <div id="pagination-section">
-                        @include('admin.employees.partials.pagination')
+                    <div class="flex items-center space-x-2">
+                        <!-- Custom Pagination - Copied from vehicles page -->
+                        <nav>
+                            <ul class="pagination">
+                                <li class="page-item {{ $employees->currentPage() <= 1 ? 'disabled' : '' }}">
+                                    <a class="page-link {{ $employees->currentPage() <= 1 ? 'disabled-link' : '' }}" 
+                                       href="{{ $employees->currentPage() <= 1 ? 'javascript:void(0)' : $employees->previousPageUrl() }}"
+                                       {{ $employees->currentPage() <= 1 ? 'aria-disabled="true" tabindex="-1"' : '' }}>Prev</a>
+                                </li>
+                                <li class="page-item active">
+                                    <span class="page-link">{{ $employees->currentPage() }}</span>
+                                </li>
+                                <li class="page-item {{ $employees->currentPage() >= $employees->lastPage() ? 'disabled' : '' }}">
+                                    <a class="page-link {{ $employees->currentPage() >= $employees->lastPage() ? 'disabled-link' : '' }}" 
+                                       href="{{ $employees->currentPage() >= $employees->lastPage() ? 'javascript:void(0)' : $employees->nextPageUrl() }}"
+                                       {{ $employees->currentPage() >= $employees->lastPage() ? 'aria-disabled="true" tabindex="-1"' : '' }}>Next</a>
+                                </li>
+                            </ul>
+                        </nav>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- SweetAlert2 CDN -->
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<!-- Bootstrap -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<style>
+/* Action buttons styling to match vehicles page */
+.action-buttons .btn {
+    font-size: 10px;
+    padding: 2px 6px;
+    line-height: 1;
+    height: 25px;
+    min-width: 50px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    border-radius: 4px;
+}
+
+.action-buttons .btn i,
+.action-buttons .btn svg {
+    font-size: 10px;
+    margin-right: 2px;
+    width: 12px;
+    height: 12px;
+}
+
+/* Colors for action buttons */
+.action-buttons .edit-btn {
+    color: #ffc107 !important;
+    border: 1px solid #ffc107 !important;
+    background-color: transparent !important;
+}
+
+.action-buttons .edit-btn:hover {
+    background-color: #ffc107 !important;
+    color: #000 !important;
+    border-color: #ffc107 !important;
+}
+
+.action-buttons .delete-btn {
+    color: #dc3545 !important;
+    border: 1px solid #dc3545 !important;
+    background-color: transparent !important;
+}
+
+.action-buttons .delete-btn:hover {
+    background-color: #dc3545 !important;
+    color: #fff !important;
+    border-color: #dc3545 !important;
+}
+
+/* Pagination styling - Simplified version */
+.pagination {
+    display: flex;
+    justify-content: flex-end;
+    list-style: none;
+}
+
+.pagination .page-link {
+    color: #1e6031 !important;
+    padding: 0.15rem 0.4rem;
+    font-size: 0.8125rem;
+    display: block;
+    text-decoration: none;
+    background-color: #fff !important;
+    border: 1px solid #1e6031;
+    border-radius: 0.25rem;
+}
+
+.page-item.disabled .page-link {
+    background-color: #e9ecef;
+    border-color: #dee2e6;
+    color: #6c757d;
+    cursor: not-allowed;
+}
+
+.page-item:not(.disabled) .page-link:hover {
+    background-color: #1e6031 !important;
+    color: white !important;
+}
+
+.page-link.disabled-link {
+    background-color: #e9ecef !important;
+    border-color: #dee2e6 !important;
+    color: #6c757d !important;
+    cursor: not-allowed !important;
+    pointer-events: none;
+}
+
+.pagination .active .page-link {
+    background-color: #1e6031 !important;
+    color: white !important;
+    font-weight: bold;
+}
+
+.page-item.disabled .page-link {
+    background-color: #e9ecef;
+    border-color: #dee2e6;
+    color: #6c757d;
+}
+
+.page-item {
+    margin: 0 2px;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Handle status filter change
+    const statusFilter = document.getElementById('statusFilter');
+    if(statusFilter) {
+        statusFilter.addEventListener('change', function() {
+            const searchValue = document.querySelector('[name="search"]').value;
+            const statusValue = this.value;
+            
+            // Build new URL with filters
+            let url = new URL(window.location.href);
+            url.searchParams.set('search', searchValue);
+            if(statusValue && statusValue !== 'all') {
+                url.searchParams.set('status', statusValue);
+            } else {
+                url.searchParams.delete('status');
+            }
+            
+            window.location.href = url.toString();
+        });
+    }
     
-    <script>
-        // Live search functionality with server-side filtering
-        document.addEventListener('DOMContentLoaded', function() {
-            const searchInput = document.getElementById('employee-search');
-            const officeFilter = document.getElementById('office-filter');
-            const divisionFilter = document.getElementById('division-filter');
-            const unitFilter = document.getElementById('unit-filter');
-            const subunitFilter = document.getElementById('subunit-filter');
-            const classFilter = document.getElementById('class-filter');
-            const statusFilter = document.getElementById('status-filter');
-            const tableBody = document.getElementById('employees-table-body');
-            const paginationSection = document.getElementById('pagination-section');
-            
-            // Use pre-loaded cascading data
-            const cascadingData = @json($cascadingData);
-            
-            let searchTimeout;
-            
-            // Function to perform server-side search
-            function performSearch() {
-                const searchTerm = searchInput.value.trim();
-                const officeTerm = officeFilter.value;
-                const divisionTerm = divisionFilter.value;
-                const unitTerm = unitFilter.value;
-                const subunitTerm = subunitFilter.value;
-                const classTerm = classFilter.value;
-                const statusTerm = statusFilter.value;
-                
-                // Clear previous timeout to debounce requests
-                clearTimeout(searchTimeout);
-                
-                // Set new timeout
-                searchTimeout = setTimeout(() => {
-                    // Show loading state
-                    tableBody.innerHTML = `
-                        <tr>
-                            <td colspan="6" class="px-6 py-4 text-center">
-                                <div class="flex justify-center">
-                                    <svg class="animate-spin h-5 w-5 text-[#1e6031]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                    </svg>
-                                </div>
-                            </td>
-                        </tr>
-                    `;
-                    
-                    // Build URL with search parameters
-                    let url = new URL(window.location.href);
-                    url.searchParams.set('search', searchTerm);
-                    url.searchParams.set('office', officeTerm);
-                    url.searchParams.set('division', divisionTerm);
-                    url.searchParams.set('unit', unitTerm);
-                    url.searchParams.set('subunit', subunitTerm);
-                    url.searchParams.set('class', classTerm);
-                    url.searchParams.set('status', statusTerm);
-                    
-                    // If search is empty and filters are default, remove parameters
-                    if (searchTerm === '' && officeTerm === 'all' && divisionTerm === 'all' && unitTerm === 'all' && subunitTerm === 'all' && classTerm === 'all' && statusTerm === 'all') {
-                        url.searchParams.delete('search');
-                        url.searchParams.delete('office');
-                        url.searchParams.delete('division');
-                        url.searchParams.delete('unit');
-                        url.searchParams.delete('subunit');
-                        url.searchParams.delete('class');
-                        url.searchParams.delete('status');
-                    } else if (searchTerm === '') {
-                        url.searchParams.delete('search');
-                    } else if (officeTerm === 'all') {
-                        url.searchParams.delete('office');
-                    } else if (divisionTerm === 'all') {
-                        url.searchParams.delete('division');
-                    } else if (unitTerm === 'all') {
-                        url.searchParams.delete('unit');
-                    } else if (subunitTerm === 'all') {
-                        url.searchParams.delete('subunit');
-                    } else if (classTerm === 'all') {
-                        url.searchParams.delete('class');
-                    } else if (statusTerm === 'all') {
-                        url.searchParams.delete('status');
-                    }
-                    
-                    // Fetch results
-                    fetch(url.toString(), {
-                        headers: {
-                            'X-Requested-With': 'XMLHttpRequest',
-                            'Accept': 'application/json',
-                        }
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.table_body) {
-                            tableBody.innerHTML = data.table_body;
-                        }
-                        
-                        if (data.pagination && paginationSection) {
-                            paginationSection.innerHTML = data.pagination;
-                        }
-                        
-                        // Reattach event listeners
-                        attachEventListeners();
-                        
-                        // Load dependent dropdowns
-                        if (officeTerm !== 'all') {
-                            populateDivisions(officeTerm, divisionTerm);
-                        }
-                        if (divisionTerm !== 'all') {
-                            populateUnits(divisionTerm, unitTerm);
-                        }
-                        if (unitTerm !== 'all') {
-                            populateSubunits(unitTerm, subunitTerm);
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Search error:', error);
-                        tableBody.innerHTML = `
-                            <tr>
-                                <td colspan="6" class="px-6 py-4 text-center text-red-500">
-                                    Error loading search results. Please try again.
-                                </td>
-                            </tr>
-                        `;
-                    });
-                }, 300); // Debounce for 300ms
+    // Handle search form submission
+    const searchForm = document.getElementById('searchForm');
+    if(searchForm) {
+        searchForm.addEventListener('submit', function(e) {
+            const searchInput = document.querySelector('[name="search"]');
+            if(searchInput && searchInput.value.trim() === '') {
+                // If search is empty, redirect to base URL to remove all parameters
+                window.location.href = '{{ route("admin.employees.index") }}';
+                e.preventDefault();
             }
-            
-            // Function to attach event listeners
-            function attachEventListeners() {
-                // Delete functionality removed - no event listeners needed
-                
-                // Reattach pagination event listeners
-                if (paginationSection) {
-                    paginationSection.querySelectorAll('a').forEach(link => {
-                        link.addEventListener('click', function(e) {
-                            e.preventDefault();
-                            
-                            // Show loading state
-                            tableBody.innerHTML = `
-                                <tr>
-                                    <td colspan="6" class="px-6 py-4 text-center">
-                                        <div class="flex justify-center">
-                                            <svg class="animate-spin h-5 w-5 text-[#1e6031]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                            </svg>
-                                        </div>
-                                    </td>
-                                </tr>
-                            `;
-                            
-                            // Fetch the page
-                            fetch(this.href, {
-                                headers: {
-                                    'X-Requested-With': 'XMLHttpRequest',
-                                    'Accept': 'application/json',
-                                }
-                            })
-                            .then(response => response.json())
-                            .then(data => {
-                                if (data.table_body) {
-                                    tableBody.innerHTML = data.table_body;
-                                }
-                                
-                                if (data.pagination && paginationSection) {
-                                    paginationSection.innerHTML = data.pagination;
-                                }
-                                
-                                // Reattach event listeners
-                                attachEventListeners();
-                                
-                                // Load dependent dropdowns
-                                const urlParams = new URLSearchParams(window.location.search);
-                                const officeTerm = urlParams.get('office') || 'all';
-                                const divisionTerm = urlParams.get('division') || 'all';
-                                const unitTerm = urlParams.get('unit') || 'all';
-                                
-                                if (officeTerm !== 'all') {
-                                    populateDivisions(officeTerm, divisionTerm);
-                                }
-                                if (divisionTerm !== 'all') {
-                                    populateUnits(divisionTerm, unitTerm);
-                                }
-                                if (unitTerm !== 'all') {
-                                    populateSubunits(unitTerm, urlParams.get('subunit') || 'all');
-                                }
-                            })
-                            .catch(error => {
-                                console.error('Pagination error:', error);
-                                tableBody.innerHTML = `
-                                    <tr>
-                                        <td colspan="10" class="px-6 py-4 text-center text-red-500">
-                                            Error loading page. Please try again.
-                                        </td>
-                                    </tr>
-                                `;
-                            });
-                        });
-                    });
-                }
-            }
-            
-            // Add event listeners
-            searchInput.addEventListener('input', performSearch);
-            officeFilter.addEventListener('change', function() {
-                const officeId = this.value;
-                // Reset dependent filters
-                divisionFilter.innerHTML = '<option value="all">All Divisions</option>';
-                unitFilter.innerHTML = '<option value="all">All Units</option>';
-                subunitFilter.innerHTML = '<option value="all">All Subunits</option>';
-                performSearch();
-                
-                // Populate divisions if office is selected
-                if (officeId !== 'all') {
-                    populateDivisions(officeId);
-                }
-            });
-            
-            divisionFilter.addEventListener('change', function() {
-                const divisionId = this.value;
-                // Reset dependent filters
-                unitFilter.innerHTML = '<option value="all">All Units</option>';
-                subunitFilter.innerHTML = '<option value="all">All Subunits</option>';
-                performSearch();
-                
-                // Populate units if division is selected
-                if (divisionId !== 'all') {
-                    populateUnits(divisionId);
-                }
-            });
-            
-            unitFilter.addEventListener('change', function() {
-                const unitId = this.value;
-                // Reset dependent filter
-                subunitFilter.innerHTML = '<option value="all">All Subunits</option>';
-                performSearch();
-                
-                // Populate subunits if unit is selected
-                if (unitId !== 'all') {
-                    populateSubunits(unitId);
-                }
-            });
-            
-            subunitFilter.addEventListener('change', performSearch);
-            classFilter.addEventListener('change', performSearch);
-            statusFilter.addEventListener('change', performSearch);
-            
-            // Functions to populate dependent dropdown options using pre-loaded data
-            function populateDivisions(officeId, selectedDivision = 'all') {
-                divisionFilter.innerHTML = '<option value="all">All Divisions</option>';
-                
-                if (officeId !== 'all' && cascadingData.divisions[officeId]) {
-                    cascadingData.divisions[officeId].forEach(division => {
-                        const selected = division.id_division == selectedDivision ? 'selected' : '';
-                        divisionFilter.innerHTML += `<option value="${division.id_division}" ${selected}>${division.division_name}</option>`;
-                    });
-                }
-            }
-            
-            function populateUnits(divisionId, selectedUnit = 'all') {
-                unitFilter.innerHTML = '<option value="all">All Units</option>';
-                
-                if (divisionId !== 'all' && cascadingData.units[divisionId]) {
-                    cascadingData.units[divisionId].forEach(unit => {
-                        const selected = unit.id_unit == selectedUnit ? 'selected' : '';
-                        unitFilter.innerHTML += `<option value="${unit.id_unit}" ${selected}>${unit.unit_name}</option>`;
-                    });
-                }
-            }
-            
-            function populateSubunits(unitId, selectedSubunit = 'all') {
-                subunitFilter.innerHTML = '<option value="all">All Subunits</option>';
-                
-                if (unitId !== 'all' && cascadingData.subunits[unitId]) {
-                    cascadingData.subunits[unitId].forEach(subunit => {
-                        const selected = subunit.id_subunit == selectedSubunit ? 'selected' : '';
-                        subunitFilter.innerHTML += `<option value="${subunit.id_subunit}" ${selected}>${subunit.subunit_name}</option>`;
-                    });
-                }
-            }
-            
-            // Load dependent dropdowns on page load if filters are set
-            const urlParams = new URLSearchParams(window.location.search);
-            const officeTerm = urlParams.get('office') || 'all';
-            const divisionTerm = urlParams.get('division') || 'all';
-            const unitTerm = urlParams.get('unit') || 'all';
-            const subunitTerm = urlParams.get('subunit') || 'all';
-            
-            if (officeTerm !== 'all') {
-                populateDivisions(officeTerm, divisionTerm);
-            }
-            if (divisionTerm !== 'all') {
-                populateUnits(divisionTerm, unitTerm);
-            }
-            if (unitTerm !== 'all') {
-                populateSubunits(unitTerm, subunitTerm);
-            }
-            
-            // Initial attachment of event listeners
-            attachEventListeners();
         });
-        
-        // Display success messages from session
-        @if(session('success'))
-        Swal.fire({
-            title: 'Success!',
-            text: '{{ session('success') }}',
-            icon: 'success',
-            confirmButtonColor: '#1e6031'
-        });
-        @endif
-    </script>
-</x-app-layout>
+    }
+});
+</script>
+</x-admin-layout>

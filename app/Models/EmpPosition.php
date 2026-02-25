@@ -58,7 +58,7 @@ class EmpPosition extends Model
      */
     public function division()
     {
-        return $this->belongsTo(Division::class);
+        return $this->belongsTo(Division::class, 'division_id');
     }
 
     /**
@@ -66,7 +66,7 @@ class EmpPosition extends Model
      */
     public function unit()
     {
-        return $this->belongsTo(Unit::class);
+        return $this->belongsTo(Unit::class, 'unit_id');
     }
 
     /**
@@ -74,7 +74,7 @@ class EmpPosition extends Model
      */
     public function subunit()
     {
-        return $this->belongsTo(Subunit::class);
+        return $this->belongsTo(Subunit::class, 'subunit_id');
     }
 
     /**

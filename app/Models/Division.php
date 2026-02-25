@@ -15,11 +15,28 @@ class Division extends Model
     // Specify the primary key
     protected $primaryKey = 'id_division';
     
-    // Disable auto-incrementing if needed
+    // Enable auto-incrementing since we fixed the table structure
     public $incrementing = true;
     
     // Specify the key type
     protected $keyType = 'int';
+    
+    // Disable Laravel's automatic timestamps
+    public $timestamps = false;
+    
+    // Set updated_date automatically when saving
+    protected static function boot()
+    {
+        parent::boot();
+        
+        static::creating(function ($model) {
+            $model->updated_date = now();
+        });
+        
+        static::updating(function ($model) {
+            $model->updated_date = now();
+        });
+    }
 
     /**
      * The attributes that are mass assignable.
@@ -32,6 +49,7 @@ class Division extends Model
         'office_id',
         'division_code',
         'division_isactive',
+        'updated_date',
     ];
 
     /**

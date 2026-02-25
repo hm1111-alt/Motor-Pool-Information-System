@@ -161,3 +161,30 @@
 .stat-card:hover {
   transform: translateY(-2px);
 }
+
+/* Remove underlines from sidebar links */
+#sidebar a {
+  text-decoration: none !important;
+}
+
+#sidebar a:hover {
+  text-decoration: none !important;
+}
+
+/* Ensure no underlines in office section specifically */
+#sidebar .organization-submenu a {
+  text-decoration: none !important;
+}
+
+#sidebar .organization-submenu a:hover {
+  text-decoration: none !important;
+}
+
+/* Additional specific styling for office link */
+#sidebar a[href$="/admin/offices"] {
+  text-decoration: none !important;
+}
+
+#sidebar a[href$="/admin/offices"]:hover {
+  text-decoration: none !important;
+}

@@ -1,335 +1,250 @@
-<x-app-layout>
+<x-admin-layout>
     <x-slot name="header">
-        <div class="flex items-center justify-between">
-            <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-                <svg class="inline-block h-6 w-6 text-[#1e6031] mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                </svg>
-                {{ __('Subunit Management') }}
-            </h2>
-            <div class="flex space-x-2">
-                <a href="{{ route('admin.subunits.create') }}" class="bg-[#1e6031] hover:bg-[#164f2a] text-white px-4 py-2 rounded-lg transition duration-300 flex items-center shadow-md hover:shadow-lg">
-                    <svg class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+        <div class="flex justify-center items-center">
+            <!-- Centered Content -->
+            <div class="flex justify-between items-center" style="width: 100%; max-width: 1200px;">
+                <!-- Left: Heading -->
+                <h2 class="font-bold flex items-center" style="color: #1e6031; font-size: 1.5rem; height: 32px; margin-top: 10px;">
+                    <svg class="mr-2" style="width: 24px; height: 24px; color: #1e6031;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                     </svg>
-                    Add New Subunit
-                </a>
-                <a href="{{ route('dashboard') }}" class="bg-gray-500 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition duration-300 flex items-center shadow-md hover:shadow-lg">
-                    <svg class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                    </svg>
-                    Back to Dashboard
-                </a>
+                    Subunit Management
+                </h2>
+
+                <!-- Right: Search Bar + Add Subunit Button -->
+                <div class="flex items-center gap-2">
+                    <!-- Search Bar -->
+                    <form id="searchForm" method="GET" action="{{ route('admin.subunits.index') }}">
+                        <div class="flex">
+                            <input type="text" name="search" class="form-input" placeholder="Search subunits..." 
+                                   value="{{ request('search') }}"
+                                   style="height: 32px; width: 250px; font-size: 0.85rem; border: 1px solid #1e6031; border-radius: 0.375rem 0 0 0.375rem; padding: 0 12px;">
+                            <button type="submit" 
+                                    style="background-color: #1e6031; color: #ffffff; border: 1px solid #1e6031; height: 32px; width: 40px; border-radius: 0 0.375rem 0.375rem 0; cursor:pointer; display: flex; align-items: center; justify-content: center;">
+                                <svg class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                </svg>
+                            </button>
+                        </div> 
+                    </form>
+                    
+                    <!-- Add New Subunit Button -->
+                    <a href="{{ route('admin.subunits.create') }}" class="inline-flex items-center px-3 py-1 bg-[#1e6031] border border-[#1e6031] rounded-md font-semibold text-xs text-white uppercase tracking-wider hover:bg-[#164f2a] focus:bg-[#164f2a] active:bg-[#103c1e] focus:outline-none focus:ring-2 focus:ring-[#1e6031] focus:ring-offset-2 transition ease-in-out duration-150" style="height: 32px;">
+                        <svg class="mr-1" style="width: 10px; height: 10px;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                        </svg>
+                        Add New Subunit
+                    </a>
+                </div>
             </div>
         </div>
     </x-slot>
 
-    <div class="py-6">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                <div class="p-6 text-gray-900">
-                    <!-- Search and Filter Section -->
-                    <div class="mb-6">
-                        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                            <div class="flex-1">
-                                <div class="relative">
-                                    <input 
-                                        type="text" 
-                                        id="subunit-search"
-                                        placeholder="Search subunits..." 
-                                        class="w-full rounded-lg border-gray-300 shadow-sm focus:border-[#1e6031] focus:ring focus:ring-[#1e6031] focus:ring-opacity-50 px-4 py-2"
-                                        value="{{ request('search', '') }}"
-                                    >
-                                </div>
-                            </div>
-                            <div class="flex space-x-2">
-                                <select id="unit-filter" class="rounded-lg border-gray-300 shadow-sm focus:border-[#1e6031] focus:ring focus:ring-[#1e6031] focus:ring-opacity-50">
-                                    <option value="all">All Units</option>
-                                    @foreach($units as $unit)
-                                        <option value="{{ $unit->id }}" {{ request('unit', 'all') == $unit->id ? 'selected' : '' }}>{{ $unit->unit_name }}</option>
-                                    @endforeach
-                                </select>
-                                <select id="status-filter" class="rounded-lg border-gray-300 shadow-sm focus:border-[#1e6031] focus:ring focus:ring-[#1e6031] focus:ring-opacity-50">
-                                    <option value="all" {{ request('status', 'all') == 'all' ? 'selected' : '' }}>All Status</option>
-                                    <option value="active" {{ request('status', 'all') == 'active' ? 'selected' : '' }}>Active</option>
-                                    <option value="inactive" {{ request('status', 'all') == 'inactive' ? 'selected' : '' }}>Inactive</option>
-                                </select>
-                            </div>
-                        </div>
+<div class="-mt-5">
+    <div class="flex justify-center">
+        <div style="width: 100%; max-width: 1200px;">
+                <!-- Filter -->
+               <div class="flex justify-between items-center mb-0" style="display:flex; align-items:center; justify-content:space-between; padding:4px 0; border-bottom:1px solid #1e6031; margin-bottom:8px;">
+                    <div style="display:flex; align-items:center;">
+                        <label for="statusFilter" style="margin-right: 10px; font-weight: normal; font-size: 0.875rem;">Filter by Status: </label>
+                        <select id="statusFilter" name="status" class="border border-gray-300 rounded-md px-2 py-1 text-sm"
+                            style="width:150px; padding:6px 8px; font-size:13px; border:1px solid #ccc; border-radius:5px;">
+                            <option value="all" {{ request('status', 'all') == 'all' ? 'selected' : '' }}>All Status</option>
+                            <option value="active" {{ request('status', 'all') == 'active' ? 'selected' : '' }}>Active</option>
+                            <option value="inactive" {{ request('status', 'all') == 'inactive' ? 'selected' : '' }}>Inactive</option>
+                        </select>
                     </div>
+                </div>
 
-                    <!-- Subunits Table -->
-                    <div class="overflow-x-auto rounded-lg shadow">
-                        <table class="min-w-full divide-y divide-gray-200" id="subunits-table">
-                            <thead class="bg-gray-50">
-                                <tr>
-                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Subunit Name</th>
-                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Abbreviation</th>
-                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Unit</th>
-                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody class="bg-white divide-y divide-gray-200" id="subunits-table-body">
-                                @include('admin.subunits.partials.table-body')
-                            </tbody>
-                        </table>
+<!-- Subunits Table -->
+<div class="w-full">
+    <table class="w-full divide-y divide-gray-200" style="table-layout: fixed;">
+        <thead style="background-color: #1e6031; color: white;">
+            <tr>
+                <th style="padding: 8px; text-align: center; font-weight: bold; text-transform: uppercase; font-size: 0.7rem; letter-spacing: 0.05em; width: 5%;">No.</th>
+                <th style="padding: 8px; text-align: left; font-weight: bold; text-transform: uppercase; font-size: 0.7rem; letter-spacing: 0.05em; width: 35%;">Subunit Name</th>
+                <th style="padding: 8px; text-align: left; font-weight: bold; text-transform: uppercase; font-size: 0.7rem; letter-spacing: 0.05em; width: 20%;">Abbreviation</th>
+                <th style="padding: 8px; text-align: left; font-weight: bold; text-transform: uppercase; font-size: 0.7rem; letter-spacing: 0.05em; width: 20%;">Status</th>
+                <th style="padding: 8px; text-align: center; font-weight: bold; text-transform: uppercase; font-size: 0.7rem; letter-spacing: 0.05em; width: 20%;">Actions</th>
+            </tr>
+        </thead>
+        <tbody id="subunits-table-body">
+            @include('admin.subunits.partials.table-body')
+        </tbody>
+    </table>
+</div>
+
+                <!-- Pagination -->
+                <div class="flex justify-between items-center mt-4" id="pagination-container">
+                    <div class="text-sm text-gray-600" id="pagination-info">
+                        Showing {{ $subunits->firstItem() ?? 0 }} to {{ $subunits->lastItem() ?? 0 }} of {{ $subunits->total() }} results
                     </div>
-
-                    <!-- Pagination -->
-                    <div id="pagination-section">
-                        @include('admin.subunits.partials.pagination')
+                    <div class="flex items-center space-x-2">
+                        <!-- Custom Pagination - Copied from vehicles page -->
+                        <nav>
+                            <ul class="pagination">
+                                <li class="page-item {{ $subunits->currentPage() <= 1 ? 'disabled' : '' }}">
+                                    <a class="page-link {{ $subunits->currentPage() <= 1 ? 'disabled-link' : '' }}" 
+                                       href="{{ $subunits->currentPage() <= 1 ? 'javascript:void(0)' : $subunits->previousPageUrl() }}"
+                                       {{ $subunits->currentPage() <= 1 ? 'aria-disabled="true" tabindex="-1"' : '' }}>Prev</a>
+                                </li>
+                                <li class="page-item active">
+                                    <span class="page-link">{{ $subunits->currentPage() }}</span>
+                                </li>
+                                <li class="page-item {{ $subunits->currentPage() >= $subunits->lastPage() ? 'disabled' : '' }}">
+                                    <a class="page-link {{ $subunits->currentPage() >= $subunits->lastPage() ? 'disabled-link' : '' }}" 
+                                       href="{{ $subunits->currentPage() >= $subunits->lastPage() ? 'javascript:void(0)' : $subunits->nextPageUrl() }}"
+                                       {{ $subunits->currentPage() >= $subunits->lastPage() ? 'aria-disabled="true" tabindex="-1"' : '' }}>Next</a>
+                                </li>
+                            </ul>
+                        </nav>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- SweetAlert2 CDN -->
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<!-- Bootstrap -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<style>
+/* Action buttons styling to match vehicles page */
+.action-buttons .btn {
+    font-size: 9px;
+    padding: 2px 4px;
+    line-height: 1;
+    height: 24px;
+    min-width: 40px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    border-radius: 3px;
+    box-sizing: border-box;
+}
+
+.action-buttons .btn i,
+.action-buttons .btn svg {
+    font-size: 12px;
+    margin-right: 2px;
+    width: 12px;
+    height: 12px;
+}
+
+/* Colors for action buttons */
+.action-buttons .edit-btn {
+    color: #ffc107 !important;
+    border: 1px solid #ffc107 !important;
+    background-color: transparent !important;
+}
+
+.action-buttons .edit-btn:hover {
+    background-color: #ffc107 !important;
+    color: #000 !important;
+    border-color: #ffc107 !important;
+}
+
+.action-buttons .delete-btn {
+    color: #dc3545 !important;
+    border: 1px solid #dc3545 !important;
+    background-color: transparent !important;
+}
+
+.action-buttons .delete-btn:hover {
+    background-color: #dc3545 !important;
+    color: #fff !important;
+    border-color: #dc3545 !important;
+}
+
+/* Pagination styling - Simplified version */
+.pagination {
+    display: flex;
+    justify-content: flex-end;
+    list-style: none;
+}
+
+.pagination .page-link {
+    color: #1e6031 !important;
+    padding: 0.15rem 0.4rem;
+    font-size: 0.8125rem;
+    display: block;
+    text-decoration: none;
+    background-color: #fff !important;
+    border: 1px solid #1e6031;
+    border-radius: 0.25rem;
+}
+
+.page-item.disabled .page-link {
+    background-color: #e9ecef;
+    border-color: #dee2e6;
+    color: #6c757d;
+    cursor: not-allowed;
+}
+
+.page-item:not(.disabled) .page-link:hover {
+    background-color: #1e6031 !important;
+    color: white !important;
+}
+
+.page-link.disabled-link {
+    background-color: #e9ecef !important;
+    border-color: #dee2e6 !important;
+    color: #6c757d !important;
+    cursor: not-allowed !important;
+    pointer-events: none;
+}
+
+.pagination .active .page-link {
+    background-color: #1e6031 !important;
+    color: white !important;
+    font-weight: bold;
+}
+
+.page-item.disabled .page-link {
+    background-color: #e9ecef;
+    border-color: #dee2e6;
+    color: #6c757d;
+}
+
+.page-item {
+    margin: 0 2px;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Handle status filter change
+    const statusFilter = document.getElementById('statusFilter');
+    if(statusFilter) {
+        statusFilter.addEventListener('change', function() {
+            const searchValue = document.querySelector('[name="search"]').value;
+            const statusValue = this.value;
+            
+            // Build new URL with filters
+            let url = new URL(window.location.href);
+            url.searchParams.set('search', searchValue);
+            if(statusValue && statusValue !== 'all') {
+                url.searchParams.set('status', statusValue);
+            } else {
+                url.searchParams.delete('status');
+            }
+            
+            window.location.href = url.toString();
+        });
+    }
     
-    <script>
-        // Live search functionality with server-side filtering
-        document.addEventListener('DOMContentLoaded', function() {
-            const searchInput = document.getElementById('subunit-search');
-            const unitFilter = document.getElementById('unit-filter');
-            const statusFilter = document.getElementById('status-filter');
-            const tableBody = document.getElementById('subunits-table-body');
-            const paginationSection = document.getElementById('pagination-section');
-            
-            let searchTimeout;
-            
-            // Function to perform server-side search
-            function performSearch() {
-                const searchTerm = searchInput.value.trim();
-                const unitTerm = unitFilter.value;
-                const statusTerm = statusFilter.value;
-                
-                // Clear previous timeout to debounce requests
-                clearTimeout(searchTimeout);
-                
-                // Set new timeout
-                searchTimeout = setTimeout(() => {
-                    // Show loading state
-                    tableBody.innerHTML = `
-                        <tr>
-                            <td colspan="5" class="px-6 py-4 text-center">
-                                <div class="flex justify-center">
-                                    <svg class="animate-spin h-5 w-5 text-[#1e6031]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                    </svg>
-                                </div>
-                            </td>
-                        </tr>
-                    `;
-                    
-                    // Build URL with search parameters
-                    let url = new URL(window.location.href);
-                    url.searchParams.set('search', searchTerm);
-                    url.searchParams.set('unit', unitTerm);
-                    url.searchParams.set('status', statusTerm);
-                    
-                    // If search is empty and filters are default, remove parameters
-                    if (searchTerm === '' && unitTerm === 'all' && statusTerm === 'all') {
-                        url.searchParams.delete('search');
-                        url.searchParams.delete('unit');
-                        url.searchParams.delete('status');
-                    } else if (searchTerm === '') {
-                        url.searchParams.delete('search');
-                    } else if (unitTerm === 'all') {
-                        url.searchParams.delete('unit');
-                    } else if (statusTerm === 'all') {
-                        url.searchParams.delete('status');
-                    }
-                    
-                    // Fetch results
-                    fetch(url.toString(), {
-                        headers: {
-                            'X-Requested-With': 'XMLHttpRequest',
-                            'Accept': 'application/json',
-                        }
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.table_body) {
-                            tableBody.innerHTML = data.table_body;
-                        }
-                        
-                        if (data.pagination && paginationSection) {
-                            paginationSection.innerHTML = data.pagination;
-                        }
-                        
-                        // Reattach event listeners
-                        attachEventListeners();
-                    })
-                    .catch(error => {
-                        console.error('Search error:', error);
-                        tableBody.innerHTML = `
-                            <tr>
-                                <td colspan="5" class="px-6 py-4 text-center text-red-500">
-                                    Error loading search results. Please try again.
-                                </td>
-                            </tr>
-                        `;
-                    });
-                }, 300); // Debounce for 300ms
+    // Handle search form submission
+    const searchForm = document.getElementById('searchForm');
+    if(searchForm) {
+        searchForm.addEventListener('submit', function(e) {
+            const searchInput = document.querySelector('[name="search"]');
+            if(searchInput && searchInput.value.trim() === '') {
+                // If search is empty, redirect to base URL to remove all parameters
+                window.location.href = '{{ route("admin.subunits.index") }}';
+                e.preventDefault();
             }
-            
-            // Function to attach event listeners
-            function attachEventListeners() {
-                // Reattach delete button event listeners
-                document.querySelectorAll('.delete-subunit').forEach(button => {
-                    button.addEventListener('click', function(e) {
-                        e.preventDefault();
-                        
-                        const subunitName = this.getAttribute('data-name');
-                        const form = this.closest('.delete-form');
-                        
-                        Swal.fire({
-                            title: 'Are you sure?',
-                            text: `You are about to delete the subunit "${subunitName}". This action cannot be undone.`,
-                            icon: 'warning',
-                            showCancelButton: true,
-                            confirmButtonColor: '#d33',
-                            cancelButtonColor: '#3085d6',
-                            confirmButtonText: 'Yes, delete it!',
-                            cancelButtonText: 'Cancel'
-                        }).then((result) => {
-                            if (result.isConfirmed) {
-                                const formData = new FormData(form);
-                                
-                                fetch(form.action, {
-                                    method: 'POST',
-                                    body: formData,
-                                    headers: {
-                                        'X-Requested-With': 'XMLHttpRequest',
-                                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                                    }
-                                })
-                                .then(response => {
-                                    // Check if response is JSON
-                                    const contentType = response.headers.get('content-type');
-                                    if (contentType && contentType.includes('application/json')) {
-                                        return response.json().then(data => ({ data, status: response.status, isJson: true }));
-                                    } else {
-                                        // If not JSON, assume success for redirect responses
-                                        return { 
-                                            data: { success: true, message: 'Subunit deleted successfully.' }, 
-                                            status: response.status, 
-                                            isJson: false 
-                                        };
-                                    }
-                                })
-                                .then(({ data, status, isJson }) => {
-                                    if (data.success) {
-                                        Swal.fire({
-                                            title: 'Deleted!',
-                                            text: data.message,
-                                            icon: 'success',
-                                            confirmButtonColor: '#1e6031'
-                                        }).then(() => {
-                                            // Reload the page to reflect changes
-                                            location.reload();
-                                        });
-                                    } else {
-                                        Swal.fire({
-                                            title: 'Error!',
-                                            text: data.message || 'There was an error deleting the subunit.',
-                                            icon: 'error',
-                                            confirmButtonColor: '#1e6031'
-                                        });
-                                    }
-                                })
-                                .catch(error => {
-                                    console.error('Delete error:', error);
-                                    Swal.fire({
-                                        title: 'Deleted!',
-                                        text: 'Subunit deleted successfully.',
-                                        icon: 'success',
-                                        confirmButtonColor: '#1e6031'
-                                    }).then(() => {
-                                        // Even if there was an error, reload to show the current state
-                                        location.reload();
-                                    });
-                                });
-                            }
-                        });
-                    });
-                });
-                
-                // Reattach pagination event listeners
-                if (paginationSection) {
-                    paginationSection.querySelectorAll('a').forEach(link => {
-                        link.addEventListener('click', function(e) {
-                            e.preventDefault();
-                            
-                            // Show loading state
-                            tableBody.innerHTML = `
-                                <tr>
-                                    <td colspan="5" class="px-6 py-4 text-center">
-                                        <div class="flex justify-center">
-                                            <svg class="animate-spin h-5 w-5 text-[#1e6031]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                            </svg>
-                                        </div>
-                                    </td>
-                                </tr>
-                            `;
-                            
-                            // Fetch the page
-                            fetch(this.href, {
-                                headers: {
-                                    'X-Requested-With': 'XMLHttpRequest',
-                                    'Accept': 'application/json',
-                                }
-                            })
-                            .then(response => response.json())
-                            .then(data => {
-                                if (data.table_body) {
-                                    tableBody.innerHTML = data.table_body;
-                                }
-                                
-                                if (data.pagination && paginationSection) {
-                                    paginationSection.innerHTML = data.pagination;
-                                }
-                                
-                                // Reattach event listeners
-                                attachEventListeners();
-                            })
-                            .catch(error => {
-                                console.error('Pagination error:', error);
-                                tableBody.innerHTML = `
-                                    <tr>
-                                        <td colspan="5" class="px-6 py-4 text-center text-red-500">
-                                            Error loading page. Please try again.
-                                        </td>
-                                    </tr>
-                                `;
-                            });
-                        });
-                    });
-                }
-            }
-            
-            // Add event listeners
-            searchInput.addEventListener('input', performSearch);
-            unitFilter.addEventListener('change', performSearch);
-            statusFilter.addEventListener('change', performSearch);
-            
-            // Initial attachment of event listeners
-            attachEventListeners();
         });
-        
-        // Display success messages from session
-        @if(session('success'))
-        Swal.fire({
-            title: 'Success!',
-            text: '{{ session('success') }}',
-            icon: 'success',
-            confirmButtonColor: '#1e6031'
-        });
-        @endif
-    </script>
-</x-app-layout>
+    }
+});
+</script>
+</x-admin-layout>

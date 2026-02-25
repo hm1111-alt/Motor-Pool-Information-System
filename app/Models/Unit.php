@@ -13,7 +13,7 @@ class Unit extends Model
     protected $table = 'lib_units';
     
     // Specify the primary key
-    protected $primaryKey = 'id_unit';
+    protected $primaryKey = 'id';
     
     // Disable auto-incrementing if needed
     public $incrementing = true;
@@ -57,7 +57,7 @@ class Unit extends Model
      */
     public function employees()
     {
-        return $this->hasManyThrough(Employee::class, EmpPosition::class, 'unit_id', 'id', 'id_unit', 'employee_id');
+        return $this->hasManyThrough(Employee::class, EmpPosition::class, 'unit_id', 'id', 'id', 'employee_id');
     }
 
     /**

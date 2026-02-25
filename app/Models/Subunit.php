@@ -56,7 +56,7 @@ class Subunit extends Model
      */
     public function employees()
     {
-        return $this->hasManyThrough(Employee::class, EmpPosition::class, 'subunit_id', 'id', 'id_subunit', 'employee_id');
+        return $this->hasManyThrough(Employee::class, EmpPosition::class, 'subunit_id', 'id', 'id', 'employee_id');
     }
 
     /**
