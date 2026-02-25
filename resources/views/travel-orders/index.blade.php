@@ -18,12 +18,12 @@
                             <p class="text-gray-600 mt-1">Manage your travel requests and view their status</p>
                         </div>
                         <div class="mt-4 md:mt-0">
-                            <a href="{{ route('travel-orders.create') }}" class="inline-flex items-center px-4 py-2 bg-[#1e6031] border border-transparent rounded-lg font-semibold text-sm text-white uppercase tracking-wider hover:bg-[#164f2a] focus:bg-[#164f2a] active:bg-[#1e6031] focus:outline-none focus:ring-2 focus:ring-[#1e6031] focus:ring-offset-2 transition ease-in-out duration-150 shadow-sm hover:shadow">
+                            <button type="button" class="inline-flex items-center px-4 py-2 bg-[#1e6031] border border-transparent rounded-lg font-semibold text-sm text-white uppercase tracking-wider hover:bg-[#164f2a] focus:bg-[#164f2a] active:bg-[#1e6031] focus:outline-none focus:ring-2 focus:ring-[#1e6031] focus:ring-offset-2 transition ease-in-out duration-150 shadow-sm hover:shadow" data-bs-toggle="modal" data-bs-target="#createTravelOrderModal">
                                 <svg class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                                 </svg>
                                 Create New Request
-                            </a>
+                            </button>
                         </div>
                     </div>
                     
@@ -139,3 +139,194 @@
         }
     </script>
 @endsection
+
+<!-- Create Travel Order Modal -->
+<div class="modal fade" id="createTravelOrderModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog"><!-- default width -->
+    <div class="modal-content rounded-3 shadow">
+
+      <!-- Header -->
+      <div class="modal-header d-flex align-items-center" style="background-color:#1e6031; color:white;">
+        <h5 class="modal-title fw-bold mb-0 flex-grow-1">Create New Travel Request</h5>
+      </div>
+
+      <!-- Form -->
+      <form id="travelOrderForm" action="{{ route('travel-orders.store') }}" method="POST">
+        @csrf
+        <div class="modal-body px-3 py-2">
+
+          <!-- Position -->
+          <div class="mb-2">
+            <label class="form-label small fw-semibold text-success mb-1" style="font-size: 0.75rem;">Position <span class="text-danger">*</span></label>
+            <select name="position_id" id="position_id" required class="form-select form-select-sm border-success py-1 px-2 rounded" style="font-size: 0.75rem; height: 30px;">
+              <option value="">Select a position</option>
+              @foreach($positions as $position)
+                <option value="{{ $position->id }}">
+                  {{ $position->position_name }}
+                  @if($position->office) - {{ $position->office->office_name }} @endif
+                  @if($position->is_unit_head) (Unit Head) @elseif($position->is_division_head) (Division Head) @elseif($position->is_vp) (VP) @elseif($position->is_president) (President) @endif
+                </option>
+              @endforeach
+            </select>
+          </div>
+
+          <!-- Destination -->
+          <div class="mb-2">
+            <label class="form-label small fw-semibold text-success mb-1" style="font-size: 0.75rem;">Destination <span class="text-danger">*</span></label>
+            <input type="text" name="destination" id="destination" class="form-control form-control-sm border-success py-1 px-2 rounded" style="font-size: 0.75rem; height: 30px;" placeholder="Enter destination" required>
+          </div>
+
+          <!-- Date Range -->
+          <div class="row mb-2">
+            <div class="col-md-6">
+              <label class="form-label small fw-semibold text-success mb-1" style="font-size: 0.75rem;">From Date <span class="text-danger">*</span></label>
+              <input type="date" name="date_from" id="date_from" class="form-control form-control-sm border-success py-1 px-2 rounded" style="font-size: 0.75rem; height: 30px;" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label small fw-semibold text-success mb-1" style="font-size: 0.75rem;">To Date <span class="text-danger">*</span></label>
+              <input type="date" name="date_to" id="date_to" class="form-control form-control-sm border-success py-1 px-2 rounded" style="font-size: 0.75rem; height: 30px;" required>
+            </div>
+          </div>
+
+          <!-- Departure Time -->
+          <div class="mb-2">
+            <label class="form-label small fw-semibold text-success mb-1" style="font-size: 0.75rem;">Departure Time</label>
+            <input type="time" name="departure_time" id="departure_time" class="form-control form-control-sm border-success py-1 px-2 rounded" style="font-size: 0.75rem; height: 30px;">
+          </div>
+
+          <!-- Purpose -->
+          <div class="mb-2">
+            <label class="form-label small fw-semibold text-success mb-1" style="font-size: 0.75rem;">Purpose <span class="text-danger">*</span></label>
+            <textarea name="purpose" id="purpose" class="form-control form-control-sm border-success py-1 px-2 rounded" style="font-size: 0.75rem; height: 60px;" rows="2" placeholder="Provide a brief description of the purpose of your travel" required></textarea>
+          </div>
+
+        </div>
+
+        <!-- Footer -->
+        <div class="modal-footer py-1 justify-content-end">
+          <button type="button" class="btn btn-sm btn-outline-secondary me-2 py-1" style="font-size: 0.75rem; height: 30px;" data-bs-dismiss="modal" id="cancelTravelOrderBtn">
+            Cancel
+          </button>
+          <button type="submit" class="btn btn-sm btn-success py-1" style="font-size: 0.75rem; height: 30px;" id="createTravelOrderBtn">
+            Save
+          </button>
+        </div>
+
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+// Handle form submission via AJAX
+document.addEventListener('DOMContentLoaded', function() {
+  const form = document.getElementById('travelOrderForm');
+  if (form) {
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      // Disable submit button and show loading state
+      const submitBtn = document.getElementById('createTravelOrderBtn');
+      const originalText = submitBtn.innerHTML;
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Saving...';
+      
+      // Clear previous errors
+      document.querySelectorAll('.text-danger').forEach(el => el.textContent = '');
+      document.getElementById('errorMessage').classList.add('d-none');
+      document.getElementById('errorList').innerHTML = '';
+      
+      // Prepare form data
+      const formData = new FormData(form);
+      
+      // Send AJAX request
+      fetch(form.action, {
+        method: 'POST',
+        body: formData,
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest',
+          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        }
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          // Show success message
+          Swal.fire({
+            title: 'Success!',
+            text: data.message || 'Travel request created successfully!',
+            icon: 'success',
+            timer: 2000,
+            showConfirmButton: false
+          }).then(() => {
+            // Close modal
+            const modal = bootstrap.Modal.getInstance(document.getElementById('createTravelOrderModal'));
+            if (modal) {
+              modal.hide();
+            }
+            
+            // Reset form
+            form.reset();
+            
+            // Reload the page to show updated data
+            location.reload();
+          });
+        } else {
+          // Show validation errors
+          if (data.errors) {
+            Object.keys(data.errors).forEach(field => {
+              const input = document.querySelector(`[name="${field}"]`);
+              if (input) {
+                input.classList.add('is-invalid');
+                const errorDiv = document.createElement('div');
+                errorDiv.className = 'invalid-feedback';
+                errorDiv.textContent = data.errors[field][0];
+                input.parentNode.appendChild(errorDiv);
+              }
+            });
+          }
+          
+          // Show general error message
+          if (data.message) {
+            Swal.fire({
+              title: 'Error!',
+              text: data.message,
+              icon: 'error'
+            });
+          }
+          
+          // Re-enable submit button
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = originalText;
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        Swal.fire({
+          title: 'Error!',
+          text: 'An error occurred while creating the travel request. Please try again.',
+          icon: 'error'
+        });
+        
+        // Re-enable submit button
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalText;
+      });
+    });
+  }
+  
+  // Reset form when modal is closed
+  const modal = document.getElementById('createTravelOrderModal');
+  if (modal) {
+    modal.addEventListener('hidden.bs.modal', function () {
+      const form = document.getElementById('travelOrderForm');
+      if (form) {
+        form.reset();
+        // Clear validation errors
+        document.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+        document.querySelectorAll('.invalid-feedback').forEach(el => el.remove());
+      }
+    });
+  }
+});
+</script>

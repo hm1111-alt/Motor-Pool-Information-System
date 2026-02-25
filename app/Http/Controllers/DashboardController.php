@@ -84,6 +84,9 @@ class DashboardController extends Controller
             // Load the employee relationship
             $user->load('employee');
             
+            // Get positions for all employees
+            $positions = \App\Models\EmpPosition::where('employee_id', $user->id)->get();
+            
             // Check if employee is a head (division head, VP, or unit head)
             $employee = $user->employee;
             if ($employee) {
@@ -303,11 +306,11 @@ class DashboardController extends Controller
                         ->take(5)
                         ->get();
                     
-                    return view('dashboards.employee', compact('myTripTickets'));
+                    return view('dashboards.employee', compact('myTripTickets', 'positions'));
                 }
             } else {
                 // Regular employee dashboard
-                return view('dashboards.employee');
+                return view('dashboards.employee', compact('positions'));
             }
         }
 

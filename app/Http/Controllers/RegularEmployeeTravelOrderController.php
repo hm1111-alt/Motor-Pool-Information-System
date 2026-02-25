@@ -64,6 +64,9 @@ class RegularEmployeeTravelOrderController extends Controller
         // Get paginated results with position information
         $travelOrders = $query->with('position')->orderBy('created_at', 'desc')->paginate(10)->appends($request->except('page'));
         
+        // Get all positions for the employee for the modal
+        $positions = $employee->positions()->with(['office', 'division', 'unit', 'subunit', 'class'])->get();
+        
         // Check if this is an AJAX request for partial updates
         if ($request->ajax() || $request->get('ajax')) {
             return response()->json([
@@ -72,7 +75,7 @@ class RegularEmployeeTravelOrderController extends Controller
             ]);
         }
         
-        return view('travel-orders.index', compact('travelOrders', 'tab', 'search'));
+        return view('travel-orders.index', compact('travelOrders', 'tab', 'search', 'positions'));
     }
 
     /**
