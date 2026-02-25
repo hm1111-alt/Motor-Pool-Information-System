@@ -140,7 +140,7 @@ class Employee extends Model
      */
     public function unit()
     {
-        return $this->hasOneThrough(Unit::class, EmpPosition::class, 'employee_id', 'id_unit', 'id', 'unit_id');
+        return $this->hasOneThrough(Unit::class, EmpPosition::class, 'employee_id', 'id', 'id', 'unit_id');
     }
 
     /**

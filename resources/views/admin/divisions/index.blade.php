@@ -569,6 +569,8 @@
             // After 2 seconds, show success message that auto-dismisses
             setTimeout(() => {
                 const formData = new FormData(this);
+                // Add the PUT method override for the update form
+                formData.append('_method', 'PUT');
                 
                 fetch(this.action, {
                     method: 'POST',
