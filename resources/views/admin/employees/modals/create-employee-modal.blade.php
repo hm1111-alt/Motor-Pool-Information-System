@@ -29,15 +29,16 @@
                                 <input type="text" class="form-control form-control-sm border-success" name="first_name" placeholder="Enter first name" required>
                                 <div class="invalid-feedback" id="first_name_error"></div>
                             </div>
+                
                             <div class="col-md-3">
+                                <label class="small fw-semibold text-success">Middle Name</label>
+                                <input type="text" class="form-control form-control-sm border-success" name="middle_name" placeholder="Enter middle name" maxlength="255">
+                                <div class="invalid-feedback" id="middle_name_error"></div>
+                            </div>
+                                        <div class="col-md-3">
                                 <label class="small fw-semibold text-success">Last Name <span class="text-danger">*</span></label>
                                 <input type="text" class="form-control form-control-sm border-success" name="last_name" placeholder="Enter last name" required>
                                 <div class="invalid-feedback" id="last_name_error"></div>
-                            </div>
-                            <div class="col-md-3">
-                                <label class="small fw-semibold text-success">Middle Initial</label>
-                                <input type="text" class="form-control form-control-sm border-success" name="middle_initial" placeholder="Enter middle initial" maxlength="10">
-                                <div class="invalid-feedback" id="middle_initial_error"></div>
                             </div>
                             <div class="col-md-3">
                                 <label class="small fw-semibold text-success">Extension Name</label>
@@ -105,7 +106,7 @@
                                 <select class="form-control form-control-sm border-success" name="class_id">
                                     <option value="">Select Class (Optional)</option>
                                     @foreach($classes as $class)
-                                        <option value="{{ $class->id }}">{{ $class->class_name }}</option>
+                                        <option value="{{ $class->id_class }}">{{ $class->class_name }}</option>
                                     @endforeach
                                 </select>
                                 <div class="invalid-feedback" id="class_id_error"></div>
@@ -340,109 +341,7 @@ document.addEventListener('DOMContentLoaded', function() {
         return isValid;
     }
 
-    // Form submission with AJAX
-    if (form) {
-        form.addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            // First, validate all position names
-            if (!validateAllPositionNames()) {
-                // If validation fails, scroll to the first invalid field
-                const firstInvalidField = form.querySelector('.is-invalid');
-                if (firstInvalidField) {
-                    firstInvalidField.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                }
-                return;
-            }
-            
-            // Show loading state
-            saveBtn.disabled = true;
-            saveBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>Saving...';
-            
-            // Clear previous errors
-            const errorElements = form.querySelectorAll('.invalid-feedback');
-            errorElements.forEach(element => {
-                element.textContent = '';
-                element.style.display = 'none';
-            });
-            
-            const inputs = form.querySelectorAll('input, select');
-            inputs.forEach(input => {
-                input.classList.remove('is-invalid');
-            });
-            
-            // Submit form via AJAX
-            const formData = new FormData(form);
-            
-            fetch(form.action, {
-                method: 'POST',
-                body: formData,
-                headers: {
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                    'Accept': 'application/json',
-                },
-                credentials: 'same-origin'
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    // Show success message
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Success!',
-                        text: data.message || 'Employee created successfully!',
-                        timer: 3000,
-                        timerProgressBar: true
-                    });
-                    
-                    // Close modal
-                    bootstrap.Modal.getInstance(modal).hide();
-                    
-                    // Reload page or update table
-                    setTimeout(() => {
-                        window.location.reload();
-                    }, 1000);
-                } else {
-                    // Show validation errors
-                    if (data.errors) {
-                        Object.keys(data.errors).forEach(field => {
-                            const errorElement = document.getElementById(field + '_error');
-                            const inputElement = form.querySelector(`[name="${field}"]`);
-                            
-                            if (errorElement) {
-                                errorElement.textContent = data.errors[field][0];
-                                errorElement.style.display = 'block';
-                            }
-                            
-                            if (inputElement) {
-                                inputElement.classList.add('is-invalid');
-                            }
-                        });
-                    } else {
-                        // Show general error
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Error!',
-                            text: data.message || 'An error occurred while creating the employee.',
-                        });
-                    }
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error!',
-                    text: 'An unexpected error occurred.',
-                });
-            })
-            .finally(() => {
-                // Reset button
-                saveBtn.disabled = false;
-                saveBtn.innerHTML = '<i class="fas fa-save me-1"></i>Save Employee';
-            });
-        });
-    }
+
     
     // Cascading dropdowns for modal
     const modalOfficeSelect = document.getElementById('modal_office_id');
@@ -473,7 +372,7 @@ document.addEventListener('DOMContentLoaded', function() {
             
             if (divisionId && cascadingData.units[divisionId]) {
                 cascadingData.units[divisionId].forEach(unit => {
-                    modalUnitSelect.innerHTML += '<option value="' + unit.id_unit + '">' + unit.unit_name + '</option>';
+                    modalUnitSelect.innerHTML += '<option value="' + unit.id + '">' + unit.unit_name + '</option>';
                 });
             }
         });
@@ -574,7 +473,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         <select name="additional_positions[${modalPositionCounter}][class_id]" class="form-control form-control-sm border-success">
                             <option value="">Select Class</option>
                             @foreach($classes as $class)
-                                <option value="{{ $class->id }}">{{ addslashes($class->class_name) }}</option>
+                                <option value="{{ $class->id_class }}">{{ addslashes($class->class_name) }}</option>
                             @endforeach
                         </select>
                     </div>
@@ -693,7 +592,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 if (divisionId && data.units[divisionId]) {
                     data.units[divisionId].forEach(unit => {
-                        unitSelect.innerHTML += '<option value="' + unit.id_unit + '">' + unit.unit_name + '</option>';
+                        unitSelect.innerHTML += '<option value="' + unit.id + '">' + unit.unit_name + '</option>';
                     });
                 }
             });
@@ -943,10 +842,6 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
         
-        // Show loading state
-        saveBtn.disabled = true;
-        saveBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>Saving...';
-        
         // Clear previous errors
         const errorElements = form.querySelectorAll('.invalid-feedback');
         errorElements.forEach(element => {
@@ -974,36 +869,45 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                // Show loading indicator for 2 seconds before success message
+                // Show 2-second loading with original text
                 Swal.fire({
-                    title: 'Saving...',
-                    html: 'Please wait while we save the employee data.',
+                    title: 'Creating Employee...',
+                    text: 'Please wait while we process your request',
                     allowOutsideClick: false,
-                    allowEscapeKey: false,
                     showConfirmButton: false,
-                    didOpen: () => {
-                        Swal.showLoading();
-                    }
-                });
-                
-                // Wait for 2 seconds before showing success
-                setTimeout(() => {
+                    timer: 2000,
+                    didOpen: () => Swal.showLoading()
+                }).then(() => {
+                    // Show success message after 2 seconds
                     Swal.fire({
-                        icon: 'success',
                         title: 'Success!',
-                        text: data.message || 'Employee created successfully!',
-                        timer: 3000,
-                        timerProgressBar: true
+                        text: data.message,
+                        icon: 'success',
+                        timer: 2000,
+                        showConfirmButton: false
                     }).then(() => {
-                        // Close modal after success message
+                        // Close the modal
                         bootstrap.Modal.getInstance(modal).hide();
                         
-                        // Reload page or update table
+                        // Reset form after successful submission
+                        form.reset();
+                        // Clear any validation errors
+                        const errorElements = form.querySelectorAll('.invalid-feedback');
+                        errorElements.forEach(element => {
+                            element.textContent = '';
+                            element.style.display = 'none';
+                        });
+                        const inputs = form.querySelectorAll('input, select');
+                        inputs.forEach(input => {
+                            input.classList.remove('is-invalid');
+                        });
+                        
+                        // Refresh the page
                         setTimeout(() => {
-                            window.location.reload();
-                        }, 1000);
+                            location.reload();
+                        }, 100); // Small delay to ensure modal is fully closed
                     });
-                }, 2000);
+                });
             } else {
                 // If loading/sweetalert is active, close it before showing error
                 if (Swal.isVisible()) {

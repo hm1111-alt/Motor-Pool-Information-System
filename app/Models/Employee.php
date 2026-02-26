@@ -19,7 +19,7 @@ class Employee extends Model
         'user_id',
         'first_name',
         'last_name',
-        'middle_initial',
+        'middle_name',
         'ext_name',
         'full_name',
         'full_name2',
@@ -40,6 +40,8 @@ class Employee extends Model
         'emp_status' => 'integer',
         'is_active' => 'boolean',
     ];
+    
+
 
     /**
      * Get the user that owns the employee record.
@@ -237,7 +239,7 @@ class Employee extends Model
      */
     public function getFullNameAttribute()
     {
-        return $this->first_name . ' ' . $this->last_name;
+        return trim(implode(' ', array_filter([$this->first_name, $this->middle_name ? substr($this->middle_name, 0, 1) . '.' : '', $this->last_name])));
     }
 
     /**
@@ -245,7 +247,7 @@ class Employee extends Model
      */
     public function getFormalNameAttribute()
     {
-        return $this->prefix ? $this->prefix . ' ' . $this->first_name . ' ' . $this->last_name : $this->first_name . ' ' . $this->last_name;
+        return trim(implode(' ', array_filter([$this->prefix, $this->first_name, $this->middle_name ? substr($this->middle_name, 0, 1) . '.' : '', $this->last_name])));
     }
     
     /**
