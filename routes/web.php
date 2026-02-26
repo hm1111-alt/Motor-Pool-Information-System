@@ -43,7 +43,7 @@ Route::get('/api/offices', function() {
 })->name('api.offices');
 
 Route::get('/', function () {
-    return view('welcome');
+    return redirect('/login');
 });
 
 // Debug route to check user-driver relationship

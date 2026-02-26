@@ -29,12 +29,12 @@
                     </form>
                     
                     <!-- Add New Employee Button -->
-                    <a href="{{ route('admin.employees.create') }}" class="inline-flex items-center px-3 py-1 bg-[#1e6031] border border-[#1e6031] rounded-md font-semibold text-xs text-white uppercase tracking-wider hover:bg-[#164f2a] focus:bg-[#164f2a] active:bg-[#103c1e] focus:outline-none focus:ring-2 focus:ring-[#1e6031] focus:ring-offset-2 transition ease-in-out duration-150" style="height: 32px;">
+                    <button type="button" class="inline-flex items-center px-3 py-1 bg-[#1e6031] border border-[#1e6031] rounded-md font-semibold text-xs text-white uppercase tracking-wider hover:bg-[#164f2a] focus:bg-[#164f2a] active:bg-[#103c1e] focus:outline-none focus:ring-2 focus:ring-[#1e6031] focus:ring-offset-2 transition ease-in-out duration-150" style="height: 32px;" onclick="openAddEmployeeModal()">
                         <svg class="mr-1" style="width: 10px; height: 10px;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                         </svg>
                         Add New Employee
-                    </a>
+                    </button>
                 </div>
             </div>
         </div>
@@ -246,4 +246,15 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 </script>
+
+    <!-- Add Employee Modal -->
+    @include('admin.employees.modals.create-employee-modal')
+    
+    <script>
+        // Function to open the add employee modal
+        function openAddEmployeeModal() {
+            var myModal = new bootstrap.Modal(document.getElementById('addEmployeeModal'));
+            myModal.show();
+        }
+    </script>
 </x-admin-layout>

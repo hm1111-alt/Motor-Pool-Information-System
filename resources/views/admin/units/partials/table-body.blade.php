@@ -35,12 +35,29 @@
         </span>
         @endif
     </td>
+    <td style="padding: 6px 4px; text-align: center;" class="whitespace-nowrap">
+        <div class="action-buttons flex justify-center space-x-1">
+<button type="button" 
+    class="btn edit-unit-btn edit-btn" 
+    data-id="{{ $unit->id }}"
+    data-name="{{ $unit->unit_name }}"
+    data-abbr="{{ $unit->unit_abbr }}"
+    data-code="{{ $unit->unit_code }}"
+    data-division="{{ $unit->unit_division }}"
+    data-isactive="{{ $unit->unit_isactive ? '1' : '0' }}">
+    <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+    </svg>
+    Edit
+</button>
+        </div>
+    </td>
 </tr>
 @endforeach
 
 @if($units->isEmpty())
 <tr id="no-results-row" class="bg-white">
-    <td colspan="5" style="padding: 6px 4px; text-align: center;" class="whitespace-nowrap">
+    <td colspan="6" style="padding: 6px 4px; text-align: center;" class="whitespace-nowrap">
         <div class="flex flex-col items-center justify-center py-6">
             <svg class="h-10 w-10 text-gray-400 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />

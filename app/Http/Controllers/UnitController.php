@@ -62,32 +62,46 @@ class UnitController extends Controller
         $divisions = Division::with('office')->get();
         return view('admin.units.create', compact('divisions'));
     }
-
     /**
-     * Store a newly created unit in storage.
-     */
-    public function store(Request $request): RedirectResponse
-    {
+ * Store a newly created unit in storage.
+ */
+public function store(Request $request): RedirectResponse|JsonResponse
+{
+    try {
+        // Log the incoming request for debugging
+        \Log::info('Unit store request received');
+        \Log::info('Request data: ' . json_encode($request->all()));
+        \Log::info('Request is AJAX: ' . ($request->ajax() ? 'true' : 'false'));
+
+        // Validate the incoming data
         $request->validate([
             'unit_name' => 'required|string|max:255',
             'unit_abbr' => 'required|string|max:100',
-            'division_id' => 'required|exists:lib_divisions,id_division',
-            'unit_code' => 'required|string|max:50',
+            'division_id' => 'required|exists:lib_divisions,id_division', // correct table
+            'unit_code' => 'required|string|max:5',
             'unit_isactive' => 'boolean',
         ]);
 
-        // Handle checkbox value properly
+        // Get the division to fetch the related office
+        $division = Division::with('office')->findOrFail($request->division_id);
+
+        // Determine active status
         $isActive = $request->has('unit_isactive') && $request->unit_isactive == '1' ? 1 : 0;
 
+        // Create the unit
         $unit = Unit::create([
             'unit_name' => $request->unit_name,
             'unit_abbr' => $request->unit_abbr,
             'unit_division' => $request->division_id,
+            'unit_office' => $division->office_id,
             'unit_code' => $request->unit_code,
             'unit_isactive' => $isActive,
         ]);
 
-        if ($request->wantsJson()) {
+        \Log::info('Unit created successfully: ' . $unit->id . ' - ' . $unit->unit_name);
+
+        // Respond differently for AJAX (modal) vs normal form
+        if ($request->ajax() || $request->wantsJson()) {
             return response()->json([
                 'success' => true,
                 'message' => 'Unit created successfully.',
@@ -97,42 +111,47 @@ class UnitController extends Controller
 
         return redirect()->route('admin.units.index')
                          ->with('success', 'Unit created successfully.');
-    }
 
-    /**
-     * Show the form for editing the specified unit.
-     */
-    public function edit(Unit $unit): View
-    {
-        $divisions = Division::with('office')->get();
-        return view('admin.units.edit', compact('unit', 'divisions'));
-    }
+    } catch (\Exception $e) {
+        \Log::error('Error creating unit: ' . $e->getMessage());
+        \Log::error('Stack trace: ' . $e->getTraceAsString());
 
-    /**
-     * Update the specified unit in storage.
-     */
-    public function update(Request $request, Unit $unit): RedirectResponse|JsonResponse
-    {
+        // Respond for AJAX (modal) vs normal form
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'An error occurred while creating the unit: ' . $e->getMessage()
+            ], 500);
+        }
+
+        return redirect()->route('admin.units.index')
+                         ->with('error', 'An error occurred while creating the unit.');
+    }
+}
+public function update(Request $request, $id)
+{
+    try {
+        // Validate the incoming data
         $request->validate([
             'unit_name' => 'required|string|max:255',
             'unit_abbr' => 'required|string|max:100',
             'division_id' => 'required|exists:lib_divisions,id_division',
-            'unit_code' => 'required|string|max:50',
+            'unit_code' => 'required|string|max:5',
             'unit_isactive' => 'boolean',
         ]);
 
-        // Handle checkbox value properly
-        $isActive = $request->has('unit_isactive') && $request->unit_isactive == '1' ? 1 : 0;
+        $unit = Unit::findOrFail($id);
 
         $unit->update([
             'unit_name' => $request->unit_name,
             'unit_abbr' => $request->unit_abbr,
-            'unit_division' => $request->division_id,
             'unit_code' => $request->unit_code,
-            'unit_isactive' => $isActive,
+            'unit_division' => $request->division_id,
+            'unit_isactive' => $request->unit_isactive
         ]);
 
-        if ($request->wantsJson()) {
+        // Respond differently for AJAX (modal) vs normal form
+        if ($request->ajax() || $request->wantsJson()) {
             return response()->json([
                 'success' => true,
                 'message' => 'Unit updated successfully.',
@@ -141,78 +160,22 @@ class UnitController extends Controller
         }
 
         return redirect()->route('admin.units.index')
-                         ->with('success', 'Unit updated successfully.');
-    }
+            ->with('success', 'Unit updated successfully.');
 
-    /**
-     * Remove the specified unit from storage.
-     */
-    public function destroy(Unit $unit): RedirectResponse|JsonResponse
-    {
-        try {
-            // Check for dependent records with detailed counts
-            $subunitCount = $unit->subunits()->count();
-            $employeePositionCount = \App\Models\EmpPosition::where('unit_id', $unit->id)->count();
-            
-            // If there are dependent records, provide detailed error message
-            if ($subunitCount > 0 || $employeePositionCount > 0) {
-                $message = "Cannot delete unit '{$unit->unit_name}' because it has dependent records:";
-                
-                if ($subunitCount > 0) {
-                    $message .= "\n- {$subunitCount} subunit(s)";
-                }
-                
-                if ($employeePositionCount > 0) {
-                    $message .= "\n- {$employeePositionCount} employee position(s)";
-                }
-                
-                $message .= "\n\nPlease reassign or delete these dependent records before deleting the unit.";
-                
-                if (request()->wantsJson() || request()->ajax()) {
-                    return response()->json([
-                        'success' => false,
-                        'message' => $message,
-                        'dependencies' => [
-                            'subunits' => $subunitCount,
-                            'employee_positions' => $employeePositionCount
-                        ]
-                    ], 422);
-                }
-                
-                return redirect()->route('admin.units.index')
-                                 ->with('error', $message);
-            }
-            
-            // Safe to delete
-            $unitName = $unit->unit_name;
-            $unit->delete();
-            
-            $successMessage = "Unit '{$unitName}' deleted successfully.";
-            
-            if (request()->wantsJson() || request()->ajax()) {
-                return response()->json([
-                    'success' => true,
-                    'message' => $successMessage
-                ]);
-            }
-            
-            return redirect()->route('admin.units.index')
-                             ->with('success', $successMessage);
-        } catch (\Exception $e) {
-            \Log::error('Error deleting unit: ' . $e->getMessage());
-            \Log::error('Unit ID: ' . $unit->id . ', Name: ' . $unit->unit_name . ', Division ID: ' . $unit->division_id);
-            
-            $errorMessage = 'There was an error deleting the unit: ' . $e->getMessage();
-            
-            if (request()->wantsJson() || request()->ajax()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => $errorMessage
-                ], 500);
-            }
-            
-            return redirect()->route('admin.units.index')
-                             ->with('error', $errorMessage);
+    } catch (\Exception $e) {
+        \Log::error('Error updating unit: ' . $e->getMessage());
+        \Log::error('Stack trace: ' . $e->getTraceAsString());
+
+        // Respond for AJAX (modal) vs normal form
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'An error occurred while updating the unit: ' . $e->getMessage()
+            ], 500);
         }
+
+        return redirect()->route('admin.units.index')
+            ->with('error', 'An error occurred while updating the unit.');
     }
+}
 }

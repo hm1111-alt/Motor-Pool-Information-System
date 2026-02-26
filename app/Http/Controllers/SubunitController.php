@@ -70,35 +70,55 @@ class SubunitController extends Controller
     /**
      * Store a newly created subunit in storage.
      */
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request): RedirectResponse|JsonResponse
     {
-        $request->validate([
-            'subunit_name' => 'required|string|max:255',
-            'subunit_abbr' => 'required|string|max:100',
-            'unit_id' => 'required|exists:units,id',
-            'subunit_isactive' => 'boolean',
-        ]);
-
-        // Handle checkbox value properly
-        $isActive = $request->has('subunit_isactive') && $request->subunit_isactive == '1' ? 1 : 0;
-
-        $subunit = Subunit::create([
-            'subunit_name' => $request->subunit_name,
-            'subunit_abbr' => $request->subunit_abbr,
-            'unit_id' => $request->unit_id,
-            'subunit_isactive' => $isActive,
-        ]);
-
-        if ($request->wantsJson()) {
-            return response()->json([
-                'success' => true,
-                'message' => 'Subunit created successfully.',
-                'data' => $subunit
+        try {
+            $request->validate([
+                'subunit_name' => 'required|string|max:255',
+                'subunit_abbr' => 'required|string|max:100',
+                'unit_id' => 'required|exists:lib_units,id',
             ]);
+    
+            // Automatically set status to active (1) for new subunits
+            $isActive = 1;
+    
+            // Get the unit to populate office and division fields
+            $unit = Unit::with('division')->find($request->unit_id);
+                    
+            $subunit = Subunit::create([
+                'subunit_name' => $request->subunit_name,
+                'subunit_abbr' => $request->subunit_abbr,
+                'unit_id' => $request->unit_id,
+                'subunit_office' => $unit && $unit->division ? $unit->division->office_id : null,
+                'subunit_division' => $unit && $unit->division ? $unit->division->id_division : null,
+                'subunit_isactive' => $isActive,
+                'subunit_updated_date' => now(), // Manually set the custom timestamp
+            ]);
+            
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Subunit created successfully.',
+                    'data' => $subunit
+                ]);
+            }
+    
+            return redirect()->route('admin.subunits.index')
+                             ->with('success', 'Subunit created successfully.');
+        } catch (\Exception $e) {
+            \Log::error('Error creating subunit: ' . $e->getMessage());
+            \Log::error('Error trace: ' . $e->getTraceAsString());
+            
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'An error occurred while creating the subunit: ' . $e->getMessage()
+                ], 500);
+            }
+    
+            return redirect()->route('admin.subunits.index')
+                             ->with('error', 'An error occurred while creating the subunit: ' . $e->getMessage());
         }
-
-        return redirect()->route('admin.subunits.index')
-                         ->with('success', 'Subunit created successfully.');
     }
 
     /**
@@ -115,33 +135,54 @@ class SubunitController extends Controller
      */
     public function update(Request $request, Subunit $subunit): RedirectResponse|JsonResponse
     {
-        $request->validate([
-            'subunit_name' => 'required|string|max:255',
-            'subunit_abbr' => 'required|string|max:100',
-            'unit_id' => 'required|exists:units,id',
-            'subunit_isactive' => 'boolean',
-        ]);
-
-        // Handle checkbox value properly
-        $isActive = $request->has('subunit_isactive') && $request->subunit_isactive == '1' ? 1 : 0;
-
-        $subunit->update([
-            'subunit_name' => $request->subunit_name,
-            'subunit_abbr' => $request->subunit_abbr,
-            'unit_id' => $request->unit_id,
-            'subunit_isactive' => $isActive,
-        ]);
-
-        if ($request->wantsJson()) {
-            return response()->json([
-                'success' => true,
-                'message' => 'Subunit updated successfully.',
-                'data' => $subunit
+        try {
+            $request->validate([
+                'subunit_name' => 'required|string|max:255',
+                'subunit_abbr' => 'required|string|max:100',
+                'unit_id' => 'required|exists:lib_units,id',
+                'subunit_isactive' => 'boolean',
             ]);
+    
+            // Handle checkbox value properly
+            $isActive = $request->has('subunit_isactive') && $request->subunit_isactive == '1' ? 1 : 0;
+    
+            // Get the unit to populate office and division fields
+            $unit = Unit::with('division')->find($request->unit_id);
+                    
+            $subunit->update([
+                'subunit_name' => $request->subunit_name,
+                'subunit_abbr' => $request->subunit_abbr,
+                'unit_id' => $request->unit_id,
+                'subunit_office' => $unit && $unit->division ? $unit->division->office_id : null,
+                'subunit_division' => $unit && $unit->division ? $unit->division->id_division : null,
+                'subunit_isactive' => $isActive,
+                'subunit_updated_date' => now(), // Manually set the custom timestamp
+            ]);
+            
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Subunit updated successfully.',
+                    'data' => $subunit
+                ]);
+            }
+    
+            return redirect()->route('admin.subunits.index')
+                             ->with('success', 'Subunit updated successfully.');
+        } catch (\Exception $e) {
+            \Log::error('Error updating subunit: ' . $e->getMessage());
+            \Log::error('Error trace: ' . $e->getTraceAsString());
+            
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'An error occurred while updating the subunit: ' . $e->getMessage()
+                ], 500);
+            }
+    
+            return redirect()->route('admin.subunits.index')
+                             ->with('error', 'An error occurred while updating the subunit: ' . $e->getMessage());
         }
-
-        return redirect()->route('admin.subunits.index')
-                         ->with('success', 'Subunit updated successfully.');
     }
 
     /**

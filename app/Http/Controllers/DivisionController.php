@@ -66,7 +66,7 @@ class DivisionController extends Controller
     /**
      * Store a newly created division in storage.
      */
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request)
     {
         $request->validate([
             'division_name' => 'required|string|max:255',
@@ -87,7 +87,8 @@ class DivisionController extends Controller
             'division_isactive' => $isActive,
         ]);
 
-        if ($request->wantsJson()) {
+        // Always return JSON response for both AJAX and non-AJAX requests
+        if ($request->ajax() || $request->wantsJson()) {
             return response()->json([
                 'success' => true,
                 'message' => 'Division created successfully.',
@@ -95,8 +96,11 @@ class DivisionController extends Controller
             ]);
         }
 
-        return redirect()->route('admin.divisions.index')
-                         ->with('success', 'Division created successfully.');
+        return response()->json([
+            'success' => true,
+            'message' => 'Division created successfully.',
+            'data' => $division
+        ]);
     }
 
     /**
@@ -111,7 +115,7 @@ class DivisionController extends Controller
     /**
      * Update the specified division in storage.
      */
-    public function update(Request $request, Division $division): RedirectResponse|JsonResponse
+    public function update(Request $request, Division $division)
     {
         $request->validate([
             'division_name' => 'required|string|max:255',
@@ -132,7 +136,8 @@ class DivisionController extends Controller
             'division_isactive' => $isActive,
         ]);
 
-        if ($request->wantsJson()) {
+        // Always return JSON response for both AJAX and non-AJAX requests
+        if ($request->ajax() || $request->wantsJson()) {
             return response()->json([
                 'success' => true,
                 'message' => 'Division updated successfully.',
@@ -140,8 +145,11 @@ class DivisionController extends Controller
             ]);
         }
 
-        return redirect()->route('admin.divisions.index')
-                         ->with('success', 'Division updated successfully.');
+        return response()->json([
+            'success' => true,
+            'message' => 'Division updated successfully.',
+            'data' => $division
+        ]);
     }
 
     /**

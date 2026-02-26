@@ -37,20 +37,22 @@
     </td>
     <td style="padding: 8px 6px; text-align: center;" class="whitespace-nowrap">
         <div class="action-buttons">
-            <button type="button" class="btn edit-btn inline-flex items-center mr-1" 
-                    data-bs-toggle="modal" 
-                    data-bs-target="#editDivisionModal"
-                    data-id="{{ $division->id }}"
-                    data-name="{{ $division->division_name }}"
-                    data-abbreviation="{{ $division->division_abbr }}"
-                    data-code="{{ $division->division_code }}"
-                    data-status="{{ $division->division_isactive ? '1' : '0' }}"
-                    data-office-id="{{ $division->office_id }}">
-                <svg class="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                </svg>
-                Edit
-            </button>
+   <button type="button" 
+        class="btn edit-btn inline-flex items-center mr-1" 
+        data-bs-toggle="modal" 
+        data-bs-target="#editDivisionModal"
+        data-id="{{ $division->id_division }}"
+        data-name="{{ $division->division_name }}"
+        data-abbreviation="{{ $division->division_abbr }}"
+        data-code="{{ $division->division_code }}"
+        data-status="{{ $division->division_isactive ? '1' : '0' }}"
+        data-office-id="{{ $division->office_id }}">
+    <svg class="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+              d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+    </svg>
+    Edit
+</button>
         </div>
     </td>
 </tr>
