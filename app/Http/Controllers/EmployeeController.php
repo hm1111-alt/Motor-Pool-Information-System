@@ -354,6 +354,62 @@ class EmployeeController extends Controller
     }
 
     /**
+     * Get employee data for modal editing.
+     */
+    public function getEmployeeData(Employee $employee): JsonResponse
+    {
+        try {
+            \Log::info('Fetching employee data for ID: ' . $employee->id);
+            \Log::info('Employee data before loading relationships: ', $employee->toArray());
+            
+            $employee->load(['user', 'positions', 'positions.office', 'positions.division', 'positions.unit', 'positions.subunit', 'positions.class']);
+            
+            \Log::info('Employee data after loading relationships: ', $employee->toArray());
+            \Log::info('Employee positions count: ' . $employee->positions->count());
+            \Log::info('Employee positions: ', $employee->positions->toArray());
+            \Log::info('Employee user: ', $employee->user ? $employee->user->toArray() : null);
+            
+            // Log each position separately
+            foreach ($employee->positions as $index => $position) {
+                \Log::info("Position {$index}: ", [
+                    'id' => $position->id,
+                    'position_name' => $position->position_name,
+                    'is_primary' => $position->is_primary,
+                    'class_id' => $position->class_id,
+                    'office_id' => $position->office_id,
+                    'division_id' => $position->division_id,
+                    'unit_id' => $position->unit_id,
+                    'subunit_id' => $position->subunit_id,
+                    'has_office' => $position->office ? 'Yes' : 'No',
+                    'has_division' => $position->division ? 'Yes' : 'No',
+                    'has_unit' => $position->unit ? 'Yes' : 'No',
+                    'has_subunit' => $position->subunit ? 'Yes' : 'No',
+                    'has_class' => $position->class ? 'Yes' : 'No',
+                ]);
+            }
+            
+            $responseData = [
+                'success' => true,
+                'employee' => $employee
+            ];
+            
+            \Log::info('Response data: ', $responseData);
+            
+            return response()->json($responseData);
+        } catch (\Exception $e) {
+            \Log::error('Error in getEmployeeData: ' . $e->getMessage(), [
+                'exception' => $e,
+                'employee_id' => $employee->id
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to load employee data: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
      * Show the form for editing the specified employee.
      */
     public function edit(Employee $employee): View
@@ -521,9 +577,11 @@ class EmployeeController extends Controller
             // Process each additional position
             foreach ($request->additional_positions as $positionData) {
                 if (!empty($positionData['position_name'])) {
-                    if (isset($positionData['id']) && in_array($positionData['id'], $existingPositionIds)) {
+                    // Check if this is an existing position (has ID and ID exists in database)
+                    $positionId = $positionData['id'] ?? null;
+                    if ($positionId && is_numeric($positionId) && in_array($positionId, $existingPositionIds)) {
                         // Update existing position
-                        $position = \App\Models\EmpPosition::find($positionData['id']);
+                        $position = \App\Models\EmpPosition::find($positionId);
                         if ($position) {
                             $position->update([
                                 'position_name' => $positionData['position_name'],
@@ -539,9 +597,9 @@ class EmployeeController extends Controller
                             ]);
                         }
                         // Remove from existing IDs array to track which ones were processed
-                        $existingPositionIds = array_diff($existingPositionIds, [$positionData['id']]);
+                        $existingPositionIds = array_diff($existingPositionIds, [$positionId]);
                     } else {
-                        // Create new position
+                        // Create new position (either no ID provided or ID doesn't exist)
                         \App\Models\EmpPosition::create([
                             'employee_id' => $employee->id,
                             'position_name' => $positionData['position_name'],
@@ -835,4 +893,5 @@ class EmployeeController extends Controller
             return response()->json(['error' => $e->getMessage()], 500);
         }
     }
+    
 }

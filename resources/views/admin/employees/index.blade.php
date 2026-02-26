@@ -250,11 +250,672 @@ document.addEventListener('DOMContentLoaded', function() {
     <!-- Add Employee Modal -->
     @include('admin.employees.modals.create-employee-modal')
     
+    <!-- Edit Employee Modal -->
+    @include('admin.employees.modals.edit-employee-modal')
+    
+    <!-- Pass cascading data to JavaScript -->
+    <script>
+        // Make cascading data available globally
+        window.cascadingData = @json($cascadingData);
+    </script>
+    
     <script>
         // Function to open the add employee modal
         function openAddEmployeeModal() {
             var myModal = new bootstrap.Modal(document.getElementById('addEmployeeModal'));
             myModal.show();
+        }
+        
+        // Global variable to store cascading data
+        let globalCascadingData = {};
+        
+        // Function to load employee data into the modal
+        window.loadEmployeeData = function(employeeId) {
+            console.log('Loading employee data for ID:', employeeId);
+            
+            // Show loading indicator
+            const loadingIndicator = document.getElementById('editModalLoading');
+            const personalInfoSection = document.getElementById('editPersonalInfoSection');
+            const positionInfoSection = document.getElementById('editPositionInfoSection');
+            const additionalPositionsSection = document.getElementById('editAdditionalPositionsSection');
+            
+            if (loadingIndicator) loadingIndicator.style.display = 'block';
+            if (personalInfoSection) personalInfoSection.style.display = 'none';
+            if (positionInfoSection) positionInfoSection.style.display = 'none';
+            if (additionalPositionsSection) additionalPositionsSection.style.display = 'none';
+            
+            // Set form action
+            const form = document.getElementById('editEmployeeForm');
+            if (form) {
+                form.action = '/admin/employees/' + employeeId;
+            }
+            
+            // Check CSRF token
+            const csrfToken = document.querySelector('meta[name="csrf-token"]');
+            console.log('CSRF token element:', csrfToken);
+            console.log('CSRF token value:', csrfToken ? csrfToken.getAttribute('content') : 'Not found');
+            
+            if (!csrfToken) {
+                console.error('CSRF token not found!');
+                alert('Error: CSRF token not found. Please refresh the page.');
+                return;
+            }
+            
+            // Fetch employee data
+            fetch('/admin/employees/' + employeeId + '/data', {
+                method: 'GET',
+                headers: {
+                    'X-CSRF-TOKEN': csrfToken.getAttribute('content'),
+                    'Accept': 'application/json',
+                },
+                credentials: 'same-origin'
+            })
+            .then(response => {
+                console.log('Response status:', response.status);
+                console.log('Response headers:', response.headers);
+                return response.json();
+            })
+            .then(data => {
+                console.log('Full response data:', data);
+                
+                if (data.success) {
+                    const employee = data.employee;
+                    console.log('Employee data loaded:', employee);
+                    console.log('Employee positions:', employee.positions);
+                    console.log('Employee positions array:', Array.isArray(employee.positions) ? employee.positions : 'Not an array');
+                    console.log('Employee user:', employee.user);
+                    
+                    // Log each position
+                    if (employee.positions && Array.isArray(employee.positions)) {
+                        employee.positions.forEach((pos, index) => {
+                            console.log(`Position ${index}:`, {
+                                id: pos.id,
+                                position_name: pos.position_name,
+                                is_primary: pos.is_primary,
+                                class_id: pos.class_id,
+                                office_id: pos.office_id,
+                                division_id: pos.division_id,
+                                unit_id: pos.unit_id,
+                                subunit_id: pos.subunit_id
+                            });
+                        });
+                    }
+                    
+                    // Populate personal information
+                    const firstName = employee.first_name || '';
+                    const middleName = employee.middle_name || '';
+                    const lastName = employee.last_name || '';
+                    const extName = employee.ext_name || '';
+                    const sex = employee.sex || '';
+                    const prefix = employee.prefix || '';
+                    const email = employee.user?.email || '';
+                    const contactNum = employee.contact_num || '';
+                    const empStatus = employee.emp_status ? '1' : '0';
+                    
+                    console.log('Setting personal info:', { firstName, middleName, lastName, extName, sex, prefix, email, contactNum, empStatus });
+                    
+                    document.getElementById('edit_first_name').value = firstName;
+                    document.getElementById('edit_middle_name').value = middleName;
+                    document.getElementById('edit_last_name').value = lastName;
+                    document.getElementById('edit_ext_name').value = extName;
+                    document.getElementById('edit_sex').value = sex;
+                    document.getElementById('edit_prefix').value = prefix;
+                    document.getElementById('edit_email').value = email;
+                    document.getElementById('edit_contact_num').value = contactNum;
+                    document.getElementById('edit_emp_status').value = empStatus;
+                    
+                    // Populate primary position
+                    const primaryPosition = employee.positions?.find(p => p.is_primary) || {};
+                    console.log('Primary position:', primaryPosition);
+                    
+                    const positionName = primaryPosition.position_name || '';
+                    const classId = primaryPosition.class_id || '';
+                    const officeId = primaryPosition.office_id || '';
+                    const divisionId = primaryPosition.division_id || '';
+                    const unitId = primaryPosition.unit_id || '';
+                    const subunitId = primaryPosition.subunit_id || '';
+                    
+                    console.log('Setting position info:', { positionName, classId, officeId, divisionId, unitId, subunitId });
+                    console.log('Class ID to set:', classId);
+                    
+                    document.getElementById('edit_position_name').value = positionName;
+                    
+                    // Set class dropdown value
+                    const classSelect = document.getElementById('edit_class_id');
+                    if (classSelect) {
+                        console.log('Class select element found, setting value to:', classId);
+                        console.log('Available class options:');
+                        for (let i = 0; i < classSelect.options.length; i++) {
+                            console.log('Option', i, ':', classSelect.options[i].value, '=', classSelect.options[i].text);
+                        }
+                        classSelect.value = classId;
+                        console.log('Class select value after setting:', classSelect.value);
+                        
+                        // If setting failed, try to find and select the option manually
+                        if (classSelect.value != classId && classId) {
+                            console.log('Direct value setting failed, trying manual selection');
+                            for (let i = 0; i < classSelect.options.length; i++) {
+                                if (classSelect.options[i].value == classId) {
+                                    classSelect.selectedIndex = i;
+                                    console.log('Manually selected option', i);
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    
+                    // Set initial selections for cascading dropdowns
+                    if (officeId) {
+                        console.log('Setting office ID:', officeId);
+                        document.getElementById('edit_office_id').value = officeId;
+                        // Trigger change to populate divisions
+                        const event = new Event('change');
+                        document.getElementById('edit_office_id').dispatchEvent(event);
+                    }
+                    
+                    if (divisionId) {
+                        setTimeout(() => {
+                            console.log('Setting division ID:', divisionId);
+                            document.getElementById('edit_division_id').value = divisionId;
+                            // Trigger change to populate units
+                            const event = new Event('change');
+                            document.getElementById('edit_division_id').dispatchEvent(event);
+                        }, 100);
+                    }
+                    
+                    if (unitId) {
+                        setTimeout(() => {
+                            console.log('Setting unit ID:', unitId);
+                            document.getElementById('edit_unit_id').value = unitId;
+                            // Trigger change to populate subunits
+                            const event = new Event('change');
+                            document.getElementById('edit_unit_id').dispatchEvent(event);
+                        }, 200);
+                    }
+                    
+                    if (subunitId) {
+                        setTimeout(() => {
+                            console.log('Setting subunit ID:', subunitId);
+                            document.getElementById('edit_subunit_id').value = subunitId;
+                        }, 300);
+                    }
+                    
+                    // Populate additional positions
+                    const additionalPositionsContainer = document.getElementById('edit_additionalPositionsContainer');
+                    if (additionalPositionsContainer) {
+                        additionalPositionsContainer.innerHTML = '';
+                        
+                        // Get non-primary positions
+                        const additionalPositions = employee.positions?.filter(p => !p.is_primary) || [];
+                        console.log('Additional positions found:', additionalPositions);
+                        
+                        // Populate additional positions
+                        additionalPositions.forEach((position, index) => {
+                            console.log('Processing additional position:', position);
+                            
+                            const positionDiv = document.createElement('div');
+                            positionDiv.className = 'border p-3 rounded mb-3 position-relative';
+                            positionDiv.dataset.positionIndex = index;
+                            
+                            positionDiv.innerHTML = `
+                                <button type="button" class="btn-close position-absolute top-0 end-0 mt-2 me-2 remove-position-btn" aria-label="Remove"></button>
+                                
+                                <!-- First Row -->
+                                <div class="row mb-2">
+                                    <div class="col-md-6">
+                                        <label class="small fw-semibold text-success">Position Name <span class="text-danger">*</span></label>
+                                        <input type="hidden" name="additional_positions[${index}][id]" value="${position.id || ''}">
+                                        <input type="text" name="additional_positions[${index}][position_name]" class="form-control form-control-sm border-success additional-position-name" value="${position.position_name || ''}" placeholder="Enter position name" required>
+                                        <div class="invalid-feedback additional-position-error"></div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="small fw-semibold text-success">Class</label>
+                                        <select name="additional_positions[${index}][class_id]" class="form-control form-control-sm border-success">
+                                            <option value="">Select Class</option>
+                                            @foreach($classes as $class)
+                                                <option value="{{ $class->id_class }}" ${position.class_id == {{ $class->id_class }} ? 'selected' : ''}}>{{ addslashes($class->class_name) }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                </div>
+                                
+                                <!-- Second Row -->
+                                <div class="row mb-2">
+                                    <div class="col-md-6">
+                                        <label class="small fw-semibold text-success">Office</label>
+                                        <select name="additional_positions[${index}][office_id]" class="form-control form-control-sm border-success edit-additional-office">
+                                            <option value="">Select Office</option>
+                                            @foreach($offices as $office)
+                                                <option value="{{ $office->id }}" ${position.office_id == {{ $office->id }} ? 'selected' : ''}}>{{ addslashes($office->office_name) }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="small fw-semibold text-success">Division</label>
+                                        <select name="additional_positions[${index}][division_id]" class="form-control form-control-sm border-success edit-additional-division">
+                                            <option value="">Select Division</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                
+                                <!-- Third Row -->
+                                <div class="row mb-2">
+                                    <div class="col-md-6">
+                                        <label class="small fw-semibold text-success">Unit</label>
+                                        <select name="additional_positions[${index}][unit_id]" class="form-control form-control-sm border-success edit-additional-unit">
+                                            <option value="">Select Unit</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="small fw-semibold text-success">Subunit</label>
+                                        <select name="additional_positions[${index}][subunit_id]" class="form-control form-control-sm border-success edit-additional-subunit">
+                                            <option value="">Select Subunit</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            `;
+                            
+                            additionalPositionsContainer.appendChild(positionDiv);
+                            
+                            // Add event listener to the remove button
+                            positionDiv.querySelector('.remove-position-btn').addEventListener('click', function() {
+                                positionDiv.remove();
+                            });
+                            
+                            // Set up cascading dropdowns for this position
+                            setTimeout(() => {
+                                const officeSelect = positionDiv.querySelector('.edit-additional-office');
+                                const divisionSelect = positionDiv.querySelector('.edit-additional-division');
+                                const unitSelect = positionDiv.querySelector('.edit-additional-unit');
+                                const subunitSelect = positionDiv.querySelector('.edit-additional-subunit');
+                                
+                                if (officeSelect) {
+                                    officeSelect.addEventListener('change', function() {
+                                        const officeId = this.value;
+                                        divisionSelect.innerHTML = '<option value="">Select Division</option>';
+                                        unitSelect.innerHTML = '<option value="">Select Unit</option>';
+                                        subunitSelect.innerHTML = '<option value="">Select Subunit</option>';
+                                        
+                                        if (officeId && window.cascadingData.divisions[officeId]) {
+                                            window.cascadingData.divisions[officeId].forEach(division => {
+                                                divisionSelect.innerHTML += '<option value="' + division.id_division + '">' + division.division_name + '</option>';
+                                            });
+                                        }
+                                    });
+                                }
+                                
+                                if (divisionSelect) {
+                                    divisionSelect.addEventListener('change', function() {
+                                        const divisionId = this.value;
+                                        unitSelect.innerHTML = '<option value="">Select Unit</option>';
+                                        subunitSelect.innerHTML = '<option value="">Select Subunit</option>';
+                                        
+                                        if (divisionId && window.cascadingData.units[divisionId]) {
+                                            window.cascadingData.units[divisionId].forEach(unit => {
+                                                unitSelect.innerHTML += '<option value="' + unit.id + '">' + unit.unit_name + '</option>';
+                                            });
+                                        }
+                                    });
+                                }
+                                
+                                if (unitSelect) {
+                                    unitSelect.addEventListener('change', function() {
+                                        const unitId = this.value;
+                                        subunitSelect.innerHTML = '<option value="">Select Subunit</option>';
+                                        
+                                        if (unitId && window.cascadingData.subunits[unitId]) {
+                                            window.cascadingData.subunits[unitId].forEach(subunit => {
+                                                subunitSelect.innerHTML += '<option value="' + subunit.id_subunit + '">' + subunit.subunit_name + '</option>';
+                                            });
+                                        }
+                                    });
+                                }
+                                
+                                // Set initial selections for all dropdowns
+                                if (position.class_id) {
+                                    const classSelect = positionDiv.querySelector('select[name*="[class_id]"]');
+                                    if (classSelect) {
+                                        console.log('Setting class ID for additional position:', position.class_id);
+                                        console.log('Additional position class options:');
+                                        for (let i = 0; i < classSelect.options.length; i++) {
+                                            console.log('Option', i, ':', classSelect.options[i].value, '=', classSelect.options[i].text);
+                                        }
+                                        classSelect.value = position.class_id;
+                                        
+                                        // If setting failed, try manual selection
+                                        if (classSelect.value != position.class_id) {
+                                            console.log('Direct value setting failed for additional position, trying manual selection');
+                                            for (let i = 0; i < classSelect.options.length; i++) {
+                                                if (classSelect.options[i].value == position.class_id) {
+                                                    classSelect.selectedIndex = i;
+                                                    console.log('Manually selected additional position option', i);
+                                                    break;
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                                            
+                                if (position.office_id && officeSelect) {
+                                    officeSelect.value = position.office_id;
+                                    const event = new Event('change');
+                                    officeSelect.dispatchEvent(event);
+                                }
+                                                            
+                                if (position.division_id && divisionSelect) {
+                                    setTimeout(() => {
+                                        divisionSelect.value = position.division_id;
+                                        const event = new Event('change');
+                                        divisionSelect.dispatchEvent(event);
+                                    }, 100);
+                                }
+                                                            
+                                if (position.unit_id && unitSelect) {
+                                    setTimeout(() => {
+                                        unitSelect.value = position.unit_id;
+                                        const event = new Event('change');
+                                        unitSelect.dispatchEvent(event);
+                                    }, 200);
+                                }
+                                                            
+                                if (position.subunit_id && subunitSelect) {
+                                    setTimeout(() => {
+                                        subunitSelect.value = position.subunit_id;
+                                    }, 300);
+                                }
+                            }, 100);
+                        });
+                    }
+                    
+                    // Hide loading and show sections
+                    if (loadingIndicator) loadingIndicator.style.display = 'none';
+                    if (personalInfoSection) personalInfoSection.style.display = 'block';
+                    if (positionInfoSection) positionInfoSection.style.display = 'block';
+                    if (additionalPositionsSection) additionalPositionsSection.style.display = 'block';
+                    
+                    console.log('Modal data population completed');
+                    
+                } else {
+                    // Handle error
+                    console.error('Failed to load employee data:', data.message);
+                    console.error('Error details:', data);
+                    alert('Error: ' + (data.message || 'Failed to load employee data.'));
+                }
+            })
+            .catch(error => {
+                console.error('Error loading employee data:', error);
+                alert('Error loading employee data: ' + error.message);
+            });
+        };
+        
+        // Additional positions counter for edit modal
+        let editPositionCounter = 0;
+        
+        // Function to open the edit employee modal
+        function openEditEmployeeModal(employeeId) {
+            console.log('Edit button clicked, employeeId:', employeeId);
+            
+            // Check if modal element exists
+            const modalElement = document.getElementById('editEmployeeModal');
+            if (!modalElement) {
+                console.error('Edit modal element not found!');
+                alert('Error: Edit modal not found. Please check the console for details.');
+                return;
+            }
+            
+            // Check if form elements exist
+            const formElements = [
+                'edit_first_name', 'edit_middle_name', 'edit_last_name', 'edit_ext_name',
+                'edit_sex', 'edit_prefix', 'edit_email', 'edit_contact_num', 'edit_emp_status',
+                'edit_position_name', 'edit_class_id', 'edit_office_id', 'edit_division_id',
+                'edit_unit_id', 'edit_subunit_id'
+            ];
+            
+            console.log('Checking form elements:');
+            const missingElements = [];
+            formElements.forEach(id => {
+                const element = document.getElementById(id);
+                if (!element) {
+                    missingElements.push(id);
+                }
+                console.log(`${id}: ${element ? 'Found' : 'Missing'}`);
+            });
+            
+            if (missingElements.length > 0) {
+                console.error('Missing form elements:', missingElements);
+                alert('Error: Missing form elements: ' + missingElements.join(', '));
+                return;
+            }
+            
+            try {
+                // Load employee data and show modal
+                loadEmployeeData(employeeId);
+                var myModal = new bootstrap.Modal(modalElement);
+                myModal.show();
+                console.log('Modal opened successfully');
+                
+                // Reset position counter when modal opens
+                editPositionCounter = 0;
+                
+                // Add event listener for add position button after modal is shown
+                modalElement.addEventListener('shown.bs.modal', function() {
+                    const addPositionBtn = document.getElementById('edit_addPositionBtn');
+                    if (addPositionBtn) {
+                        // Remove existing event listeners to prevent duplicates
+                        const newAddPositionBtn = addPositionBtn.cloneNode(true);
+                        addPositionBtn.parentNode.replaceChild(newAddPositionBtn, addPositionBtn);
+                        
+                        newAddPositionBtn.addEventListener('click', function() {
+                            console.log('Add position button clicked');
+                            
+                            // Check if the primary position name is filled
+                            const primaryPositionName = document.getElementById('edit_position_name');
+                            if (primaryPositionName && primaryPositionName.value.trim() === '') {
+                                // Show error message for primary position
+                                const errorElement = document.getElementById('edit_position_name_error');
+                                if (errorElement) {
+                                    errorElement.textContent = 'Please fill in the primary position name first.';
+                                    errorElement.style.display = 'block';
+                                }
+                                primaryPositionName.classList.add('is-invalid');
+                                primaryPositionName.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                return;
+                            }
+                            
+                            // Check if any existing additional position has an empty name
+                            const additionalPositionInputs = document.querySelectorAll('.additional-position-name');
+                            let hasEmptyPosition = false;
+                            let emptyPositionInput = null;
+                            
+                            additionalPositionInputs.forEach(input => {
+                                if (input.value.trim() === '') {
+                                    hasEmptyPosition = true;
+                                    emptyPositionInput = input;
+                                    // Add error styling to empty position field
+                                    input.classList.add('is-invalid');
+                                    
+                                    // Create or update error message
+                                    const fieldName = input.name.replace('[]', '').replace('[', '_').replace(']', '');
+                                    let errorElement = document.getElementById(fieldName + '_error');
+                                    if (!errorElement) {
+                                        errorElement = document.createElement('div');
+                                        errorElement.id = fieldName + '_error';
+                                        errorElement.className = 'invalid-feedback';
+                                        input.parentNode.appendChild(errorElement);
+                                    }
+                                    errorElement.textContent = 'Position name is required.';
+                                    errorElement.style.display = 'block';
+                                } else {
+                                    // Clear error if field is not empty
+                                    input.classList.remove('is-invalid');
+                                    const fieldName = input.name.replace('[]', '').replace('[', '_').replace(']', '');
+                                    const errorElement = document.getElementById(fieldName + '_error');
+                                    if (errorElement) {
+                                        errorElement.style.display = 'none';
+                                    }
+                                }
+                            });
+                            
+                            // If there are empty positions, don't add a new one
+                            if (hasEmptyPosition && emptyPositionInput) {
+                                emptyPositionInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                return;
+                            }
+                            
+                            editPositionCounter++;
+                            const container = document.getElementById('edit_additionalPositionsContainer');
+                            
+                            const positionDiv = document.createElement('div');
+                            positionDiv.className = 'border p-3 rounded mb-3 position-relative';
+                            positionDiv.dataset.positionIndex = editPositionCounter;
+                            
+                            positionDiv.innerHTML = `
+                                <button type="button" class="btn-close position-absolute top-0 end-0 mt-2 me-2 remove-position-btn" aria-label="Remove"></button>
+                                
+                                <!-- First Row -->
+                                <div class="row mb-2">
+                                    <div class="col-md-6">
+                                        <label class="small fw-semibold text-success">Position Name <span class="text-danger">*</span></label>
+                                        <input type="hidden" name="additional_positions[${editPositionCounter}][id]" value="">
+                                        <input type="text" name="additional_positions[${editPositionCounter}][position_name]" class="form-control form-control-sm border-success additional-position-name" placeholder="Enter position name" required>
+                                        <div class="invalid-feedback additional-position-error"></div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="small fw-semibold text-success">Class</label>
+                                        <select name="additional_positions[${editPositionCounter}][class_id]" class="form-control form-control-sm border-success">
+                                            <option value="">Select Class</option>
+                                            @foreach($classes as $class)
+                                                <option value="{{ $class->id_class }}">{{ addslashes($class->class_name) }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                </div>
+                                
+                                <!-- Second Row -->
+                                <div class="row mb-2">
+                                    <div class="col-md-6">
+                                        <label class="small fw-semibold text-success">Office</label>
+                                        <select name="additional_positions[${editPositionCounter}][office_id]" class="form-control form-control-sm border-success edit-additional-office">
+                                            <option value="">Select Office</option>
+                                            @foreach($offices as $office)
+                                                <option value="{{ $office->id }}">{{ addslashes($office->office_name) }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="small fw-semibold text-success">Division</label>
+                                        <select name="additional_positions[${editPositionCounter}][division_id]" class="form-control form-control-sm border-success edit-additional-division">
+                                            <option value="">Select Division</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                
+                                <!-- Third Row -->
+                                <div class="row mb-2">
+                                    <div class="col-md-6">
+                                        <label class="small fw-semibold text-success">Unit</label>
+                                        <select name="additional_positions[${editPositionCounter}][unit_id]" class="form-control form-control-sm border-success edit-additional-unit">
+                                            <option value="">Select Unit</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="small fw-semibold text-success">Subunit</label>
+                                        <select name="additional_positions[${editPositionCounter}][subunit_id]" class="form-control form-control-sm border-success edit-additional-subunit">
+                                            <option value="">Select Subunit</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            `;
+                            
+                            container.appendChild(positionDiv);
+                            
+                            // Add event listeners to the new dropdowns
+                            setTimeout(() => {
+                                const officeSelect = positionDiv.querySelector('.edit-additional-office');
+                                const divisionSelect = positionDiv.querySelector('.edit-additional-division');
+                                const unitSelect = positionDiv.querySelector('.edit-additional-unit');
+                                const subunitSelect = positionDiv.querySelector('.edit-additional-subunit');
+                                
+                                if (officeSelect) {
+                                    officeSelect.addEventListener('change', function() {
+                                        const officeId = this.value;
+                                        divisionSelect.innerHTML = '<option value="">Select Division</option>';
+                                        unitSelect.innerHTML = '<option value="">Select Unit</option>';
+                                        subunitSelect.innerHTML = '<option value="">Select Subunit</option>';
+                                        
+                                        if (officeId && window.cascadingData.divisions[officeId]) {
+                                            window.cascadingData.divisions[officeId].forEach(division => {
+                                                divisionSelect.innerHTML += '<option value="' + division.id_division + '">' + division.division_name + '</option>';
+                                            });
+                                        }
+                                    });
+                                }
+                                
+                                if (divisionSelect) {
+                                    divisionSelect.addEventListener('change', function() {
+                                        const divisionId = this.value;
+                                        unitSelect.innerHTML = '<option value="">Select Unit</option>';
+                                        subunitSelect.innerHTML = '<option value="">Select Subunit</option>';
+                                        
+                                        if (divisionId && window.cascadingData.units[divisionId]) {
+                                            window.cascadingData.units[divisionId].forEach(unit => {
+                                                unitSelect.innerHTML += '<option value="' + unit.id + '">' + unit.unit_name + '</option>';
+                                            });
+                                        }
+                                    });
+                                }
+                                
+                                if (unitSelect) {
+                                    unitSelect.addEventListener('change', function() {
+                                        const unitId = this.value;
+                                        subunitSelect.innerHTML = '<option value="">Select Subunit</option>';
+                                        
+                                        if (unitId && window.cascadingData.subunits[unitId]) {
+                                            window.cascadingData.subunits[unitId].forEach(subunit => {
+                                                subunitSelect.innerHTML += '<option value="' + subunit.id_subunit + '">' + subunit.subunit_name + '</option>';
+                                            });
+                                        }
+                                    });
+                                }
+                                
+                                // Add event listener to the remove button
+                                positionDiv.querySelector('.remove-position-btn').addEventListener('click', function() {
+                                    positionDiv.remove();
+                                });
+                                
+                                // Add input event listener to validate the new position name field in real-time
+                                const newPositionInput = positionDiv.querySelector('.additional-position-name');
+                                if (newPositionInput) {
+                                    newPositionInput.addEventListener('input', function() {
+                                        if (this.value.trim() !== '') {
+                                            this.classList.remove('is-invalid');
+                                            const errorElement = positionDiv.querySelector('.additional-position-error');
+                                            if (errorElement) {
+                                                errorElement.style.display = 'none';
+                                            }
+                                        }
+                                    });
+                                    
+                                    // Add blur event listener to validate when field loses focus
+                                    newPositionInput.addEventListener('blur', function() {
+                                        if (this.value.trim() === '') {
+                                            this.classList.add('is-invalid');
+                                            const errorElement = positionDiv.querySelector('.additional-position-error');
+                                            if (errorElement) {
+                                                errorElement.textContent = 'Position name is required.';
+                                                errorElement.style.display = 'block';
+                                            }
+                                        }
+                                    });
+                                }
+                            }, 100);
+                        });
+                    }
+                }, { once: true }); // Use once: true to prevent multiple event listeners
+            } catch (error) {
+                console.error('Error opening modal:', error);
+                alert('Error opening modal: ' + error.message);
+            }
         }
     </script>
 </x-admin-layout>
