@@ -253,6 +253,9 @@ document.addEventListener('DOMContentLoaded', function() {
     <!-- Edit Employee Modal -->
     @include('admin.employees.modals.edit-employee-modal')
     
+    <!-- View Employee Modal -->
+    @include('admin.employees.modals.view-employee-modal')
+    
     <!-- Pass cascading data to JavaScript -->
     <script>
         // Make cascading data available globally
