@@ -1,4 +1,21 @@
 <x-admin-layout>
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+
+    <script>
+        // Pass employee data to JavaScript
+        window.employeeData = [
+            @foreach(\App\Models\Employee::with('officer')->get() as $emp)
+                {
+                    id: {{ $emp->id }},
+                    first_name: "{{ addslashes($emp->first_name) }}",
+                    last_name: "{{ addslashes($emp->last_name) }}",
+                    position_name: "{{ addslashes($emp->position_name) }}",
+                    emp_status: {{ $emp->emp_status }},
+                    is_president: {{ $emp->officer && $emp->officer->president ? 'true' : 'false' }}
+                },
+            @endforeach
+        ];
+    </script>
 
     <style>
     :root{
@@ -319,22 +336,29 @@ a[href*="leaders"] {
     @if($president && $president->employee)
         <!-- Name + Title + Button -->
         <div class="mt-3 flex flex-col items-center">
-            <p class="font-semibold text-blue-800 text-base leading-tight m-0">
-                {{ $president->employee->first_name }} {{ $president->employee->last_name }}
+            <p class="font-semibold text-blue-800 text-xl leading-tight m-0">
+                {{ $president->employee->prefix ?? '' }} {{ $president->employee->first_name }} {{ $president->employee->middle_name ? substr($president->employee->middle_name, 0, 1).'.' : '' }} {{ $president->employee->last_name }}{{ $president->employee->ext_name ? ' '.$president->employee->ext_name : '' }}
             </p>
             <p class="text-blue-600 text-sm leading-tight m-0">Current President</p>
 
             <!-- Small spacing above button -->
-            <a href="{{ route('admin.leaders.edit',['type'=>'president']) }}"
-               class="mt-3 inline-block px-3 py-1.5 bg-blue-600 text-white text-xs font-bold rounded-lg shadow-sm border-2 border-blue-700 hover:bg-blue-700 hover:border-blue-800 transition-all">
+            <button type="button" onclick="openPresidentModal()" 
+                    class="mt-3 inline-block px-3 py-1.5 bg-blue-600 text-white text-xs font-bold rounded-lg shadow-sm border-2 border-blue-700 hover:bg-blue-700 hover:border-blue-800 transition-all">
                 CHANGE PRESIDENT
-            </a>
+            </button>
         </div>
     @else
-        <a href="{{ route('admin.leaders.edit',['type'=>'president']) }}"
-           class="mt-3 inline-block px-3 py-1.5 bg-blue-600 text-white text-xs font-bold rounded-lg shadow-sm border-2 border-blue-700 hover:bg-blue-700 hover:border-blue-800 transition-all">
-            ASSIGN PRESIDENT
-        </a>
+        <div class="mt-3 flex flex-col items-center">
+            <p class="font-semibold text-blue-800 text-base leading-tight m-0 text-gray-500">
+                No assigned yet
+            </p>
+
+            <!-- Small spacing above button -->
+            <button type="button" onclick="openPresidentModal()" 
+                    class="mt-3 inline-block px-3 py-1.5 bg-blue-600 text-white text-xs font-bold rounded-lg shadow-sm border-2 border-blue-700 hover:bg-blue-700 hover:border-blue-800 transition-all">
+                ASSIGN PRESIDENT
+            </button>
+        </div>
     @endif
 
 </div>
@@ -342,6 +366,7 @@ a[href*="leaders"] {
 <!-- Offices Card (Soft Violet/Purple) -->
 <div class="flex flex-col items-center justify-center bg-purple-50 rounded-xl border-2 border-purple-200 p-6 transition-all duration-300 text-center hover:shadow-md">
 
+    <!-- Icon -->
     <div class="rounded-lg bg-purple-100 p-3 flex-shrink-0 shadow-sm mb-3 border border-purple-100">
         <svg class="h-6 w-6 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -349,16 +374,22 @@ a[href*="leaders"] {
         </svg>
     </div>
 
-    <h3 class="text-lg font-bold text-purple-600 mb-1">
+    <!-- Header -->
+    <h3 class="text-lg font-bold text-purple-600 leading-tight m-0">
         Offices
     </h3>
-
-    <p class="text-purple-500 text-xs mb-3">
+    <p class="text-purple-500 text-sm leading-tight m-0">
         Manage office leadership
     </p>
 
+    <!-- Total Offices -->
+    <p class="text-purple-600 text-xs font-semibold mt-3 mb-2">
+        Total Offices: {{ \App\Models\Office::count() }}
+    </p>
+
+    <!-- Button (height now same as CHANGE PRESIDENT) -->
     <a href="{{ route('admin.leaders.offices') }}"
-       class="inline-block px-3 py-1.5 bg-purple-600 text-white text-xs font-bold rounded-lg shadow-sm border-2 border-purple-700 hover:bg-purple-700 hover:border-purple-800 transition-all">
+       class="inline-block px-3 py-1.5 bg-purple-600 text-white text-xs font-bold rounded-lg shadow-sm border-2 border-purple-700 hover:bg-purple-700 hover:border-purple-800 transition-all mt-1">
         MANAGE OFFICES
     </a>
 
@@ -370,4 +401,201 @@ a[href*="leaders"] {
 
     </div>
 
+    <!-- Modal for President Assignment -->
+    <div class="modal fade" id="presidentModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content rounded-3 shadow">
+                
+                <!-- Modal header -->
+                <div class="modal-header d-flex align-items-center" style="background-color:#1e6031; color:white;">
+                    <h5 class="modal-title fw-bold mb-0">University President Assignment</h5>
+                </div>
+                
+                <!-- Modal body -->
+                <div class="modal-body px-4 py-3">
+                    <div class="alert alert-warning d-flex align-items-start mb-3" role="alert">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-exclamation-triangle flex-shrink-0 me-2" viewBox="0 0 16 16" role="img" aria-label="Warning:">
+                            <path d="M7.938 2.016A.13.13 0 0 1 8.002 2a.13.13 0 0 1 .063.016.146.146 0 0 1 .054.057l6.857 11.667c.036.06.035.124.002.183a.163.163 0 0 1-.054.06.116.116 0 0 1-.066.017H1.146a.115.115 0 0 1-.066-.017.163.163 0 0 1-.054-.06.176.176 0 0 1 .002-.183L7.884 2.073a.147.147 0 0 1 .054-.057zm1.044-.45a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566z"/>
+                            <path d="M7.002 12a1 1 0 1 1 2 0 1 1 0 0 1-2 0zM7.1 5.995a.905.905 0 1 1 1.8 0l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995z"/>
+                        </svg>
+                        <div>
+                            <p class="mb-1 small" style="font-size: 0.65rem;">
+                                Select the University President who will oversee all operations and strategic direction.
+                            </p>
+                            <p class="mb-0 small" style="font-size: 0.65rem;">
+                                <strong>Note:</strong> Only one President can be assigned at a time.
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="modal_employee_id" class="form-label small fw-semibold text-success mb-2" style="font-size: 0.75rem;">
+                            Select Employee
+                        </label>
+                        <select name="employee_id" id="modal_employee_id" 
+                                class="form-select" style="font-size: 0.75rem;">
+                            <option value="">Loading...</option>
+                        </select>
+                        <div class="form-text mt-2" style="font-size: 0.65rem;">
+                            Select an employee to assign this leadership role. Choose "None" to remove the current assignment.
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Modal footer -->
+                <div class="modal-footer py-2 justify-content-end">
+                    <button type="button" 
+                            class="btn btn-sm btn-outline-secondary me-2 py-1"
+                            style="font-size: 0.75rem; height: 30px;" 
+                            data-bs-dismiss="modal">
+                        Cancel
+                    </button>
+                    
+                    <button type="button" 
+                            onclick="updatePresidentRole()"
+                            class="btn btn-sm btn-success py-1"
+                            style="font-size: 0.75rem; height: 30px; background-color: #1e6031; border-color: #1e6031;">
+                        Update Leadership Role
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Include Bootstrap JS if not already included -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Include SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <script>
+        function openPresidentModal() {
+            // Load employees via AJAX
+            loadEmployees();
+            
+            // Show the modal using Bootstrap's modal API
+            const modalElement = document.getElementById('presidentModal');
+            const modal = new bootstrap.Modal(modalElement);
+            modal.show();
+        }
+
+        function loadEmployees() {
+            // Show loading state
+            const selectElement = document.getElementById('modal_employee_id');
+            selectElement.innerHTML = '<option value="">Loading...</option>';
+            selectElement.disabled = true;
+
+            // Wait for the employee data to be available
+            setTimeout(() => {
+                // Clear the select element
+                selectElement.innerHTML = '';
+                
+                // Add the "None" option
+                const noneOption = document.createElement('option');
+                noneOption.value = '';
+                noneOption.textContent = 'None - Remove current assignment';
+                selectElement.appendChild(noneOption);
+                
+                // Add employees to the select element
+                window.employeeData.forEach(emp => {
+                    const option = document.createElement('option');
+                    option.value = emp.id;
+                    option.textContent = `${emp.first_name} ${emp.last_name} - ${emp.position_name}${emp.emp_status === 0 ? ' (Inactive)' : ''}`;
+                    
+                    // Pre-select the current president if applicable
+                    @if(isset($president) && $president->employee)
+                        if (emp.id == {{ $president->employee->id }}) {
+                            option.selected = true;
+                        }
+                    @endif
+                    
+                    selectElement.appendChild(option);
+                });
+                
+                selectElement.disabled = false;
+            }, 100); // Small delay to ensure data is loaded
+        }
+
+        function updatePresidentRole() {
+            const selectedEmployeeId = document.getElementById('modal_employee_id').value;
+            
+            // Show loading alert
+            Swal.fire({
+                title: 'Updating...',
+                text: 'Please wait while we update the leadership role.',
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                showConfirmButton: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+
+            // Create form data
+            const formData = new FormData();
+            formData.append('_token', document.querySelector('meta[name="csrf-token"]').getAttribute('content'));
+            formData.append('type', 'president');
+            formData.append('employee_id', selectedEmployeeId);
+            
+            // Submit form via AJAX to show success message
+            fetch('{{ route("admin.leaders.update") }}', {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: formData
+            })
+            .then(response => {
+                // Handle the response based on content type
+                const contentType = response.headers.get('content-type');
+                if (contentType && contentType.includes('application/json')) {
+                    // If it's JSON, parse it normally
+                    return response.json();
+                } else {
+                    // If it's HTML (redirect response), check status to determine success/error
+                    if (response.ok || response.status === 302) { // 302 is redirect
+                        // Return success since it's likely a successful redirect
+                        return { success: true, message: 'Leadership role updated successfully!' };
+                    } else {
+                        return { success: false, message: 'An error occurred while updating the leadership role.' };
+                    }
+                }
+            })
+            .then(data => {
+                if(data.success) {
+                    // Close the loading alert and show success message
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Success!',
+                        text: data.message || 'Leadership role updated successfully!',
+                        showConfirmButton: false,
+                        timer: 2000
+                    }).then(() => {
+                        // Close the modal and refresh the page to show updated information
+                        const modalElement = document.getElementById('presidentModal');
+                        const modal = bootstrap.Modal.getInstance(modalElement);
+                        if(modal) {
+                            modal.hide();
+                        }
+                        location.reload();
+                    });
+                } else {
+                    // Show error message
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error!',
+                        text: data.message || 'An error occurred while updating the leadership role.'
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error!',
+                    text: 'An error occurred while updating the leadership role.'
+                });
+            });
+        }
+    </script>
 </x-admin-layout>
