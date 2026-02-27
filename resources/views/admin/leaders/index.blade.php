@@ -11,7 +11,7 @@
 
     .stats-card{
         background:var(--clsu-light);
-        border:2px solid var(--clsu-border);
+        border:2px solid #a3d9b1;
         border-radius:12px;
         padding:16px;
         display:flex;
@@ -98,6 +98,11 @@
     background-color: #ffc107 !important;
     color: #000 !important;
     border-color: #ffc107 !important;
+}
+
+/* Remove underlines from leadership cards */
+a[href*="leaders"] {
+    text-decoration: none !important;
 }
 
 /* Pagination styling - Simplified version */
@@ -288,101 +293,76 @@
 
             <!-- Navigation Cards -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+<!-- University President Card (Light Blue) -->
+<div class="flex flex-col items-center justify-center bg-blue-50 rounded-xl border-2 border-blue-200 p-6 transition-all duration-300 text-center hover:shadow-md">
 
+    <!-- Icon -->
+    <div class="rounded-lg bg-blue-100 p-3 flex-shrink-0 shadow-sm mb-3 border border-blue-100">
+        <svg class="h-6 w-6 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+        </svg>
+    </div>
 
-                <!-- President Card -->
-                <div class="bg-white rounded-xl shadow-md p-5 hover:shadow-xl transition border">
+    <!-- Header -->
+    <h3 class="text-lg font-bold text-blue-600 leading-tight m-0">
+        University President
+    </h3>
+    <p class="text-blue-500 text-xs leading-tight m-0">
+        Top-level executive leadership
+    </p>
 
-                    <div class="flex justify-center mb-4">
+    <?php
+        $president = \App\Models\Officer::with('employee')->where('president', true)->first();
+    ?>
 
-                        <div class="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
+    @if($president && $president->employee)
+        <!-- Name + Title + Button -->
+        <div class="mt-3 flex flex-col items-center">
+            <p class="font-semibold text-blue-800 text-base leading-tight m-0">
+                {{ $president->employee->first_name }} {{ $president->employee->last_name }}
+            </p>
+            <p class="text-blue-600 text-sm leading-tight m-0">Current President</p>
 
-                            <svg class="h-6 w-6 text-purple-600"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor">
+            <!-- Small spacing above button -->
+            <a href="{{ route('admin.leaders.edit',['type'=>'president']) }}"
+               class="mt-3 inline-block px-3 py-1.5 bg-blue-600 text-white text-xs font-bold rounded-lg shadow-sm border-2 border-blue-700 hover:bg-blue-700 hover:border-blue-800 transition-all">
+                CHANGE PRESIDENT
+            </a>
+        </div>
+    @else
+        <a href="{{ route('admin.leaders.edit',['type'=>'president']) }}"
+           class="mt-3 inline-block px-3 py-1.5 bg-blue-600 text-white text-xs font-bold rounded-lg shadow-sm border-2 border-blue-700 hover:bg-blue-700 hover:border-blue-800 transition-all">
+            ASSIGN PRESIDENT
+        </a>
+    @endif
 
-                                <path stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    stroke-width="2"
-                                    d="M9 12l2 2 4-4"/>
-                            </svg>
+</div>
 
-                        </div>
+<!-- Offices Card (Soft Violet/Purple) -->
+<div class="flex flex-col items-center justify-center bg-purple-50 rounded-xl border-2 border-purple-200 p-6 transition-all duration-300 text-center hover:shadow-md">
 
-                    </div>
+    <div class="rounded-lg bg-purple-100 p-3 flex-shrink-0 shadow-sm mb-3 border border-purple-100">
+        <svg class="h-6 w-6 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+        </svg>
+    </div>
 
+    <h3 class="text-lg font-bold text-purple-600 mb-1">
+        Offices
+    </h3>
 
-                    <h4 class="text-lg font-bold text-center">
-                        University President
-                    </h4>
+    <p class="text-purple-500 text-xs mb-3">
+        Manage office leadership
+    </p>
 
+    <a href="{{ route('admin.leaders.offices') }}"
+       class="inline-block px-3 py-1.5 bg-purple-600 text-white text-xs font-bold rounded-lg shadow-sm border-2 border-purple-700 hover:bg-purple-700 hover:border-purple-800 transition-all">
+        MANAGE OFFICES
+    </a>
 
-                    <p class="text-center text-sm text-gray-600 mb-4">
-                        Top-level executive leadership
-                    </p>
-
-
-                    <div class="mt-4">
-
-                        <a href="{{ route('admin.leaders.edit',['type'=>'president']) }}"
-                            class="w-full bg-green-600 hover:bg-green-700 text-white text-sm font-medium py-2 px-4 rounded-lg flex justify-center">
-
-                            Assign / Change President
-
-                        </a>
-
-                    </div>
-
-                </div>
-
-
-                <!-- Offices Card -->
-                <div class="bg-white rounded-xl shadow-md p-5 hover:shadow-xl transition border">
-
-                    <div class="flex justify-center mb-4">
-
-                        <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-
-                            <svg class="h-6 w-6 text-blue-600"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor">
-
-                                <path stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    stroke-width="2"
-                                    d="M19 21V5"/>
-                            </svg>
-
-                        </div>
-
-                    </div>
-
-
-                    <h4 class="text-lg font-bold text-center">
-                        Offices
-                    </h4>
-
-
-                    <p class="text-center text-sm text-gray-600 mb-4">
-                        Manage office leadership
-                    </p>
-
-
-                    <div class="mt-4">
-
-                        <a href="{{ route('admin.leaders.offices') }}"
-                            class="w-full bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-2 px-4 rounded-lg flex justify-center">
-
-                            Manage Offices
-
-                        </a>
-
-                    </div>
-
-                </div>
-
+</div>
 
             </div>
 
