@@ -101,7 +101,7 @@
                 </div>
             </div>
             
-            @if(Auth::user()->employee->unit && str_contains(strtolower(Auth::user()->employee->unit->unit_name), 'transportation services'))
+            @if(Auth::check() && Auth::user()->employee && Auth::user()->employee->unit && str_contains(strtolower(Auth::user()->employee->unit->unit_name ?? ''), 'transportation services'))
             <!-- Pending Itinerary Approvals Section -->
             <div class="bg-white overflow-hidden shadow-sm rounded-lg mb-6">
                 <div class="p-6">

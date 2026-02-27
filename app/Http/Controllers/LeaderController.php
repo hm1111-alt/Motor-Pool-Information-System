@@ -100,9 +100,13 @@ class LeaderController extends Controller
         // Count employees related to this division through positions
         $division->employees_count = $division->positions->pluck('employee_id')->unique()->count();
         
-        // Get Division Head
-        $divisionHead = $division->employees()->whereHas('officer', function ($officerQuery) {
-            $officerQuery->where('division_head', true);
+        // Get Division Head - check both new and old systems
+        $divisionHead = $division->employees()->where(function($query) {
+            $query->whereHas('positions', function($positionQuery) {
+                $positionQuery->where('is_division_head', true);
+            })->orWhereHas('officer', function($officerQuery) {
+                $officerQuery->where('division_head', true);
+            });
         })->first();
         
         return view('admin.leaders.division-show', compact('division', 'divisionHead'));
@@ -127,9 +131,13 @@ class LeaderController extends Controller
         // Count employees related to this unit through positions
         $unit->employees_count = $unit->positions->pluck('employee_id')->unique()->count();
         
-        // Get Unit Head
-        $unitHead = $unit->employees()->whereHas('officer', function ($officerQuery) {
-            $officerQuery->where('unit_head', true);
+        // Get Unit Head - check both new and old systems
+        $unitHead = $unit->employees()->where(function($query) {
+            $query->whereHas('positions', function($positionQuery) {
+                $positionQuery->where('is_unit_head', true);
+            })->orWhereHas('officer', function($officerQuery) {
+                $officerQuery->where('unit_head', true);
+            });
         })->first();
         
         return view('admin.leaders.unit-show', compact('unit', 'unitHead'));

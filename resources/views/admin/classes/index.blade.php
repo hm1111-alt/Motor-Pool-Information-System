@@ -95,9 +95,8 @@
         </div>
     </div>
 
-<!-- Bootstrap -->
+<!-- Bootstrap CSS -->
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <style>
 /* Action buttons styling to match vehicles page */
 .action-buttons .btn {
@@ -200,20 +199,26 @@
     margin: 0 2px;
 }
 
-/* CUSTOM MODAL BACKDROP - Gray like office section */
+/* CUSTOM MODAL BACKDROP - Darker for better visibility */
 .modal-backdrop {
-    background-color: rgba(0, 0, 0, 0.5) !important;
+    background-color: rgba(0, 0, 0, 0.7) !important;
 }
 
 .modal-backdrop.show {
-    opacity: 0.5 !important;
+    opacity: 0.7 !important;
+}
+
+/* Enhanced modal styling for better visual separation */
+.modal-content {
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3) !important;
+    border: none !important;
 }
 </style>
 
 <!-- ADD CLASS MODAL -->
 <div class="modal fade" id="addClassModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
+        <div class="modal-content" style="border: none; box-shadow: 0 10px 25px rgba(0,0,0,0.3);">
             <!-- HEADER -->
             <div class="modal-header" style="background-color:#1e6031; color:white;">
                 <h5 class="modal-title fw-bold">Add New Class</h5>
@@ -243,7 +248,7 @@
 <!-- EDIT CLASS MODAL -->
 <div class="modal fade" id="editClassModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
+        <div class="modal-content" style="border: none; box-shadow: 0 10px 25px rgba(0,0,0,0.3);">
             <!-- HEADER -->
             <div class="modal-header" style="background-color:#1e6031; color:white;">
                 <h5 class="modal-title fw-bold">Edit Class</h5>
@@ -271,543 +276,169 @@
     </div>
 </div>
 
-<!-- Bootstrap -->
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<!-- Bootstrap JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
 <!-- SweetAlert2 for notifications -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-    // Display success/error messages from session
-    @if(session('success'))
-    Swal.fire({
-        title: 'Success!',
-        text: '{{ session('success') }}',
-        icon: 'success',
-        confirmButtonColor: '#1e6031'
-    });
-    @endif
-    
-    @if(session('error'))
-    Swal.fire({
-        title: 'Error!',
-        text: '{{ session('error') }}',
-        icon: 'error',
-        confirmButtonColor: '#1e6031'
-    });
-    @endif
-    
-    // Handle modal form clearing
-    document.addEventListener('DOMContentLoaded', function() {
-        const modal = document.getElementById('addClassModal');
-        const editModal = document.getElementById('editClassModal');
-        const form = modal.querySelector('form');
-        const editForm = editModal.querySelector('form');
-        const cancelBtn = document.getElementById('cancelButton');
-        
-        // GLOBAL CLEANUP FUNCTION - Run periodically to prevent artifacts
-        const globalCleanup = () => {
-            // Remove any orphaned backdrop elements
-            document.querySelectorAll('.modal-backdrop').forEach(backdrop => {
-                if (!document.querySelector('.modal.show')) {
-                    backdrop.remove();
-                }
-            });
-            
-            // Remove modal-open class if no modals are showing
-            if (!document.querySelector('.modal.show')) {
-                document.body.classList.remove('modal-open');
-                document.body.style.overflow = '';
-                document.body.style.paddingRight = '';
+document.addEventListener('DOMContentLoaded', function() {
+    const addModal = document.getElementById('addClassModal');
+    const editModal = document.getElementById('editClassModal');
+    const addForm = addModal.querySelector('form');
+    const editForm = editModal.querySelector('form');
+    const cancelButton = document.getElementById('cancelButton');
+    const editCancelButton = document.getElementById('editCancelButton');
+
+    // Storage for modal state preservation
+    let addModalStoredData = {};
+    let editModalOriginalData = {};
+    let editModalCurrentData = {};
+    let currentEditingId = null;
+
+    // Utility: show validation errors inside the form
+    function displayErrors(form, errors) {
+        form.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+        form.querySelectorAll('.invalid-feedback').forEach(el => el.remove());
+
+        for (const field in errors) {
+            const input = form.querySelector(`[name="${field}"]`);
+            if (input) {
+                input.classList.add('is-invalid');
+                errors[field].forEach(msg => {
+                    const errorDiv = document.createElement('div');
+                    errorDiv.className = 'invalid-feedback d-block';
+                    errorDiv.textContent = msg;
+                    input.parentNode.appendChild(errorDiv);
+                });
             }
-        };
-        
-        // Run global cleanup every 2 seconds
-        setInterval(globalCleanup, 2000);
-        
-        // Also run on page visibility change
-        document.addEventListener('visibilitychange', globalCleanup);
-        
-        // Store original form data when modal opens
-        let originalFormData = new FormData();
-        let shouldClearForm = false;
-        
-        // When modal is shown, save current form state
-        modal.addEventListener('show.bs.modal', function() {
-            // NUCLEAR CLEANUP - Remove ALL possible Bootstrap artifacts
-            // This runs BEFORE showing the modal to prevent stacking issues
-            const cleanUpEverything = () => {
-                // Remove all backdrop elements (including duplicates)
-                document.querySelectorAll('.modal-backdrop').forEach(backdrop => {
-                    backdrop.remove();
-                });
-                
-                // Remove all modal show classes
-                document.querySelectorAll('.modal.show, .modal.in, .modal.fade.show').forEach(modalEl => {
-                    modalEl.classList.remove('show', 'in');
-                    modalEl.style.display = 'none';
-                });
-                
-                // Clean up body classes and styles
-                document.body.classList.remove('modal-open');
-                document.body.style.overflow = '';
-                document.body.style.paddingRight = '';
-                
-                // Force garbage collection of modal-related elements
-                const modalElements = document.querySelectorAll('[class*="modal"]');
-                modalElements.forEach(el => {
-                    if (el.classList.length === 0) {
-                        el.remove();
-                    }
-                });
-            };
-            
-            // Run cleanup immediately
-            cleanUpEverything();
-            
-            // Run cleanup again after a tiny delay to catch any delayed artifacts
-            setTimeout(cleanUpEverything, 10);
-            
-            // Save current form data
-            const formData = new FormData(form);
-            originalFormData = new FormData();
-            for (let [key, value] of formData.entries()) {
-                originalFormData.append(key, value);
-            }
-            shouldClearForm = false; // Reset the flag
-        });
-        
-        // Handle Cancel button click
-        cancelBtn.addEventListener('click', function() {
-            // Clear the form completely
-            form.reset();
-            // Also clear any validation errors
-            form.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
-            form.querySelectorAll('.invalid-feedback').forEach(el => el.remove());
-            
-            // COMPLETE MODAL CLEANUP - EVERY TIME
-            try {
-                // Method 1: Try Bootstrap's hide method
-                const modalInstance = bootstrap.Modal.getInstance(modal);
-                if (modalInstance) {
-                    modalInstance.hide();
-                }
-                
-                // Method 2: Aggressive cleanup (always run)
-                // Remove ALL backdrop elements immediately
-                document.querySelectorAll('.modal-backdrop').forEach(backdrop => {
-                    backdrop.remove();
-                });
-                
-                // Remove all modal classes and styles
-                modal.classList.remove('show', 'in');
-                modal.style.display = 'none';
-                
-                // Clean up body
-                document.body.classList.remove('modal-open');
-                document.body.style.overflow = '';
-                document.body.style.paddingRight = '';
-                
-                // Remove any duplicate modal elements
-                document.querySelectorAll('.modal').forEach(modalEl => {
-                    if (modalEl !== modal) {
-                        modalEl.remove();
-                    }
-                });
-                
-                // Force reflow to ensure clean state
-                document.body.offsetHeight;
-                
-            } catch (error) {
-                console.error('Error closing modal:', error);
-                // Emergency cleanup
-                modal.classList.remove('show');
-                modal.style.display = 'none';
-                document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
-                document.body.classList.remove('modal-open');
-                document.body.style.overflow = '';
-                document.body.style.paddingRight = '';
-            }
-        });
-        
-        // Handle backdrop click (preserve data)
-        modal.addEventListener('hide.bs.modal', function(event) {
-            // Only preserve data if it's a backdrop click (not cancel button)
-            // The cancel button handles its own closing
-        });
-        
-        // Handle edit modal opening
-        editModal.addEventListener('show.bs.modal', function(event) {
-            const button = event.relatedTarget; // Button that triggered the modal
-            const id = button.getAttribute('data-id');
-            const name = button.getAttribute('data-name');
-            
-            console.log('Modal opening - resetToOriginal flag:', editModal.resetToOriginal);
-            console.log('Modal opening - currentData exists:', !!editModal.currentData);
-            
-            // NUCLEAR CLEANUP - Remove ALL possible Bootstrap artifacts
-            // This runs BEFORE showing the modal to prevent stacking issues
-            const cleanUpEverything = () => {
-                // Remove all backdrop elements (including duplicates)
-                document.querySelectorAll('.modal-backdrop').forEach(backdrop => {
-                    backdrop.remove();
-                });
-                
-                // Remove all modal show classes
-                document.querySelectorAll('.modal.show, .modal.in, .modal.fade.show').forEach(modalEl => {
-                    modalEl.classList.remove('show', 'in');
-                    modalEl.style.display = 'none';
-                });
-                
-                // Clean up body classes and styles
-                document.body.classList.remove('modal-open');
-                document.body.style.overflow = '';
-                document.body.style.paddingRight = '';
-                
-                // Force garbage collection of modal-related elements
-                const modalElements = document.querySelectorAll('[class*="modal"]');
-                modalElements.forEach(el => {
-                    if (el.classList.length === 0) {
-                        el.remove();
-                    }
-                });
-            };
-            
-            // Run cleanup immediately
-            cleanUpEverything();
-            
-            // Run cleanup again after a tiny delay to catch any delayed artifacts
-            setTimeout(cleanUpEverything, 10);
-            
-            // Store original data (database values)
-            editModal.originalData = {
-                name: name
-            };
-            
-            // Check if we have saved current state from previous editing
-            if (editModal.currentData && !editModal.resetToOriginal) {
-                console.log('Using SAVED USER DATA (from backdrop click)');
-                document.getElementById('edit_class_name').value = editModal.currentData.name;
-            } else {
-                console.log('Using ORIGINAL DATABASE VALUES (first open or after cancel)');
-                // Use original data (first open or after cancel)
-                document.getElementById('edit_class_name').value = name;
-                // Reset flags
-                editModal.resetToOriginal = false;
-            }
-            
-            // Update form action
-            editForm.action = `/admin/classes/${id}`;
-        });
-        
-        // Detect backdrop click
-        editModal.addEventListener('click', function(event) {
-            // If click is directly on the modal backdrop (not the content)
-            if (event.target === editModal) {
-                // Save current form state
-                editModal.currentData = {
-                    name: document.getElementById('edit_class_name').value
-                };
-                editModal.backdropClicked = true;
-            }
-        });
-        
-        // Handle cancel button in edit modal
-        const editCancelBtn = document.getElementById('editCancelButton');
-        if (editCancelBtn) {
-            editCancelBtn.addEventListener('click', function() {
-                console.log('Cancel button clicked');
-                console.log('backdropClicked:', editModal.backdropClicked);
-                console.log('originalData exists:', !!editModal.originalData);
-                
-                // ALWAYS reset to original database data when cancel is clicked (explicitly clear any user changes)
-                if (editModal.originalData) {
-                    console.log('CANCEL CLICKED - Resetting form to ORIGINAL DATABASE VALUES');
-                    document.getElementById('edit_class_name').value = editModal.originalData.name;
-                    
-                    // Clear any current user data and set flags to force original data on next open
-                    editModal.currentData = null;        // Remove saved user data
-                    editModal.resetToOriginal = true;    // Force use of original data next time
-                    editModal.backdropClicked = false;   // Reset backdrop flag
-                }
-                
-                // COMPLETE MODAL CLEANUP - EVERY TIME
-                try {
-                    // Method 1: Try Bootstrap's hide method
-                    const editModalInstance = bootstrap.Modal.getInstance(editModal);
-                    if (editModalInstance) {
-                        editModalInstance.hide();
-                    }
-                    
-                    // Method 2: Aggressive cleanup (always run)
-                    // Remove ALL backdrop elements immediately
-                    document.querySelectorAll('.modal-backdrop').forEach(backdrop => {
-                        backdrop.remove();
-                    });
-                    
-                    // Remove all modal classes and styles
-                    editModal.classList.remove('show', 'in');
-                    editModal.style.display = 'none';
-                    
-                    // Clean up body
-                    document.body.classList.remove('modal-open');
-                    document.body.style.overflow = '';
-                    document.body.style.paddingRight = '';
-                    
-                    // Remove any duplicate modal elements
-                    document.querySelectorAll('.modal').forEach(modalEl => {
-                        if (modalEl !== editModal) {
-                            modalEl.remove();
-                        }
-                    });
-                    
-                    // Force reflow to ensure clean state
-                    document.body.offsetHeight;
-                    
-                } catch (error) {
-                    console.error('Error closing modal:', error);
-                    // Emergency cleanup
-                    editModal.classList.remove('show');
-                    editModal.style.display = 'none';
-                    document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
-                    document.body.classList.remove('modal-open');
-                    document.body.style.overflow = '';
-                    document.body.style.paddingRight = '';
-                }
-            });
         }
-        
-        // Handle form submission
+    }
+
+    // --- ADD MODAL LOGIC ---
+    addModal.addEventListener('show.bs.modal', function() {
+        if (addModalStoredData.class_name) {
+            document.querySelector('[name="class_name"]').value = addModalStoredData.class_name;
+        } else {
+            addForm.reset();
+            document.querySelector('[name="class_name"]').value = '';
+        }
+    });
+
+    addModal.addEventListener('mousedown', function(event) {
+        if (event.target === addModal) {
+            addModalStoredData = {
+                class_name: document.querySelector('[name="class_name"]').value
+            };
+        }
+    });
+
+    cancelButton.addEventListener('click', function() {
+        addModalStoredData = {};
+        addForm.reset();
+        document.querySelector('[name="class_name"]').value = '';
+        addForm.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+        addForm.querySelectorAll('.invalid-feedback').forEach(el => el.remove());
+        bootstrap.Modal.getInstance(addModal)?.hide();
+    });
+
+    // --- EDIT MODAL LOGIC ---
+    editModal.addEventListener('show.bs.modal', function(event) {
+        const button = event.relatedTarget;
+        const id = button.getAttribute('data-id');
+        const name = button.getAttribute('data-name');
+
+        editModalOriginalData = { class_name: name };
+
+        if (editModalCurrentData.class_name && currentEditingId === id) {
+            document.getElementById('edit_class_name').value = editModalCurrentData.class_name;
+        } else {
+            document.getElementById('edit_class_name').value = name;
+            editModalCurrentData = {...editModalOriginalData};
+        }
+
+        currentEditingId = id;
+        editForm.action = `/admin/classes/${id}`;
+    });
+
+    editModal.addEventListener('mousedown', function(event) {
+        if (event.target === editModal) {
+            editModalCurrentData = {
+                class_name: document.getElementById('edit_class_name').value
+            };
+        }
+    });
+
+    editCancelButton.addEventListener('click', function() {
+        document.getElementById('edit_class_name').value = editModalOriginalData.class_name;
+        editModalCurrentData = {...editModalOriginalData};
+        editForm.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+        editForm.querySelectorAll('.invalid-feedback').forEach(el => el.remove());
+        bootstrap.Modal.getInstance(editModal)?.hide();
+    });
+
+    // AJAX form submission with 2-second loading after button click
+    function handleFormSubmit(modalEl, form, loadingTitle) {
         form.addEventListener('submit', function(e) {
             e.preventDefault();
-            
-            console.log('Form submission started');
-            
-            // Perform form validation
-            const formData = new FormData(form);
-            const requiredFields = ['class_name'];
-            let isValid = true;
-            
-            // Clear previous validation errors
+
             form.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
             form.querySelectorAll('.invalid-feedback').forEach(el => el.remove());
-            
-            // Check required fields
-            requiredFields.forEach(fieldName => {
-                const field = form.querySelector(`[name="${fieldName}"]`);
-                if (!field.value.trim()) {
-                    field.classList.add('is-invalid');
-                    const errorDiv = document.createElement('div');
-                    errorDiv.className = 'invalid-feedback d-block';
-                    errorDiv.textContent = 'This field is required.';
-                    field.parentNode.appendChild(errorDiv);
-                    isValid = false;
-                }
-            });
-            
-            if (isValid) {
-                console.log('Form is valid, submitting...');
-                
-                // Submit form via AJAX
-                fetch(form.action, {
-                    method: 'POST',
-                    body: formData,
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                    }
-                })
-                .then(response => {
-                    console.log('Response status:', response.status);
-                    if (!response.ok) {
-                        throw new Error(`HTTP error! status: ${response.status}`);
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    console.log('Success response:', data);
-                    if (data.success) {
-                        // First show loading alert for 2 seconds with proper loading spinner
-                        Swal.fire({
-                            title: 'Creating Class...',
-                            text: 'Please wait while we process your request',
-                            allowOutsideClick: false,
-                            allowEscapeKey: false,
-                            showConfirmButton: false,
-                            timer: 2000,
-                            didOpen: () => {
-                                Swal.showLoading();
-                            }
-                        });
-                        
-                        // After 2 seconds, show success message that auto-dismisses
-                        setTimeout(() => {
-                            Swal.fire({
-                                title: 'Success!',
-                                text: data.message,
-                                icon: 'success',
-                                showConfirmButton: false,
-                                timer: 2000,
-               
-                                didOpen: () => {
-                                    // Close modal immediately when success alert opens
-                                    const modalInstance = bootstrap.Modal.getInstance(modal);
-                                    if (modalInstance) {
-                                        modalInstance.hide();
-                                    } else {
-                                        // Emergency cleanup
-                                        modal.classList.remove('show');
-                                        modal.style.display = 'none';
-                                        document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
-                                        document.body.classList.remove('modal-open');
-                                        document.body.style.overflow = '';
-                                        document.body.style.paddingRight = '';
-                                    }
-                                }
-                            }).then(() => {
-                                // Refresh page after success message disappears
-                                location.reload();
-                            });
-                        }, 2000);
-                    } else {
-                        // Show error message
-                        Swal.fire({
-                            title: 'Error!',
-                            text: data.message || 'An error occurred.',
-                            icon: 'error',
-                            confirmButtonColor: '#1e6031'
-                        });
-                    }
-                })
-                .catch(error => {
-                    console.error('Error details:', error);
+
+            const formData = new FormData(form);
+            fetch(form.action, {
+                method: form.method || 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: formData
+            })
+            .then(async res => {
+                const data = await res.json();
+                if (!res.ok) throw data;
+                return data;
+            })
+            .then(data => {
+                // Close modal first
+                bootstrap.Modal.getInstance(modalEl)?.hide();
+
+                // Show 2-second loading with original text
+                Swal.fire({
+                    title: loadingTitle,
+                    text: 'Please wait while we process your request',
+                    allowOutsideClick: false,
+                    showConfirmButton: false,
+                    timer: 2000,
+                    didOpen: () => Swal.showLoading()
+                }).then(() => {
+                    // Show success message after 2 seconds
+                    Swal.fire({
+                        title: 'Success!',
+                        text: data.message,
+                        icon: 'success',
+                        timer: 2000,
+                        showConfirmButton: false
+                    }).then(() => location.reload());
+                });
+            })
+            .catch(err => {
+                if (err.errors) {
+                    displayErrors(form, err.errors);
+                } else {
                     Swal.fire({
                         title: 'Error!',
-                        text: 'An error occurred while submitting the form: ' + error.message,
+                        text: err.message || 'An unexpected error occurred.',
                         icon: 'error',
                         confirmButtonColor: '#1e6031'
                     });
-                });
-            } else {
-                console.log('Form validation failed');
-            }
-        });
-        
-        // Handle edit form submission
-        editForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            console.log('Edit form submission started');
-            
-            // Perform form validation
-            const formData = new FormData(editForm);
-            const requiredFields = ['class_name'];
-            let isValid = true;
-            
-            // Clear previous validation errors
-            editForm.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
-            editForm.querySelectorAll('.invalid-feedback').forEach(el => el.remove());
-            
-            // Check required fields
-            requiredFields.forEach(fieldName => {
-                const field = editForm.querySelector(`[name="${fieldName}"]`);
-                if (!field.value.trim()) {
-                    field.classList.add('is-invalid');
-                    const errorDiv = document.createElement('div');
-                    errorDiv.className = 'invalid-feedback d-block';
-                    errorDiv.textContent = 'This field is required.';
-                    field.parentNode.appendChild(errorDiv);
-                    isValid = false;
                 }
             });
-            
-            if (isValid) {
-                console.log('Edit form is valid, submitting...');
-                
-                // Submit form via AJAX
-                fetch(editForm.action, {
-                    method: 'POST',
-                    body: formData,
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                    }
-                })
-                .then(response => {
-                    console.log('Response status:', response.status);
-                    if (!response.ok) {
-                        throw new Error(`HTTP error! status: ${response.status}`);
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    console.log('Success response:', data);
-                    if (data.success) {
-                        // First show loading alert for 2 seconds with proper loading spinner
-                        Swal.fire({
-                            title: 'Updating Class...',
-                            text: 'Please wait while we process your request',
-                            allowOutsideClick: false,
-                            allowEscapeKey: false,
-                            showConfirmButton: false,
-                            timer: 2000,
-                            didOpen: () => {
-                                Swal.showLoading();
-                            }
-                        });
-                        
-                        // After 2 seconds, show success message that auto-dismisses
-                        setTimeout(() => {
-                            Swal.fire({
-                                title: 'Success!',
-                                text: data.message,
-                                icon: 'success',
-                                showConfirmButton: false,
-                                timer: 2000,
-                                didOpen: () => {
-                                    // Close modal immediately when success alert opens
-                                    const editModalInstance = bootstrap.Modal.getInstance(editModal);
-                                    if (editModalInstance) {
-                                        editModalInstance.hide();
-                                    } else {
-                                        // Fallback: manually remove modal and backdrop
-                                        editModal.classList.remove('show');
-                                        editModal.style.display = 'none';
-                                        document.querySelector('.modal-backdrop')?.remove();
-                                        document.body.classList.remove('modal-open');
-                                        document.body.style.overflow = '';
-                                        document.body.style.paddingRight = '';
-                                    }
-                                }
-                            }).then(() => {
-                                // Refresh page after success message disappears
-                                location.reload();
-                            });
-                        }, 2000);
-                    } else {
-                        // Show error message
-                        Swal.fire({
-                            title: 'Error!',
-                            text: data.message || 'An error occurred.',
-                            icon: 'error',
-                            confirmButtonColor: '#1e6031'
-                        });
-                    }
-                })
-                .catch(error => {
-                    console.error('Error details:', error);
-                    Swal.fire({
-                        title: 'Error!',
-                        text: 'An error occurred while submitting the form: ' + error.message,
-                        icon: 'error',
-                        confirmButtonColor: '#1e6031'
-                    });
-                });
-            } else {
-                console.log('Edit form validation failed');
-            }
         });
-    });
-    
+    }
+
+    handleFormSubmit(addModal, addForm, 'Creating Class...');
+    handleFormSubmit(editModal, editForm, 'Updating Class...');
+});
 </script>
 </x-admin-layout>

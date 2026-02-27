@@ -20,6 +20,9 @@ class Subunit extends Model
     
     // Specify the key type
     protected $keyType = 'int';
+    
+    // Disable Laravel's default timestamps since table uses custom column names
+    public $timestamps = false;
 
     /**
      * The attributes that are mass assignable.
@@ -30,7 +33,10 @@ class Subunit extends Model
         'subunit_name',
         'subunit_abbr',
         'unit_id',
+        'subunit_office',
+        'subunit_division',
         'subunit_isactive',
+        'subunit_updated_date',
     ];
 
     /**

@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Edit Modal</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <meta name="csrf-token" content="test-token">
+</head>
+<body>
+    <div class="container mt-5">
+        <h1>Test Edit Employee Modal</h1>
+        
+        <button type="button" class="btn btn-warning" onclick="openEditEmployeeModal(1)">
+            Test Edit Button (ID: 1)
+        </button>
+        
+        <button type="button" class="btn btn-primary" onclick="openEditEmployeeModal(2)">
+            Test Edit Button (ID: 2)
+        </button>
+    </div>
+
+    <!-- Edit Employee Modal -->
+    <div class="modal fade" id="editEmployeeModal" tabindex="-1" aria-labelledby="editEmployeeModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <!-- Modal Header -->
+                <div class="modal-header" style="background-color:#1e6031; color:white;">
+                    <h5 class="modal-title fw-bold" id="editEmployeeModalLabel">
+                        <svg class="inline-block h-5 w-5 text-white mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                        </svg>
+                        Edit Employee
+                    </h5>
+                </div>
+                
+                <!-- Modal Body -->
+                <form method="post" action="" id="editEmployeeForm">
+                    <div class="modal-body px-4 py-3">
+                        <!-- Loading indicator -->
+                        <div id="editModalLoading" class="text-center py-4">
+                            <div class="spinner-border text-success" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <p class="mt-2">Loading employee data...</p>
+                        </div>
+                        
+                        <!-- Personal Information Section -->
+                        <div id="editPersonalInfoSection" style="display: none;">
+                            <h6 class="fw-bold text-success mb-3">Personal Information</h6>
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label class="small fw-semibold text-success">First Name</label>
+                                    <input type="text" class="form-control" id="edit_first_name" placeholder="First Name">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="small fw-semibold text-success">Last Name</label>
+                                    <input type="text" class="form-control" id="edit_last_name" placeholder="Last Name">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Modal Footer -->
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-success">Update Employee</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Test function to load employee data
+        window.loadEmployeeData = function(employeeId) {
+            console.log('Loading employee data for ID:', employeeId);
+            
+            // Show loading indicator
+            const loadingIndicator = document.getElementById('editModalLoading');
+            const personalInfoSection = document.getElementById('editPersonalInfoSection');
+            
+            if (loadingIndicator) loadingIndicator.style.display = 'block';
+            if (personalInfoSection) personalInfoSection.style.display = 'none';
+            
+            // Simulate loading data
+            setTimeout(() => {
+                // Hide loading and show data
+                if (loadingIndicator) loadingIndicator.style.display = 'none';
+                if (personalInfoSection) personalInfoSection.style.display = 'block';
+                
+                // Populate with test data
+                document.getElementById('edit_first_name').value = 'Test First Name ' + employeeId;
+                document.getElementById('edit_last_name').value = 'Test Last Name ' + employeeId;
+                
+                console.log('Employee data loaded for ID:', employeeId);
+            }, 1000);
+        };
+        
+        // Function to open the edit employee modal
+        function openEditEmployeeModal(employeeId) {
+            console.log('Edit button clicked, employeeId:', employeeId);
+            
+            // Check if modal element exists
+            const modalElement = document.getElementById('editEmployeeModal');
+            if (!modalElement) {
+                console.error('Edit modal element not found!');
+                alert('Error: Edit modal not found.');
+                return;
+            }
+            
+            try {
+                // Load employee data and show modal
+                loadEmployeeData(employeeId);
+                var myModal = new bootstrap.Modal(modalElement);
+                myModal.show();
+                console.log('Modal opened successfully');
+            } catch (error) {
+                console.error('Error opening modal:', error);
+                alert('Error opening modal: ' + error.message);
+            }
+        }
+        
+        // Test on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Test page loaded');
+            console.log('loadEmployeeData function exists:', typeof loadEmployeeData === 'function');
+            console.log('bootstrap available:', typeof bootstrap !== 'undefined');
+        });
+    </script>
+</body>
+</html>

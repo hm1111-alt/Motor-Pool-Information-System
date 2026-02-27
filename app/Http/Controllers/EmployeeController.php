@@ -106,7 +106,7 @@ class EmployeeController extends Controller
         // Load subunits for all units
         $allUnits = Unit::all();
         foreach ($allUnits as $unit) {
-            $cascadingData['subunits'][$unit->id_unit] = Subunit::where('unit_id', $unit->id_unit)->get();
+            $cascadingData['subunits'][$unit->id] = Subunit::where('unit_id', $unit->id)->get();
         }
         
         if ($request->wantsJson() || $request->ajax()) {
@@ -152,7 +152,7 @@ class EmployeeController extends Controller
         // Load subunits for all units
         $allUnits = Unit::all();
         foreach ($allUnits as $unit) {
-            $cascadingData['subunits'][$unit->id_unit] = Subunit::where('unit_id', $unit->id_unit)->get();
+            $cascadingData['subunits'][$unit->id] = Subunit::where('unit_id', $unit->id)->get();
         }
         
         return view('admin.employees.create', compact('offices', 'classes', 'divisions', 'units', 'subunits', 'cascadingData'));
@@ -161,126 +161,157 @@ class EmployeeController extends Controller
     /**
      * Store a newly created employee in storage.
      */
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request): RedirectResponse|JsonResponse
     {
         $request->validate([
             'first_name' => 'required|string|max:255',
             'last_name' => 'required|string|max:255',
-            'middle_initial' => 'nullable|string|max:10',
+            'middle_name' => 'nullable|string|max:255',
             'ext_name' => 'nullable|string|max:10',
             'sex' => 'required|string|in:M,F',
             'prefix' => 'nullable|string|max:10',
+            'contact_num' => 'nullable|string|max:20',
             'email' => 'required|email|unique:users,email',
             'password' => 'required|string|min:8|confirmed',
             'position_name' => 'required|string|max:255',
             'office_id' => 'nullable|exists:offices,id',
             'division_id' => 'nullable|exists:lib_divisions,id_division',
-            'unit_id' => 'nullable|exists:lib_units,id_unit',
+            'unit_id' => 'nullable|exists:lib_units,id',
             'subunit_id' => 'nullable|exists:lib_subunits,id_subunit',
             'class_id' => 'nullable|exists:lib_class,id_class',
             'additional_positions' => 'nullable|array',
             'additional_positions.*.position_name' => 'nullable|string|max:255',
             'additional_positions.*.office_id' => 'nullable|exists:offices,id',
             'additional_positions.*.division_id' => 'nullable|exists:lib_divisions,id_division',
-            'additional_positions.*.unit_id' => 'nullable|exists:lib_units,id_unit',
+            'additional_positions.*.unit_id' => 'nullable|exists:lib_units,id',
             'additional_positions.*.subunit_id' => 'nullable|exists:lib_subunits,id_subunit',
             'additional_positions.*.class_id' => 'nullable|exists:lib_class,id_class',
         ]);
 
         // Handle checkbox values properly - always set emp_status to active (1)
         $isActive = 1; // Default to active
-
-        // Create the user first
-        $user = User::create([
-            'name' => $request->first_name . ' ' . $request->last_name,
-            'email' => $request->email,
-            'password' => bcrypt($request->password),
-            'role' => User::ROLE_EMPLOYEE,
-        ]);
-
-        // Create the employee and link to the user
-        $employee = Employee::create([
-            'user_id' => $user->id,
-            'first_name' => $request->first_name,
-            'last_name' => $request->last_name,
-            'middle_initial' => $request->middle_initial,
-            'ext_name' => $request->ext_name,
-            'full_name' => $request->first_name . ' ' . $request->last_name,
-            'full_name2' => $request->last_name . ', ' . $request->first_name,
-            'sex' => $request->sex,
-            'prefix' => $request->prefix,
-            'emp_status' => $isActive,
-        ]);
         
-        // Create the primary position record with role
-        \App\Models\EmpPosition::create([
-            'employee_id' => $employee->id,
-            'position_name' => $request->position_name,
-            'office_id' => $request->office_id,
-            'division_id' => $request->division_id,
-            'unit_id' => $request->unit_id,
-            'subunit_id' => $request->subunit_id,
-            'class_id' => $request->class_id,
-            'is_primary' => true,
-            'is_unit_head' => false,
-            'is_division_head' => false,
-            'is_vp' => false,
-            'is_president' => false,
-        ]);
+        // Wrap the entire employee creation process in a transaction
+        \DB::beginTransaction();
         
-        // Process additional positions if provided
-        if ($request->has('additional_positions')) {
-            foreach ($request->additional_positions as $position) {
-                if (!empty($position['position_name'])) {
-                    \App\Models\EmpPosition::create([
-                        'employee_id' => $employee->id,
-                        'position_name' => $position['position_name'],
-                        'office_id' => $position['office_id'] ?? null,
-                        'division_id' => $position['division_id'] ?? null,
-                        'unit_id' => $position['unit_id'] ?? null,
-                        'subunit_id' => $position['subunit_id'] ?? null,
-                        'class_id' => $position['class_id'] ?? null,
-                        'is_primary' => false,
-                        'is_unit_head' => false,
-                        'is_division_head' => false,
-                        'is_vp' => false,
-                        'is_president' => false,
-                    ]);
+        try {
+            // Create the user first
+            $user = User::create([
+                'name' => $request->first_name . ' ' . $request->last_name,
+                'email' => $request->email,
+                'contact_num' => $request->contact_num,
+                'password' => bcrypt($request->password),
+                'role' => User::ROLE_EMPLOYEE,
+            ]);
+    
+            // Create the employee and link to the user
+            $employee = Employee::create([
+                'user_id' => $user->id,
+                'first_name' => $request->first_name,
+                'last_name' => $request->last_name,
+                'middle_name' => $request->middle_name,
+                'ext_name' => $request->ext_name,
+                'full_name' => trim(implode(' ', array_filter([$request->prefix, $request->first_name, $request->middle_name ? substr($request->middle_name, 0, 1) . '.' : '', $request->last_name, $request->ext_name]))),
+                'full_name2' => trim($request->last_name . ', ' . $request->first_name . ' ' . ($request->middle_name ? substr($request->middle_name, 0, 1) . '.' : '')),
+                'sex' => $request->sex,
+                'prefix' => $request->prefix,
+                'contact_num' => $request->contact_num,
+                'emp_status' => $isActive,
+            ]);
+            
+            // Create the primary position record with role
+            \App\Models\EmpPosition::create([
+                'employee_id' => $employee->id,
+                'position_name' => $request->position_name,
+                'office_id' => $request->office_id,
+                'division_id' => $request->division_id,
+                'unit_id' => $request->unit_id,
+                'subunit_id' => $request->subunit_id,
+                'class_id' => $request->class_id,
+                'is_primary' => true,
+                'is_unit_head' => false,
+                'is_division_head' => false,
+                'is_vp' => false,
+                'is_president' => false,
+            ]);
+            
+            // Process additional positions if provided
+            if ($request->has('additional_positions')) {
+                foreach ($request->additional_positions as $position) {
+                    if (!empty($position['position_name'])) {
+                        \App\Models\EmpPosition::create([
+                            'employee_id' => $employee->id,
+                            'position_name' => $position['position_name'],
+                            'office_id' => $position['office_id'] ?? null,
+                            'division_id' => $position['division_id'] ?? null,
+                            'unit_id' => $position['unit_id'] ?? null,
+                            'subunit_id' => $position['subunit_id'] ?? null,
+                            'class_id' => $position['class_id'] ?? null,
+                            'is_primary' => false,
+                            'is_unit_head' => false,
+                            'is_division_head' => false,
+                            'is_vp' => false,
+                            'is_president' => false,
+                        ]);
+                    }
                 }
             }
-        }
 
-        // Create officer record if any position has a leadership role
-        $hasLeadershipRole = $employee->positions()->where(function($query) {
-            $query->where('is_unit_head', true)
-                  ->orWhere('is_division_head', true)
-                  ->orWhere('is_vp', true)
-                  ->orWhere('is_president', true);
-        })->exists();
+            // Create officer record if any position has a leadership role
+            $hasLeadershipRole = $employee->positions()->where(function($query) {
+                $query->where('is_unit_head', true)
+                      ->orWhere('is_division_head', true)
+                      ->orWhere('is_vp', true)
+                      ->orWhere('is_president', true);
+            })->exists();
 
-        if ($hasLeadershipRole) {
-            $primaryPosition = $employee->positions()->where('is_primary', true)->first();
-            $officerData = [
-                'employee_id' => $employee->id,
-                'unit_head' => $primaryPosition && $primaryPosition->is_unit_head,
-                'division_head' => $primaryPosition && $primaryPosition->is_division_head,
-                'vp' => $primaryPosition && $primaryPosition->is_vp,
-                'president' => $primaryPosition && $primaryPosition->is_president,
-            ];
+            if ($hasLeadershipRole) {
+                $primaryPosition = $employee->positions()->where('is_primary', true)->first();
+                $officerData = [
+                    'employee_id' => $employee->id,
+                    'unit_head' => $primaryPosition && $primaryPosition->is_unit_head,
+                    'division_head' => $primaryPosition && $primaryPosition->is_division_head,
+                    'vp' => $primaryPosition && $primaryPosition->is_vp,
+                    'president' => $primaryPosition && $primaryPosition->is_president,
+                ];
+                
+                Officer::create($officerData);
+            }
+
+            // Commit the transaction
+            \DB::commit();
             
-            Officer::create($officerData);
-        }
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Employee created successfully.',
+                    'data' => $employee
+                ]);
+            }
 
-        if ($request->wantsJson()) {
-            return response()->json([
-                'success' => true,
-                'message' => 'Employee created successfully.',
-                'data' => $employee
+            return redirect()->route('admin.employees.index')
+                             ->with('success', 'Employee created successfully.');
+        } catch (\Exception $e) {
+            // Rollback the transaction if any error occurs
+            \DB::rollback();
+            
+            // Log the error for debugging
+            \Log::error('Employee creation failed: ' . $e->getMessage(), [
+                'exception' => $e,
+                'request_data' => $request->except(['password', 'password_confirmation'])
             ]);
+            
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Failed to create employee: ' . $e->getMessage()
+                ], 500);
+            }
+            
+            return redirect()->back()
+                ->withErrors(['error' => 'Failed to create employee: ' . $e->getMessage()])
+                ->withInput();
         }
-
-        return redirect()->route('admin.employees.index')
-                         ->with('success', 'Employee created successfully.');
     }
 
     /**
@@ -323,6 +354,62 @@ class EmployeeController extends Controller
     }
 
     /**
+     * Get employee data for modal editing.
+     */
+    public function getEmployeeData(Employee $employee): JsonResponse
+    {
+        try {
+            \Log::info('Fetching employee data for ID: ' . $employee->id);
+            \Log::info('Employee data before loading relationships: ', $employee->toArray());
+            
+            $employee->load(['user', 'positions', 'positions.office', 'positions.division', 'positions.unit', 'positions.subunit', 'positions.class']);
+            
+            \Log::info('Employee data after loading relationships: ', $employee->toArray());
+            \Log::info('Employee positions count: ' . $employee->positions->count());
+            \Log::info('Employee positions: ', $employee->positions->toArray());
+            \Log::info('Employee user: ', $employee->user ? $employee->user->toArray() : null);
+            
+            // Log each position separately
+            foreach ($employee->positions as $index => $position) {
+                \Log::info("Position {$index}: ", [
+                    'id' => $position->id,
+                    'position_name' => $position->position_name,
+                    'is_primary' => $position->is_primary,
+                    'class_id' => $position->class_id,
+                    'office_id' => $position->office_id,
+                    'division_id' => $position->division_id,
+                    'unit_id' => $position->unit_id,
+                    'subunit_id' => $position->subunit_id,
+                    'has_office' => $position->office ? 'Yes' : 'No',
+                    'has_division' => $position->division ? 'Yes' : 'No',
+                    'has_unit' => $position->unit ? 'Yes' : 'No',
+                    'has_subunit' => $position->subunit ? 'Yes' : 'No',
+                    'has_class' => $position->class ? 'Yes' : 'No',
+                ]);
+            }
+            
+            $responseData = [
+                'success' => true,
+                'employee' => $employee
+            ];
+            
+            \Log::info('Response data: ', $responseData);
+            
+            return response()->json($responseData);
+        } catch (\Exception $e) {
+            \Log::error('Error in getEmployeeData: ' . $e->getMessage(), [
+                'exception' => $e,
+                'employee_id' => $employee->id
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to load employee data: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
      * Show the form for editing the specified employee.
      */
     public function edit(Employee $employee): View
@@ -352,7 +439,7 @@ class EmployeeController extends Controller
         // Load subunits for all units
         $allUnits = Unit::all();
         foreach ($allUnits as $unit) {
-            $cascadingData['subunits'][$unit->id_unit] = Subunit::where('unit_id', $unit->id_unit)->get();
+            $cascadingData['subunits'][$unit->id] = Subunit::where('unit_id', $unit->id)->get();
         }
         
         // Get related divisions, units, and subunits based on primary position
@@ -378,7 +465,7 @@ class EmployeeController extends Controller
         $request->validate([
             'first_name' => 'required|string|max:255',
             'last_name' => 'required|string|max:255',
-            'middle_initial' => 'nullable|string|max:10',
+            'middle_name' => 'nullable|string|max:255',
             'ext_name' => 'nullable|string|max:10',
             'sex' => 'required|string|in:M,F',
             'prefix' => 'nullable|string|max:10',
@@ -389,7 +476,7 @@ class EmployeeController extends Controller
             'position_name' => 'required|string|max:255',
             'office_id' => 'nullable|exists:offices,id',
             'division_id' => 'nullable|exists:lib_divisions,id_division',
-            'unit_id' => 'nullable|exists:lib_units,id_unit',
+            'unit_id' => 'nullable|exists:lib_units,id',
             'subunit_id' => 'nullable|exists:lib_subunits,id_subunit',
             'class_id' => 'nullable|exists:lib_class,id_class',
             'additional_positions' => 'nullable|array',
@@ -397,47 +484,53 @@ class EmployeeController extends Controller
             'additional_positions.*.position_name' => 'nullable|string|max:255',
             'additional_positions.*.office_id' => 'nullable|exists:offices,id',
             'additional_positions.*.division_id' => 'nullable|exists:lib_divisions,id_division',
-            'additional_positions.*.unit_id' => 'nullable|exists:lib_units,id_unit',
+            'additional_positions.*.unit_id' => 'nullable|exists:lib_units,id',
             'additional_positions.*.subunit_id' => 'nullable|exists:lib_subunits,id_subunit',
             'additional_positions.*.class_id' => 'nullable|exists:lib_class,id_class',
         ]);
 
         // Handle status properly
         $isActive = $request->emp_status;
-
-        // Update the user if it exists
-        if ($employee->user) {
-            $userData = [
-                'name' => $request->first_name . ' ' . $request->last_name,
-                'email' => $request->email,
-            ];
-            
-            // Only update password if provided
-            if ($request->filled('password')) {
-                $userData['password'] = bcrypt($request->password);
+        
+        // Wrap the entire employee update process in a transaction
+        \DB::beginTransaction();
+        
+        try {
+            // Update the user if it exists
+            if ($employee->user) {
+                $userData = [
+                    'name' => $request->first_name . ' ' . $request->last_name,
+                    'email' => $request->email,
+                    'contact_num' => $request->contact_num,
+                ];
+                
+                // Only update password if provided
+                if ($request->filled('password')) {
+                    $userData['password'] = bcrypt($request->password);
+                }
+                
+                $employee->user->update($userData);
+            } else {
+                // Create user if it doesn't exist
+                $user = User::create([
+                    'name' => $request->first_name . ' ' . $request->last_name,
+                    'email' => $request->email,
+                    'contact_num' => $request->contact_num,
+                    'password' => bcrypt($request->password),
+                    'role' => User::ROLE_EMPLOYEE,
+                ]);
+                
+                // Update employee with user_id
+                $employee->user_id = $user->id;
             }
-            
-            $employee->user->update($userData);
-        } else {
-            // Create user if it doesn't exist
-            $user = User::create([
-                'name' => $request->first_name . ' ' . $request->last_name,
-                'email' => $request->email,
-                'password' => bcrypt($request->password),
-                'role' => User::ROLE_EMPLOYEE,
-            ]);
-            
-            // Update employee with user_id
-            $employee->user_id = $user->id;
-        }
 
         $employee->update([
             'first_name' => $request->first_name,
             'last_name' => $request->last_name,
-            'middle_initial' => $request->middle_initial,
+            'middle_name' => $request->middle_name,
             'ext_name' => $request->ext_name,
-            'full_name' => $request->first_name . ' ' . $request->last_name,
-            'full_name2' => $request->last_name . ', ' . $request->first_name,
+            'full_name' => trim(implode(' ', array_filter([$request->prefix, $request->first_name, $request->middle_name ? substr($request->middle_name, 0, 1) . '.' : '', $request->last_name, $request->ext_name]))),
+            'full_name2' => trim($request->last_name . ', ' . $request->first_name . ' ' . ($request->middle_name ? substr($request->middle_name, 0, 1) . '.' : '')),
             'sex' => $request->sex,
             'prefix' => $request->prefix,
             'contact_num' => $request->contact_num,
@@ -484,9 +577,11 @@ class EmployeeController extends Controller
             // Process each additional position
             foreach ($request->additional_positions as $positionData) {
                 if (!empty($positionData['position_name'])) {
-                    if (isset($positionData['id']) && in_array($positionData['id'], $existingPositionIds)) {
+                    // Check if this is an existing position (has ID and ID exists in database)
+                    $positionId = $positionData['id'] ?? null;
+                    if ($positionId && is_numeric($positionId) && in_array($positionId, $existingPositionIds)) {
                         // Update existing position
-                        $position = \App\Models\EmpPosition::find($positionData['id']);
+                        $position = \App\Models\EmpPosition::find($positionId);
                         if ($position) {
                             $position->update([
                                 'position_name' => $positionData['position_name'],
@@ -502,9 +597,9 @@ class EmployeeController extends Controller
                             ]);
                         }
                         // Remove from existing IDs array to track which ones were processed
-                        $existingPositionIds = array_diff($existingPositionIds, [$positionData['id']]);
+                        $existingPositionIds = array_diff($existingPositionIds, [$positionId]);
                     } else {
-                        // Create new position
+                        // Create new position (either no ID provided or ID doesn't exist)
                         \App\Models\EmpPosition::create([
                             'employee_id' => $employee->id,
                             'position_name' => $positionData['position_name'],
@@ -570,6 +665,9 @@ class EmployeeController extends Controller
             }
         }
 
+        // Commit the transaction
+        \DB::commit();
+        
         if ($request->wantsJson()) {
             return response()->json([
                 'success' => true,
@@ -580,6 +678,27 @@ class EmployeeController extends Controller
 
         return redirect()->route('admin.employees.index')
                          ->with('success', 'Employee updated successfully.');
+    } catch (\Exception $e) {
+        // Rollback the transaction if any error occurs
+        \DB::rollback();
+        
+        // Log the error for debugging
+        \Log::error('Employee update failed: ' . $e->getMessage(), [
+            'exception' => $e,
+            'request_data' => $request->except(['password', 'password_confirmation'])
+        ]);
+        
+        if ($request->wantsJson()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to update employee: ' . $e->getMessage()
+            ], 500);
+        }
+        
+        return redirect()->back()
+            ->withErrors(['error' => 'Failed to update employee: ' . $e->getMessage()])
+            ->withInput();
+    }
     }
 
     /**
@@ -723,7 +842,7 @@ class EmployeeController extends Controller
             if ($units->count() > 0) {
                 $sampleUnits = $units->take(3)->map(function($unit) {
                     return [
-                        'id_unit' => $unit->id_unit,
+                        'id_unit' => $unit->id,
                         'unit_name' => $unit->unit_name
                     ];
                 });
@@ -774,4 +893,5 @@ class EmployeeController extends Controller
             return response()->json(['error' => $e->getMessage()], 500);
         }
     }
+    
 }

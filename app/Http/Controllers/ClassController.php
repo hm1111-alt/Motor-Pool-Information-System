@@ -38,27 +38,19 @@ class ClassController extends Controller
     }
 
     /**
-     * Show the form for creating a new class.
-     */
-    public function create(): View
-    {
-        return view('admin.classes.create');
-    }
-
-    /**
      * Store a newly created class in storage.
      */
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request): RedirectResponse|JsonResponse
     {
         $request->validate([
-            'class_name' => 'required|string|max:255|unique:class,class_name',
+            'class_name' => 'required|string|max:255|unique:lib_class,class_name',
         ]);
 
         $class = ClassModel::create([
             'class_name' => $request->class_name,
         ]);
 
-        if ($request->wantsJson()) {
+        if ($request->wantsJson() || $request->ajax()) {
             return response()->json([
                 'success' => true,
                 'message' => 'Class created successfully.',
@@ -71,27 +63,19 @@ class ClassController extends Controller
     }
 
     /**
-     * Show the form for editing the specified class.
-     */
-    public function edit(ClassModel $class): View
-    {
-        return view('admin.classes.edit', compact('class'));
-    }
-
-    /**
      * Update the specified class in storage.
      */
     public function update(Request $request, ClassModel $class): RedirectResponse|JsonResponse
     {
         $request->validate([
-            'class_name' => 'required|string|max:255|unique:class,class_name,' . $class->id,
+            'class_name' => 'required|string|max:255|unique:lib_class,class_name,' . $class->id_class . ',id_class',
         ]);
 
         $class->update([
             'class_name' => $request->class_name,
         ]);
 
-        if ($request->wantsJson()) {
+        if ($request->wantsJson() || $request->ajax()) {
             return response()->json([
                 'success' => true,
                 'message' => 'Class updated successfully.',
@@ -109,18 +93,13 @@ class ClassController extends Controller
     public function destroy(ClassModel $class): RedirectResponse|JsonResponse
     {
         try {
-            // Check for dependent records with detailed counts
-            $employeePositionCount = \App\Models\EmpPosition::where('class_id', $class->id)->count();
+            // Check for dependent records
+            $employeePositionCount = \App\Models\EmpPosition::where('class_id', $class->id_class)->count();
             
-            // If there are dependent records, provide detailed error message
             if ($employeePositionCount > 0) {
-                $message = "Cannot delete class '{$class->class_name}' because it has dependent records:";
-                
-                if ($employeePositionCount > 0) {
-                    $message .= "\n- {$employeePositionCount} employee position(s)";
-                }
-                
-                $message .= "\n\nPlease reassign or delete these dependent records before deleting the class.";
+                $message = "Cannot delete class '{$class->class_name}' because it has dependent records:\n";
+                $message .= "- {$employeePositionCount} employee position(s)\n";
+                $message .= "\nPlease reassign or delete these dependent records before deleting the class.";
                 
                 if (request()->wantsJson() || request()->ajax()) {
                     return response()->json([
@@ -136,7 +115,6 @@ class ClassController extends Controller
                                  ->with('error', $message);
             }
             
-            // Safe to delete
             $className = $class->class_name;
             $class->delete();
             
@@ -153,7 +131,7 @@ class ClassController extends Controller
                              ->with('success', $successMessage);
         } catch (\Exception $e) {
             \Log::error('Error deleting class: ' . $e->getMessage());
-            \Log::error('Class ID: ' . $class->id . ', Name: ' . $class->class_name);
+            \Log::error('Class ID: ' . $class->id_class . ', Name: ' . $class->class_name);
             
             $errorMessage = 'There was an error deleting the class: ' . $e->getMessage();
             

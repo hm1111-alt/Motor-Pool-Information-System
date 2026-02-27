@@ -177,7 +177,7 @@
             <!-- FORM -->
             <form method="POST" id="editDivisionForm">
                 @csrf
-                @method('PUT')
+
                 <div class="modal-body px-3 py-2">
                     <!-- Office -->
                     <div class="mb-2">
@@ -374,46 +374,54 @@
             });
         }
         
-        // Handle edit modal opening
-        const editModal = document.getElementById('editDivisionModal');
-        editModal.addEventListener('show.bs.modal', function(event) {
-            const button = event.relatedTarget; // Button that triggered the modal
-            const id = button.getAttribute('data-id');
-            const name = button.getAttribute('data-name');
-            const abbreviation = button.getAttribute('data-abbreviation');
-            const code = button.getAttribute('data-code');
-            const status = button.getAttribute('data-status');
-            const officeId = button.getAttribute('data-office-id');
-            
-            // Store original data (database values)
-            editModal.originalData = {
-                name: name,
-                abbreviation: abbreviation,
-                code: code,
-                status: status,
-                officeId: officeId
-            };
-            
-            // Check if we have stored edited data from a previous session (closed via backdrop/X)
-            if (editModal.editedData) {
-                // Use previously edited data if modal was closed without canceling
-                document.getElementById('edit_division_name').value = editModal.editedData.name;
-                document.getElementById('edit_division_abbreviation').value = editModal.editedData.abbreviation;
-                document.getElementById('edit_division_code').value = editModal.editedData.code;
-                document.getElementById('edit_division_status').value = editModal.editedData.status;
-                document.getElementById('edit_office_id').value = editModal.editedData.officeId;
-            } else {
-                // Otherwise use original data
-                document.getElementById('edit_division_name').value = name;
-                document.getElementById('edit_division_abbreviation').value = abbreviation;
-                document.getElementById('edit_division_code').value = code;
-                document.getElementById('edit_division_status').value = status;
-                document.getElementById('edit_office_id').value = officeId;
-            }
-            
-            // Update form action
-            document.getElementById('editDivisionForm').action = `/admin/divisions/${id}`;
-        });
+    // Handle edit modal opening
+const editModal = document.getElementById('editDivisionModal');
+editModal.addEventListener('show.bs.modal', function(event) {
+    const button = event.relatedTarget; // Button that triggered the modal
+    const id = button.getAttribute('data-id');
+
+    const name = button.getAttribute('data-name');
+    const abbreviation = button.getAttribute('data-abbreviation');
+    const code = button.getAttribute('data-code');
+    const status = button.getAttribute('data-status');
+    const officeId = button.getAttribute('data-office-id');
+    
+    // Store original data (database values)
+    editModal.originalData = {
+        name: name,
+        abbreviation: abbreviation,
+        code: code,
+        status: status,
+        officeId: officeId
+    };
+    
+    // Check if we have stored edited data from a previous session (closed via backdrop/X)
+    if (editModal.editedData) {
+        // Use previously edited data if modal was closed without canceling
+        document.getElementById('edit_division_name').value = editModal.editedData.name;
+        document.getElementById('edit_division_abbreviation').value = editModal.editedData.abbreviation;
+        document.getElementById('edit_division_code').value = editModal.editedData.code;
+        document.getElementById('edit_division_status').value = editModal.editedData.status;
+        document.getElementById('edit_office_id').value = editModal.editedData.officeId;
+    } else {
+        // Otherwise use original data
+        document.getElementById('edit_division_name').value = name;
+        document.getElementById('edit_division_abbreviation').value = abbreviation;
+        document.getElementById('edit_division_code').value = code;
+        document.getElementById('edit_division_status').value = status;
+        document.getElementById('edit_office_id').value = officeId;
+    }
+    
+    // Set the correct route for updating divisions
+    document.getElementById('editDivisionForm').action = `/admin/divisions/${id}`;
+    
+    // Add method spoofing for PUT request
+    const methodInput = document.createElement('input');
+    methodInput.type = 'hidden';
+    methodInput.name = '_method';
+    methodInput.value = 'PUT';
+    document.getElementById('editDivisionForm').appendChild(methodInput);
+});
         
         // Handle Add Division modal cancel button
         const addCancelButton = document.getElementById('addDivisionCancelButton');
@@ -483,7 +491,8 @@
         addForm.addEventListener('submit', function(e) {
             e.preventDefault();
             
-            // First show loading alert for 2 seconds
+            // Show loading alert for exactly 2 seconds
+            let loadingStartTime = Date.now();
             Swal.fire({
                 title: 'Creating Division...',
                 text: 'Please wait while we process your request',
@@ -496,128 +505,130 @@
                 }
             });
             
-            // After 2 seconds, show success message that auto-dismisses
-            setTimeout(() => {
-                const formData = new FormData(this);
-                
-                fetch(this.action, {
-                    method: 'POST',
-                    body: formData,
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                    }
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        Swal.fire({
-                            title: 'Success!',
-                            text: data.message,
-                            icon: 'success',
-                            showConfirmButton: false,
-                            timer: 2000,
-                            didOpen: () => {
-                                // Close modal immediately when success alert opens
-                                const addModal = document.getElementById('addDivisionModal');
-                                const modalInstance = bootstrap.Modal.getInstance(addModal);
-                                if (modalInstance) {
-                                    modalInstance.hide();
-                                }
-                            }
-                        }).then(() => {
-                            // Refresh page after success message disappears
-                            location.reload();
-                        });
-                    } else {
-                        Swal.fire({
-                            title: 'Error!',
-                            text: data.message || 'An error occurred.',
-                            icon: 'error',
-                            confirmButtonColor: '#1e6031'
-                        });
-                    }
-                })
-                .catch(error => {
-                    Swal.fire({
-                        title: 'Error!',
-                        text: 'An error occurred while submitting the form.',
-                        icon: 'error',
-                        confirmButtonColor: '#1e6031'
-                    });
-                });
-            }, 2000);
-        });
-        
-        // Handle edit form submission with AJAX
-        editForm.addEventListener('submit', function(e) {
-            e.preventDefault();
+            const formData = new FormData(this);
             
-            // First show loading alert for 2 seconds
-            Swal.fire({
-                title: 'Updating Division...',
-                text: 'Please wait while we process your request',
-                allowOutsideClick: false,
-                allowEscapeKey: false,
-                showConfirmButton: false,
-                timer: 2000,
-                didOpen: () => {
-                    Swal.showLoading();
+            fetch(this.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
                 }
-            });
-            
-            // After 2 seconds, show success message that auto-dismisses
-            setTimeout(() => {
-                const formData = new FormData(this);
-                
-                fetch(this.action, {
-                    method: 'POST',
-                    body: formData,
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                    }
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Calculate remaining time to ensure exactly 2 seconds total
+                    let elapsed = Date.now() - loadingStartTime;
+                    let remainingTime = Math.max(0, 2000 - elapsed);
+                    
+                    // Wait for the remaining time before showing success
+                    setTimeout(() => {
                         Swal.fire({
                             title: 'Success!',
                             text: data.message,
                             icon: 'success',
-                            showConfirmButton: false,
+                            confirmButtonColor: '#1e6031',
                             timer: 2000,
-                            didOpen: () => {
-                                // Close modal immediately when success alert opens
-                                const editModal = document.getElementById('editDivisionModal');
-                                const modalInstance = bootstrap.Modal.getInstance(editModal);
-                                if (modalInstance) {
-                                    modalInstance.hide();
-                                }
-                            }
+                            showConfirmButton: false
                         }).then(() => {
-                            // Refresh page after success message disappears
+                            // Close modal and refresh page
+                            const addModal = document.getElementById('addDivisionModal');
+                            const modalInstance = bootstrap.Modal.getInstance(addModal);
+                            if (modalInstance) {
+                                modalInstance.hide();
+                            }
                             location.reload();
                         });
-                    } else {
-                        Swal.fire({
-                            title: 'Error!',
-                            text: data.message || 'An error occurred.',
-                            icon: 'error',
-                            confirmButtonColor: '#1e6031'
-                        });
-                    }
-                })
-                .catch(error => {
+                    }, remainingTime);
+                } else {
+                    Swal.close(); // Close loading alert
                     Swal.fire({
                         title: 'Error!',
-                        text: 'An error occurred while submitting the form.',
+                        text: data.message || 'An error occurred.',
                         icon: 'error',
                         confirmButtonColor: '#1e6031'
                     });
+                }
+            })
+            .catch(error => {
+                Swal.close(); // Close loading alert
+                Swal.fire({
+                    title: 'Error!',
+                    text: 'An error occurred while submitting the form: ' + error.message,
+                    icon: 'error',
+                    confirmButtonColor: '#1e6031'
                 });
-            }, 2000);
+            });
         });
+       // Handle edit form submission with AJAX
+editForm.addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    // Show loading alert for exactly 2 seconds
+    let loadingStartTime = Date.now();
+    Swal.fire({
+        title: 'Updating Division...',
+        text: 'Please wait while we process your request',
+        allowOutsideClick: false,
+        allowEscapeKey: false,
+        showConfirmButton: false,
+        timer: 2000,
+        didOpen: () => {
+            Swal.showLoading();
+        }
+    });
+    
+    const formData = new FormData(this);
+
+    // Simple POST request - no method spoofing needed!
+    fetch(this.action, {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Calculate remaining time to ensure exactly 2 seconds total
+            let elapsed = Date.now() - loadingStartTime;
+            let remainingTime = Math.max(0, 2000 - elapsed);
+            
+            // Wait for the remaining time before showing success
+            setTimeout(() => {
+                Swal.fire({
+                    title: 'Success!',
+                    text: data.message,
+                    icon: 'success',
+                    confirmButtonColor: '#1e6031',
+                    timer: 2000,
+                    showConfirmButton: false
+                }).then(() => {
+                    bootstrap.Modal.getInstance(editModal).hide();
+                    location.reload();
+                });
+            }, remainingTime);
+        } else {
+            Swal.fire({
+                title: 'Error!',
+                text: data.message || 'An error occurred.',
+                icon: 'error',
+                confirmButtonColor: '#1e6031'
+            });
+        }
+    })
+    .catch(error => {
+        Swal.fire({
+            title: 'Error!',
+            text: error.message,
+            icon: 'error',
+            confirmButtonColor: '#1e6031'
+        });
+    });
+});
     });
 </script>
 </x-admin-layout>

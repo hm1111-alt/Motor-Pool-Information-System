@@ -9,68 +9,59 @@ class Unit extends Model
 {
     use HasFactory;
 
-    // Specify the correct table name
+    // Correct table name
     protected $table = 'lib_units';
     
-    // Specify the primary key
+    // ✅ Correct primary key
     protected $primaryKey = 'id';
     
-    // Disable auto-incrementing if needed
     public $incrementing = true;
-    
-    // Specify the key type
     protected $keyType = 'int';
+    public $timestamps = true;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array<int, string>
-     */
     protected $fillable = [
         'unit_name',
         'unit_abbr',
         'unit_code',
+        'unit_office',
         'unit_division',
         'unit_isactive',
+        'unit_updated_date',
     ];
 
-    /**
-     * The attributes that should be cast.
-     *
-     * @var array<string, string>
-     */
     protected $casts = [
         'unit_isactive' => 'boolean',
         'unit_updated_date' => 'datetime',
     ];
 
-    /**
-     * Get the division that owns the unit.
-     */
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($unit) {
+            $unit->unit_updated_date = now();
+        });
+
+        static::updating(function ($unit) {
+            $unit->unit_updated_date = now();
+        });
+    }
+
     public function division()
     {
         return $this->belongsTo(Division::class, 'unit_division');
     }
 
-    /**
-     * Get the employees for the unit through positions.
-     */
     public function employees()
     {
         return $this->hasManyThrough(Employee::class, EmpPosition::class, 'unit_id', 'id', 'id', 'employee_id');
     }
 
-    /**
-     * Get the positions for the unit.
-     */
     public function positions()
     {
         return $this->hasMany(EmpPosition::class, 'unit_id');
     }
 
-    /**
-     * Get the subunits for the unit.
-     */
     public function subunits()
     {
         return $this->hasMany(Subunit::class, 'unit_id');

@@ -524,6 +524,13 @@ document.addEventListener('DOMContentLoaded', function() {
             
             console.log('Form submission started');
             
+            // Disable submit button to prevent duplicate submissions
+            const submitBtn = form.querySelector('button[type="submit"]');
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm mr-2" role="status" aria-hidden="true"></span> Creating...';
+            }
+            
             // Perform form validation
             const formData = new FormData(form);
             const requiredFields = ['program', 'office_name', 'abbreviation', 'code'];
@@ -617,6 +624,14 @@ document.addEventListener('DOMContentLoaded', function() {
                         icon: 'error',
                         confirmButtonColor: '#1e6031'
                     });
+                })
+                .finally(() => {
+                    // Re-enable the submit button
+                    const submitBtn = form.querySelector('button[type="submit"]');
+                    if (submitBtn) {
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = 'Create Office';
+                    }
                 });
             } else {
                 console.log('Form validation failed');
@@ -628,6 +643,13 @@ document.addEventListener('DOMContentLoaded', function() {
             e.preventDefault();
             
             console.log('Edit form submission started');
+            
+            // Disable submit button to prevent duplicate submissions
+            const submitBtn = editForm.querySelector('button[type="submit"]');
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm mr-2" role="status" aria-hidden="true"></span> Updating...';
+            }
             
             // Perform form validation
             const formData = new FormData(editForm);
@@ -721,6 +743,14 @@ document.addEventListener('DOMContentLoaded', function() {
                         icon: 'error',
                         confirmButtonColor: '#1e6031'
                     });
+                })
+                .finally(() => {
+                    // Re-enable the submit button
+                    const submitBtn = editForm.querySelector('button[type="submit"]');
+                    if (submitBtn) {
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = 'Update Office';
+                    }
                 });
             } else {
                 console.log('Edit form validation failed');

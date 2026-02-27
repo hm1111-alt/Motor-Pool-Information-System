@@ -4,9 +4,9 @@
     <!-- Welcome Section -->
 <div class="bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg border border-green-200 shadow-sm mb-6">
     <div class="px-4 py-3">
-        <div class="flex items-center">
+        <div class="flex items-start">
             <!-- Icon -->
-            <div class="bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg p-2 mr-3 flex-shrink-0">
+            <div class="bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg p-2 mr-3 flex-shrink-0 mt-1">
                 <svg class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
                 </svg>
@@ -14,10 +14,10 @@
             
             <!-- Text Content -->
             <div>
-                <h1 class="text-lg font-semibold text-gray-800">
+                <h1 class="text-lg font-semibold text-gray-800 mb-0">
                     Welcome, {{ Auth::user()->name }}!
                 </h1>
-                <p class="text-gray-600 text-sm mt-1">
+                <p class="text-gray-600 text-sm mt-0">
                     Manage CLSU organizational structure and employee information
                 </p>
             </div>
@@ -398,8 +398,8 @@ a, a:hover, a:visited, a:active, a:focus {
 .bg-gradient-to-br.from-cyan-50.to-blue-50,
 .bg-gradient-to-br.from-blue-50.to-indigo-50,
 .bg-gradient-to-br.from-indigo-50.to-purple-50 {
-    border: none !important;
-    border-bottom: none !important;
+    border: 1px solid #a3d9b1 !important;
+    border-bottom: 1px solid #a3d9b1 !important;
     box-shadow: none !important;
 }
 
