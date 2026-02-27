@@ -13,15 +13,6 @@
 
         <!-- Scripts -->
         @vite(['resources/css/app.css', 'resources/js/app.js'])
-        
-        <!-- Bootstrap CSS -->
-        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-        
-        <!-- Bootstrap JS -->
-        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-        
-        <!-- SweetAlert2 -->
-        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     </head>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -115,6 +106,16 @@
                             <span :class="sidebarOpen ? 'block' : 'hidden'" class="font-medium truncate">Dashboard</span>
                         </a>
                         
+                        <!-- Calendar -->
+                        <a href="{{ route('vehicle-calendar.index') }}" class="flex items-center px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors duration-200 mb-1">
+                            <div class="rounded-lg bg-[#1e6031] p-2 mr-3 flex-shrink-0">
+                                <svg class="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                </svg>
+                            </div>
+                            <span :class="sidebarOpen ? 'block' : 'hidden'" class="font-medium truncate">Calendar</span>
+                        </a>
+                        
                         <!-- My Travel Requests (Regular Employees) -->
                         @if(auth()->user()->employee && !auth()->user()->employee->is_president && !auth()->user()->employee->is_vp && !auth()->user()->employee->is_head && !auth()->user()->employee->is_divisionhead)
                             <a href="{{ route('travel-orders.index') }}" class="flex items-center px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors duration-200 mb-1">
@@ -124,6 +125,16 @@
                                     </svg>
                                 </div>
                                 <span :class="sidebarOpen ? 'block' : 'hidden'" class="font-medium truncate">My Travel Requests</span>
+                            </a>
+                            
+                            <!-- Create Travel Order -->
+                            <a href="{{ route('travel-orders.create') }}" class="flex items-center px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors duration-200 mb-1">
+                                <div class="rounded-lg bg-[#1e6031] p-2 mr-3 flex-shrink-0">
+                                    <svg class="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                                    </svg>
+                                </div>
+                                <span :class="sidebarOpen ? 'block' : 'hidden'" class="font-medium truncate">Create Travel Order</span>
                             </a>
                             
                             <!-- Travel History -->
@@ -391,7 +402,7 @@
                 @endisset
 
                 <!-- Page Content -->
-                <main class="overflow-y-auto h-[calc(100vh-4rem)] employee-panel">
+                <main class="overflow-y-auto h-[calc(100vh-4rem)]">
                     @yield('content')
                     
                 </main>

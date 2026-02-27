@@ -30,6 +30,77 @@
                 </div>
             </div>
 
+            <!-- Action Cards -->
+            <div class="bg-white overflow-hidden shadow-sm rounded-lg mb-6">
+                <div class="p-6">
+                    <h2 class="text-lg font-semibold text-gray-800 mb-4">Quick Actions</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                        <!-- My Travel Requests -->
+                        <div class="bg-gradient-to-br from-green-50 to-green-100 rounded-xl border border-green-200 p-5 transition-all duration-200 hover:shadow-md">
+                            <div class="flex items-start">
+                                <div class="rounded-lg bg-[#1e6031] p-3 flex-shrink-0">
+                                    <svg class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                                    </svg>
+                                </div>
+                                <div class="ml-4">
+                                    <h3 class="text-lg font-semibold text-gray-800">My Travel Requests</h3>
+                                    <p class="text-gray-600 text-sm mt-1 mb-3">Manage your travel requests and view their status.</p>
+                                    <a href="{{ route('travel-orders.index') }}" class="inline-flex items-center px-4 py-2 bg-white border border-green-300 text-green-800 rounded-lg hover:bg-green-50 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 text-sm font-medium transition duration-200 shadow-sm">
+                                        View Requests
+                                        <svg class="ml-1 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                                        </svg>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Create Travel Order -->
+                        <div class="bg-gradient-to-br from-indigo-50 to-indigo-100 rounded-xl border border-indigo-200 p-5 transition-all duration-200 hover:shadow-md">
+                            <div class="flex items-start">
+                                <div class="rounded-lg bg-indigo-600 p-3 flex-shrink-0">
+                                    <svg class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                                    </svg>
+                                </div>
+                                <div class="ml-4">
+                                    <h3 class="text-lg font-semibold text-gray-800">Create Travel Order</h3>
+                                    <p class="text-gray-600 text-sm mt-1 mb-3">Submit a new travel request for approval.</p>
+                                    <a href="{{ route('travel-orders.create') }}" class="inline-flex items-center px-4 py-2 bg-white border border-indigo-300 text-indigo-800 rounded-lg hover:bg-indigo-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 text-sm font-medium transition duration-200 shadow-sm">
+                                        Create Request
+                                        <svg class="ml-1 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                                        </svg>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Calendar -->
+                        <div class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl border border-blue-200 p-5 transition-all duration-200 hover:shadow-md">
+                            <div class="flex items-start">
+                                <div class="rounded-lg bg-blue-600 p-3 flex-shrink-0">
+                                    <svg class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                    </svg>
+                                </div>
+                                <div class="ml-4">
+                                    <h3 class="text-lg font-semibold text-gray-800">Schedule</h3>
+                                    <p class="text-gray-600 text-sm mt-1 mb-3">View your upcoming vehicle assignments and scheduled trips.</p>
+                                    <a href="{{ route('vehicle-calendar.index') }}" class="inline-flex items-center px-4 py-2 bg-white border border-blue-300 text-blue-800 rounded-lg hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 text-sm font-medium transition duration-200 shadow-sm">
+                                        Open Calendar
+                                        <svg class="ml-1 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                                        </svg>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
             <!-- Quick Overview -->
             <div class="bg-white overflow-hidden shadow-sm rounded-lg mb-6">
                 <div class="p-6">
@@ -84,58 +155,6 @@
                                 </div>
                             </div>
                         </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Action Cards -->
-            <div class="bg-white overflow-hidden shadow-sm rounded-lg mb-6">
-                <div class="p-6">
-                    <h2 class="text-lg font-semibold text-gray-800 mb-4">Quick Actions</h2>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
-                        <!-- My Travel Requests -->
-                        <div class="bg-gradient-to-br from-green-50 to-green-100 rounded-xl border border-green-200 p-5 transition-all duration-200 hover:shadow-md">
-                            <div class="flex items-start">
-                                <div class="rounded-lg bg-[#1e6031] p-3 flex-shrink-0">
-                                    <svg class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                                    </svg>
-                                </div>
-                                <div class="ml-4">
-                                    <h3 class="text-lg font-semibold text-gray-800">My Travel Requests</h3>
-                                    <p class="text-gray-600 text-sm mt-1 mb-3">Manage your travel requests and view their status.</p>
-                                    <a href="{{ route('travel-orders.index') }}" class="inline-flex items-center px-4 py-2 bg-white border border-green-300 text-green-800 rounded-lg hover:bg-green-50 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 text-sm font-medium transition duration-200 shadow-sm">
-                                        View Requests
-                                        <svg class="ml-1 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                                        </svg>
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- Create Travel Order -->
-                        <div class="bg-gradient-to-br from-indigo-50 to-indigo-100 rounded-xl border border-indigo-200 p-5 transition-all duration-200 hover:shadow-md">
-                            <div class="flex items-start">
-                                <div class="rounded-lg bg-indigo-600 p-3 flex-shrink-0">
-                                    <svg class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                                    </svg>
-                                </div>
-                                <div class="ml-4">
-                                    <h3 class="text-lg font-semibold text-gray-800">Create Travel Order</h3>
-                                    <p class="text-gray-600 text-sm mt-1 mb-3">Submit a new travel request for approval.</p>
-                                    <button type="button" class="inline-flex items-center px-4 py-2 bg-white border border-indigo-300 text-indigo-800 rounded-lg hover:bg-indigo-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 text-sm font-medium transition duration-200 shadow-sm" data-bs-toggle="modal" data-bs-target="#createTravelOrderModal">
-                                        Create Request
-                                        <svg class="ml-1 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                                        </svg>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                        
-
                     </div>
                 </div>
             </div>
@@ -203,194 +222,3 @@
         </div>
     </div>
 @endsection
-
-<!-- Create Travel Order Modal -->
-<div class="modal fade" id="createTravelOrderModal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog"><!-- default width -->
-    <div class="modal-content rounded-3 shadow">
-
-      <!-- Header -->
-      <div class="modal-header d-flex align-items-center" style="background-color:#1e6031; color:white;">
-        <h5 class="modal-title fw-bold mb-0 flex-grow-1">Create New Travel Request</h5>
-      </div>
-
-      <!-- Form -->
-      <form id="travelOrderForm" action="{{ route('travel-orders.store') }}" method="POST">
-        @csrf
-        <div class="modal-body px-3 py-2">
-
-          <!-- Position -->
-          <div class="mb-2">
-            <label class="form-label small fw-semibold text-success mb-1" style="font-size: 0.75rem;">Position <span class="text-danger">*</span></label>
-            <select name="position_id" id="position_id" required class="form-select form-select-sm border-success py-1 px-2 rounded" style="font-size: 0.75rem; height: 30px;">
-              <option value="">Select a position</option>
-              @foreach($positions as $position)
-                <option value="{{ $position->id }}">
-                  {{ $position->position_name }}
-                  @if($position->office) - {{ $position->office->office_name }} @endif
-                  @if($position->is_unit_head) (Unit Head) @elseif($position->is_division_head) (Division Head) @elseif($position->is_vp) (VP) @elseif($position->is_president) (President) @endif
-                </option>
-              @endforeach
-            </select>
-          </div>
-
-          <!-- Destination -->
-          <div class="mb-2">
-            <label class="form-label small fw-semibold text-success mb-1" style="font-size: 0.75rem;">Destination <span class="text-danger">*</span></label>
-            <input type="text" name="destination" id="destination" class="form-control form-control-sm border-success py-1 px-2 rounded" style="font-size: 0.75rem; height: 30px;" placeholder="Enter destination" required>
-          </div>
-
-          <!-- Date Range -->
-          <div class="row mb-2">
-            <div class="col-md-6">
-              <label class="form-label small fw-semibold text-success mb-1" style="font-size: 0.75rem;">From Date <span class="text-danger">*</span></label>
-              <input type="date" name="date_from" id="date_from" class="form-control form-control-sm border-success py-1 px-2 rounded" style="font-size: 0.75rem; height: 30px;" required>
-            </div>
-            <div class="col-md-6">
-              <label class="form-label small fw-semibold text-success mb-1" style="font-size: 0.75rem;">To Date <span class="text-danger">*</span></label>
-              <input type="date" name="date_to" id="date_to" class="form-control form-control-sm border-success py-1 px-2 rounded" style="font-size: 0.75rem; height: 30px;" required>
-            </div>
-          </div>
-
-          <!-- Departure Time -->
-          <div class="mb-2">
-            <label class="form-label small fw-semibold text-success mb-1" style="font-size: 0.75rem;">Departure Time</label>
-            <input type="time" name="departure_time" id="departure_time" class="form-control form-control-sm border-success py-1 px-2 rounded" style="font-size: 0.75rem; height: 30px;">
-          </div>
-
-          <!-- Purpose -->
-          <div class="mb-2">
-            <label class="form-label small fw-semibold text-success mb-1" style="font-size: 0.75rem;">Purpose <span class="text-danger">*</span></label>
-            <textarea name="purpose" id="purpose" class="form-control form-control-sm border-success py-1 px-2 rounded" style="font-size: 0.75rem; height: 60px;" rows="2" placeholder="Provide a brief description of the purpose of your travel" required></textarea>
-          </div>
-
-        </div>
-
-        <!-- Footer -->
-        <div class="modal-footer py-1 justify-content-end">
-          <button type="button" class="btn btn-sm btn-outline-secondary me-2 py-1" style="font-size: 0.75rem; height: 30px;" data-bs-dismiss="modal" id="cancelTravelOrderBtn">
-            Cancel
-          </button>
-          <button type="submit" class="btn btn-sm btn-success py-1" style="font-size: 0.75rem; height: 30px;" id="createTravelOrderBtn">
-            Save
-          </button>
-        </div>
-
-      </form>
-    </div>
-  </div>
-</div>
-
-<script>
-// Handle form submission via AJAX
-document.addEventListener('DOMContentLoaded', function() {
-  const form = document.getElementById('travelOrderForm');
-  if (form) {
-    form.addEventListener('submit', function(e) {
-      e.preventDefault();
-      
-      // Disable submit button and show loading state
-      const submitBtn = document.getElementById('createTravelOrderBtn');
-      const originalText = submitBtn.innerHTML;
-      submitBtn.disabled = true;
-      submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Saving...';
-      
-      // Clear previous errors
-      document.querySelectorAll('.text-danger').forEach(el => el.textContent = '');
-      document.getElementById('errorMessage').classList.add('d-none');
-      document.getElementById('errorList').innerHTML = '';
-      
-      // Prepare form data
-      const formData = new FormData(form);
-      
-      // Send AJAX request
-      fetch(form.action, {
-        method: 'POST',
-        body: formData,
-        headers: {
-          'X-Requested-With': 'XMLHttpRequest',
-          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-        }
-      })
-      .then(response => response.json())
-      .then(data => {
-        if (data.success) {
-          // Show success message
-          Swal.fire({
-            title: 'Success!',
-            text: data.message || 'Travel request created successfully!',
-            icon: 'success',
-            timer: 2000,
-            showConfirmButton: false
-          }).then(() => {
-            // Close modal
-            const modal = bootstrap.Modal.getInstance(document.getElementById('createTravelOrderModal'));
-            if (modal) {
-              modal.hide();
-            }
-            
-            // Reset form
-            form.reset();
-            
-            // Reload the page to show updated data
-            location.reload();
-          });
-        } else {
-          // Show validation errors
-          if (data.errors) {
-            Object.keys(data.errors).forEach(field => {
-              const input = document.querySelector(`[name="${field}"]`);
-              if (input) {
-                input.classList.add('is-invalid');
-                const errorDiv = document.createElement('div');
-                errorDiv.className = 'invalid-feedback';
-                errorDiv.textContent = data.errors[field][0];
-                input.parentNode.appendChild(errorDiv);
-              }
-            });
-          }
-          
-          // Show general error message
-          if (data.message) {
-            Swal.fire({
-              title: 'Error!',
-              text: data.message,
-              icon: 'error'
-            });
-          }
-          
-          // Re-enable submit button
-          submitBtn.disabled = false;
-          submitBtn.innerHTML = originalText;
-        }
-      })
-      .catch(error => {
-        console.error('Error:', error);
-        Swal.fire({
-          title: 'Error!',
-          text: 'An error occurred while creating the travel request. Please try again.',
-          icon: 'error'
-        });
-        
-        // Re-enable submit button
-        submitBtn.disabled = false;
-        submitBtn.innerHTML = originalText;
-      });
-    });
-  }
-  
-  // Reset form when modal is closed
-  const modal = document.getElementById('createTravelOrderModal');
-  if (modal) {
-    modal.addEventListener('hidden.bs.modal', function () {
-      const form = document.getElementById('travelOrderForm');
-      if (form) {
-        form.reset();
-        // Clear validation errors
-        document.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
-        document.querySelectorAll('.invalid-feedback').forEach(el => el.remove());
-      }
-    });
-  }
-});
-</script>
