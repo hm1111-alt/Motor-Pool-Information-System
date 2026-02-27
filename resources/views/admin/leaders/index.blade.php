@@ -2,9 +2,9 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <script>
-        // Pass employee data to JavaScript
+        // Pass employee data to JavaScript (sorted by first name alphabetically)
         window.employeeData = [
-            @foreach(\App\Models\Employee::with('officer')->get() as $emp)
+            @foreach(\App\Models\Employee::with('officer')->orderBy('first_name')->orderBy('last_name')->get() as $emp)
                 {
                     id: {{ $emp->id }},
                     first_name: "{{ addslashes($emp->first_name) }}",
